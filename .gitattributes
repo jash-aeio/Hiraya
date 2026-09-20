@@ -1,0 +1,7 @@
+# Normalize line endings. The repository is developed on Windows and CI runs on
+# Linux; without this, every file committed from either side shows as fully
+# rewritten to the other, which buries real changes in a diff nobody reads.
+* text=auto eol=lf
+
+# Generated migration SQL: checked in, reviewed by hand, never reformatted.
+drizzle/*.sql linguist-generated=false
