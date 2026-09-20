@@ -267,6 +267,149 @@ describe("check-in integrity foundations", () => {
   });
 });
 
+function officerOf(tenant: Tenant) {
+  // Officers are learners holding an org-scoped grant, which is how the claim
+  // shape actually arrives at the database.
+  return {
+    schoolId: tenant.schoolId,
+    profileId: tenant.learnerProfileId,
+    roles: ["learner"],
+    orgGrants: [{ orgId: tenant.orgId, role: "org_officer" }],
+  };
+}
+
+describe("approval chain (docs/SYSTEM_DESIGN.md §3.1)", () => {
+  it("lets an officer open an approval request without a decision", async () => {
+    const [event] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, status)
+      VALUES (${schoolA.schoolId}, ${schoolA.orgId}, 'Officer Submission',
+              now() + interval '3 days', now() + interval '4 days', 'pending')
+      RETURNING id
+    `;
+    await asUser(db.sql, officerOf(schoolA), async (tx) => {
+      await tx`
+        INSERT INTO event_approvals (school_id, event_id, role)
+        VALUES (${schoolA.schoolId}, ${event!.id}, 'org_adviser')
+      `;
+    });
+    const [row] = await db.sql<{ decision: string | null }[]>`
+      SELECT decision FROM event_approvals WHERE event_id = ${event!.id}
+    `;
+    expect(row?.decision).toBeNull();
+  });
+
+  it("does not let an officer approve their own org's event", async () => {
+    // The load-bearing rule: attendance is only worth something because an
+    // adviser signed the event off. An officer writing decision='approved'
+    // directly would remove the teacher from the loop entirely.
+    const [event] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, status)
+      VALUES (${schoolA.schoolId}, ${schoolA.orgId}, 'Self Approval Attempt',
+              now() + interval '5 days', now() + interval '6 days', 'pending')
+      RETURNING id
+    `;
+    await expect(
+      asUser(db.sql, officerOf(schoolA), async (tx) => {
+        await tx`
+          INSERT INTO event_approvals (school_id, event_id, role, decision, decided_at)
+          VALUES (${schoolA.schoolId}, ${event!.id}, 'org_adviser', 'approved', now())
+        `;
+      }),
+    ).rejects.toThrow(/row-level security/i);
+  });
+
+  it("does not let an officer move an event to approved", async () => {
+    const [event] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, status)
+      VALUES (${schoolA.schoolId}, ${schoolA.orgId}, 'Status Escalation Attempt',
+              now() + interval '7 days', now() + interval '8 days', 'pending')
+      RETURNING id
+    `;
+    await expect(
+      asUser(db.sql, officerOf(schoolA), async (tx) => {
+        await tx`UPDATE events SET status = 'approved', publish_at = now() WHERE id = ${event!.id}`;
+      }),
+    ).rejects.toThrow(/row-level security/i);
+
+    // The adviser can, which is what makes the previous line a restriction
+    // rather than a broken policy.
+    await asUser(db.sql, adminOf(schoolA), async (tx) => {
+      await tx`UPDATE events SET status = 'approved', publish_at = now() WHERE id = ${event!.id}`;
+    });
+    const [row] = await db.sql<{ status: string }[]>`
+      SELECT status FROM events WHERE id = ${event!.id}
+    `;
+    expect(row?.status).toBe("approved");
+  });
+
+  it("does not let an officer reopen an approved event", async () => {
+    // Note the shape of the refusal: a USING clause removes the row from the
+    // officer's reach, so the UPDATE matches nothing and succeeds having changed
+    // nothing. It does not raise. Every service that updates under RLS must
+    // therefore check the affected-row count instead of treating a resolved
+    // promise as proof the write happened.
+    const affected = await asUser(db.sql, officerOf(schoolA), async (tx) => {
+      const result = await tx`UPDATE events SET status = 'draft' WHERE id = ${schoolA.eventId}`;
+      return result.count;
+    });
+    expect(affected).toBe(0);
+
+    const [row] = await db.sql<{ status: string }[]>`
+      SELECT status FROM events WHERE id = ${schoolA.eventId}
+    `;
+    expect(row?.status).toBe("approved");
+  });
+});
+
+describe("profile field restrictions", () => {
+  it("lets a learner change their own avatar, locale and board visibility", async () => {
+    await asUser(db.sql, learnerOf(schoolA), async (tx) => {
+      await tx`
+        UPDATE profiles
+        SET avatar_key = 'avatar-07', locale = 'fil', hidden_from_boards = true
+        WHERE id = ${schoolA.learnerProfileId}
+      `;
+    });
+    const [row] = await db.sql<{ locale: string; hidden_from_boards: boolean }[]>`
+      SELECT locale, hidden_from_boards FROM profiles WHERE id = ${schoolA.learnerProfileId}
+    `;
+    expect(row?.locale).toBe("fil");
+    expect(row?.hidden_from_boards).toBe(true);
+  });
+
+  it("does not let a learner move themselves into another section", async () => {
+    // Section and grade drive event eligibility and the section leaderboard.
+    await expect(
+      asUser(db.sql, learnerOf(schoolA), async (tx) => {
+        await tx`UPDATE profiles SET section = 'Ilang-Ilang' WHERE id = ${schoolA.learnerProfileId}`;
+      }),
+    ).rejects.toThrow(/profile_field_restricted/);
+  });
+
+  it("does not let a learner change their own username or status", async () => {
+    await expect(
+      asUser(db.sql, learnerOf(schoolA), async (tx) => {
+        await tx`UPDATE profiles SET username = 'someone-else' WHERE id = ${schoolA.learnerProfileId}`;
+      }),
+    ).rejects.toThrow(/profile_field_restricted/);
+    await expect(
+      asUser(db.sql, learnerOf(schoolA), async (tx) => {
+        await tx`UPDATE profiles SET status = 'archived' WHERE id = ${schoolA.learnerProfileId}`;
+      }),
+    ).rejects.toThrow(/profile_field_restricted/);
+  });
+
+  it("lets School Admin correct a roster field", async () => {
+    await asUser(db.sql, adminOf(schoolA), async (tx) => {
+      await tx`UPDATE profiles SET section = 'Ilang-Ilang' WHERE id = ${schoolA.learnerProfileId}`;
+    });
+    const [row] = await db.sql<{ section: string }[]>`
+      SELECT section FROM profiles WHERE id = ${schoolA.learnerProfileId}
+    `;
+    expect(row?.section).toBe("Ilang-Ilang");
+  });
+});
+
 describe("db:verify-rls", () => {
   it("reports no findings against the migrated schema", async () => {
     const findings = await verifyRls(db.url);

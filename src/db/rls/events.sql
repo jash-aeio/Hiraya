@@ -38,9 +38,17 @@ CREATE POLICY events_insert_org_or_admin ON public.events
     )
   );
 
--- Approval is an UPDATE, so advisers appear here. Which status transitions are
--- legal, and the rule that an adviser cannot approve their own draft, live in
--- the service: RLS can bound who touches the row, not the shape of the change.
+-- Approval is an UPDATE, so advisers appear here -- and the status an officer is
+-- allowed to leave behind is constrained, not merely reviewed later. An officer
+-- edits their own draft or pending event and may withdraw it; moving a row to
+-- approved, rejected or completed requires an approver, and an approved event
+-- becomes officer-immutable so it cannot be quietly reopened and rewritten after
+-- publication. This mirrors the documented contract (PATCH /events/:id is
+-- "edit while draft or pending", docs/SYSTEM_DESIGN.md §5).
+--
+-- What remains with the service: that an adviser cannot approve an event they
+-- drafted themselves, which depends on comparing two rows and is not something
+-- a row policy can see.
 DROP POLICY IF EXISTS events_update_org_or_approvers ON public.events;
 CREATE POLICY events_update_org_or_approvers ON public.events
   FOR UPDATE TO authenticated
@@ -49,8 +57,8 @@ CREATE POLICY events_update_org_or_approvers ON public.events
     AND (
       public.is_school_admin()
       OR public.has_role('sslg_adviser')
-      OR public.has_org_role('org_officer', org_id)
       OR public.has_org_role('org_adviser', org_id)
+      OR (public.has_org_role('org_officer', org_id) AND status IN ('draft', 'pending'))
     )
   )
   WITH CHECK (
@@ -58,7 +66,10 @@ CREATE POLICY events_update_org_or_approvers ON public.events
     AND (
       public.is_school_admin()
       OR public.has_role('sslg_adviser')
-      OR public.has_org_role('org_officer', org_id)
       OR public.has_org_role('org_adviser', org_id)
+      OR (
+        public.has_org_role('org_officer', org_id)
+        AND status IN ('draft', 'pending', 'cancelled')
+      )
     )
   );
