@@ -12,6 +12,11 @@ ALTER TABLE public.xp_ledger FORCE ROW LEVEL SECURITY;
 
 REVOKE ALL ON public.xp_ledger FROM anon, authenticated;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.xp_ledger FROM PUBLIC;
+-- Supabase's default privileges grant service_role ALL on every new table in
+-- public, and a grant to a named role is not covered by a revoke from PUBLIC.
+-- withServiceRole() runs as exactly this role, so without the line below the
+-- one privileged path in the application could rewrite history (R4).
+REVOKE UPDATE, DELETE, TRUNCATE ON public.xp_ledger FROM service_role;
 GRANT SELECT, INSERT ON public.xp_ledger TO authenticated;
 
 DROP POLICY IF EXISTS xp_ledger_select_self_or_staff ON public.xp_ledger;

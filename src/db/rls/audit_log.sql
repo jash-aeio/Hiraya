@@ -9,6 +9,11 @@ ALTER TABLE public.audit_log FORCE ROW LEVEL SECURITY;
 
 REVOKE ALL ON public.audit_log FROM anon, authenticated;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.audit_log FROM PUBLIC;
+-- Supabase's default privileges grant service_role ALL on every new table in
+-- public, and a grant to a named role is not covered by a revoke from PUBLIC.
+-- withServiceRole() runs as exactly this role, so without the line below the
+-- one privileged path in the application could rewrite history (R4).
+REVOKE UPDATE, DELETE, TRUNCATE ON public.audit_log FROM service_role;
 GRANT SELECT, INSERT ON public.audit_log TO authenticated;
 
 DROP POLICY IF EXISTS audit_log_select_admin ON public.audit_log;
