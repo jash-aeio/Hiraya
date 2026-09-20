@@ -103,6 +103,17 @@ login). Tenancy is a database invariant, never an application convention — app
 and a lint rule bans importing it anywhere else. Default to `src/lib/db/client.ts` (anon key + RLS). If
 you reach for the admin client, state why in a comment — it is almost always the wrong answer.
 
+It exposes two entry points, because they are not the same privilege: `withServiceRole(reason, fn)` runs
+a Drizzle transaction as `service_role` (tables), and `adminAuthApi(reason)` returns only the GoTrue
+`auth.admin` surface (accounts). Each validates that the reason belongs to its half. **There is no
+supabase-js table access anywhere** — the project's Data API is disabled (D22), so `.from()` reaches
+nothing.
+
+Note what this does *not* buy: `service_role` holds no UPDATE or DELETE on `xp_ledger` or `audit_log`
+(R4), because Supabase's default privileges grant it everything on new tables and a `REVOKE … FROM
+PUBLIC` does not reach a named role. Any new append-only table must revoke from `service_role`
+explicitly, and `npm run db:verify-rls` is what catches you forgetting.
+
 ### R3 — `/api/v1` is the single data layer. No Server Actions.
 
 A Capacitor shell ships a static bundle and cannot run Server Actions or RSC. Rather than let web and

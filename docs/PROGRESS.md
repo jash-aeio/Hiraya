@@ -7,6 +7,92 @@ Maintained by the `hiraya-checkpoint` skill. See `CLAUDE.md` §7 for the six tri
 
 ---
 
+## 2026-09-21 — Supabase project live; schema and RLS applied to real infrastructure
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track
+
+**Shipped**
+
+- **The Supabase project exists and holds the schema.** Region Southeast Asia (Singapore), Postgres
+  17.6. `npm run db:migrate` applied the 22-table schema and all 24 RLS files against it; `npm run
+  db:verify-rls` reports clean — 22 tables, 67 policies, 2 append-only tables
+- **Data API (PostgREST) disabled at project creation (D22).** Verified: `GET /rest/v1/profiles` with
+  the anon key returns **503**, so PostgREST is not serving at all. `/api/v1` is now the only reachable
+  data path in fact, not only by convention
+- **Automatic RLS event trigger enabled.** `ensure_rls` is present on `ddl_command_end`, so a future
+  table gets RLS whether or not its migration remembers. New-table auto-exposure left off
+- `src/lib/db/admin.ts` **split into two entry points** — `withServiceRole(reason, fn)` (Drizzle
+  transaction as `service_role`, for tables) and `adminAuthApi(reason)` (GoTrue `auth.admin` only,
+  narrowed so `.from()` is unreachable *by type*). Reasons are validated per half. Nothing had called
+  the old client yet, so the rewrite cost nothing
+- `withServiceRole` issues `set local role service_role` rather than relying on the login role carrying
+  `BYPASSRLS`. Confirmed against the project: `postgres` and `service_role` both hold `BYPASSRLS`, and
+  both `set local role` paths work
+- Full suite green on a real schema: **35 tests, 3 files**, including the 27 RLS integration tests
+
+**Decisions**
+
+- **D22** — the Supabase Data API is disabled; `anon`/`authenticated` keys serve Supabase Auth only.
+  An exposed PostgREST is a second data layer whose safety rests on no policy ever being missed, which
+  is the opposite of R3's argument. Off, a forgotten policy is a bug rather than a public leak.
+  Accepted cost: no supabase-js table access anywhere, and the dashboard's table editor loses its
+  API-backed features
+
+**Docs updated**
+
+- `CLAUDE.md` §3 R2 — documents the two admin entry points, the absence of supabase-js table access,
+  and the `service_role` revoke that every future append-only table needs
+- `docs/TECHNICAL_ARCHITECTURE.md` §2 — D22 added
+- `.env.example` — records that the Supabase keys are auth-only, adds the admin pool size
+
+**Risks**
+
+- Materialized: **`service_role` held UPDATE and DELETE on `xp_ledger` and `audit_log`** — a direct R4
+  violation, and the one privileged path in the application runs as exactly that role. Cause: Supabase's
+  default privileges grant `service_role` everything on new tables in `public`, and the policy files'
+  `REVOKE … FROM PUBLIC` does not reach a named role. Fixed by explicit `REVOKE UPDATE, DELETE, TRUNCATE
+  … FROM service_role` in both files; verified at runtime that all four operations are now denied.
+  **This class of bug is invisible locally** — `scripts/bootstrap-roles.sql` creates `service_role`
+  without Supabase's default privileges, so the integration suite passed while production would not
+  have. `db:verify-rls` against the real project is what caught it
+- Retired: **repository visibility**, carried unconfirmed through the last two checkpoints.
+  `jash-aeio/Hiraya` is confirmed `PRIVATE`. D17 holds
+
+**Next**
+
+- Supabase MCP server: `.mcp.json` is committed, read-only and pinned to project `zpdyybdqezkfiupobjaj`.
+  Needs `SUPABASE_ACCESS_TOKEN` in the environment, then a Claude Code restart
+- Phase 0 remainder: design tokens, Tier 1 SVG assets, the synthetic demo tenant with its DEMO DATA
+  marker, deploy to a public URL, the pitch kit
+
+**Flagged**
+
+- **`TEST_DATABASE_URL` must stay unset on this machine.** It is commented out in `.env.local`; when
+  set, the suite uses it instead of booting embedded Postgres, and pointing it at the real project
+  would be a Gate B violation. `scripts/env.ts` asserts the database is disposable, but the safest
+  state is unset
+- The **QR Ed25519 keypair is still empty** in `.env.local`, deliberately — `src/lib/qr` does not exist
+  until Phase 3 and will define the encoding
+- Everything above ran against an **empty database**. No fixture, demo tenant, or learner row exists
+  yet, so the cross-tenant denial test still proves itself only on the embedded Postgres the suite
+  boots, not on the Supabase project
+- **CONTRADICTION — the role list disagrees between docs and code, and the code is already enforcing
+  its version.** `docs/PRD.md` §3 and `docs/SYSTEM_DESIGN.md` §2 both document **seven** roles
+  (Learner, Org Officer, Org Adviser, SSLG Officer, Moderator, School Admin, Super Admin). The enum in
+  `src/db/enums.ts` has **ten**, adding `sslg_adviser`, `guidance`, and `school_head` — and RLS
+  policies already grant against all three (`src/db/rls/xp_ledger.sql` reads XP for `sslg_adviser`,
+  `school_head`, `guidance`). `CLAUDE.md` §6 independently refers to guidance staff as a real role for
+  non-participant analytics, which suggests the code is right and the two role tables are stale.
+  **Not resolved here** — whoever fixes it must decide whether the capability matrix in
+  `SYSTEM_DESIGN.md` §2 gains three columns or the enum loses three values, and that is a permissions
+  decision, not an editing one
+
+- Carried, unchanged: assumptions A1–A7 in `docs/PRD.md` §10 unverified; Apple Developer fee ownership
+  undecided; R13 (Supabase pauses idle free projects after ~7 days) now **live** — this project will
+  sleep between pitch meetings
+
+---
+
 ## 2026-09-21 — Phase 0 week 1: skeleton, schema, and RLS in the first migration
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track
