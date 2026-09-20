@@ -1,5 +1,6 @@
 import "server-only";
 
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -22,7 +23,7 @@ import * as schema from "@/db/schema";
  * There are two, because they are not the same privilege and must not share an
  * entry point:
  *
- *   withServiceRole   — the table owner, over Drizzle. For tables.
+ *   withServiceRole   — `service_role` over Drizzle. For tables.
  *   adminAuthApi      — Supabase Auth (GoTrue) admin. For accounts, not tables.
  *
  * Why the database half is not supabase-js: the project's Data API (PostgREST)
@@ -57,7 +58,7 @@ export enum AdminReason {
 /**
  * Which half of this module each reason is allowed to reach. Enforced rather
  * than documented, so that "create the auth user" can never quietly become
- * "and also write to profiles while I have the owner connection".
+ * "and also write to profiles while I am here".
  */
 const DATABASE_REASONS: ReadonlySet<AdminReason> = new Set([
   AdminReason.TENANT_PROVISIONING,
@@ -67,15 +68,15 @@ const DATABASE_REASONS: ReadonlySet<AdminReason> = new Set([
 const AUTH_REASONS: ReadonlySet<AdminReason> = new Set([AdminReason.AUTH_ACTIVATION]);
 
 // ---------------------------------------------------------------------------
-// Database: the table owner, unmasked
+// Database: service_role, unmasked by any policy
 // ---------------------------------------------------------------------------
 
 /**
  * A pool of its own rather than a borrowed one. src/lib/db/client.ts holds an
  * owner connection too, but it never issues a query before dropping to
- * `authenticated`; exporting a way to skip that drop would put an unguarded RLS
- * bypass behind an import that no lint rule watches. Two small pools is the
- * cheaper mistake.
+ * `authenticated`; exporting a way to escalate instead would put an unguarded
+ * RLS bypass behind an import that no lint rule watches. Two small pools is
+ * the cheaper mistake.
  */
 let connectionCache: ReturnType<typeof postgres> | null = null;
 
@@ -100,11 +101,20 @@ export type Database = PostgresJsDatabase<typeof schema>;
 export type ServiceRoleTransaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 /**
- * Runs `fn` as the table owner, with no policies in force and no tenant claims
+ * Runs `fn` as `service_role`, with no policies in force and no tenant claims
  * set. Whatever `school_id` the work belongs to must therefore be passed in and
  * written explicitly — there is no `current_school_id()` here to fall back on,
  * and a row inserted without one is a cross-tenant bug that RLS will not catch
  * on the way in.
+ *
+ * Why `SET LOCAL ROLE` rather than simply querying as the owner: every policy
+ * file declares FORCE ROW LEVEL SECURITY, which subjects the owner to policies
+ * too. Whether the login role escapes that depends on its BYPASSRLS attribute
+ * — an implicit dependency on how the connection string happens to be
+ * provisioned, and one that differs between a Supabase project and the
+ * embedded Postgres the tests run on. `service_role` has BYPASSRLS in both
+ * (scripts/bootstrap-roles.sql mirrors Supabase), so naming it makes the
+ * bypass explicit, symmetrical with `withTenant`, and identical everywhere.
  *
  * @param reason why RLS cannot serve this call. Required so that every use site
  *   is greppable and every reason is one of a short, reviewed list.
@@ -116,7 +126,11 @@ export async function withServiceRole<T>(
   if (!DATABASE_REASONS.has(reason)) {
     throw new Error(`AdminReason.${reason} is not a database reason; see src/lib/db/admin.ts.`);
   }
-  return drizzle(connection(), { schema }).transaction(fn);
+  return drizzle(connection(), { schema }).transaction(async (tx) => {
+    // Transaction-scoped: the connection returns to the pool as the plain owner.
+    await tx.execute(sql`set local role service_role`);
+    return fn(tx);
+  });
 }
 
 // ---------------------------------------------------------------------------
