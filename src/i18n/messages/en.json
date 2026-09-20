@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "Hiraya",
+    "tagline": "Participation that counts."
+  },
+  "landing": {
+    "heading": "Hiraya",
+    "subheading": "Participation that counts, verified by the teacher who was there.",
+    "phaseLabel": "Phase 0 — foundation",
+    "phaseBody": "The database, its tenancy rules and the API skeleton are in place. Learner-facing screens arrive with the identity and events slices.",
+    "healthLink": "Service health"
+  },
+  "errors": {
+    "UNAUTHENTICATED": "Please sign in again.",
+    "FORBIDDEN": "You do not have permission to do this.",
+    "CONSENT_REQUIRED": "Your account needs a consent record on file. Ask your School Admin.",
+    "NOT_FOUND": "We could not find that.",
+    "VALIDATION_FAILED": "Please check the highlighted fields.",
+    "EVENT_FULL": "This event is full. You can join the waitlist.",
+    "NOT_ELIGIBLE": "You are not eligible for this event.",
+    "TOKEN_EXPIRED": "Ask them to refresh their ID.",
+    "TOKEN_INVALID": "That code could not be read. Try again.",
+    "SCAN_OUTSIDE_EVENT_WINDOW": "This scan is outside the event window and needs adviser review.",
+    "RATE_LIMITED": "Too many attempts. Please wait a moment.",
+    "INTERNAL": "Something went wrong on our side."
+  }
+}

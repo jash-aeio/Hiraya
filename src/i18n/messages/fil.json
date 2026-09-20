@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "Hiraya",
+    "tagline": "Partisipasyong may halaga."
+  },
+  "landing": {
+    "heading": "Hiraya",
+    "subheading": "Partisipasyong may halaga, na beripikado ng gurong naroroon.",
+    "phaseLabel": "Phase 0 — pundasyon",
+    "phaseBody": "Nakalagay na ang database, ang mga patakaran sa tenancy, at ang balangkas ng API. Susunod ang mga screen para sa mag-aaral.",
+    "healthLink": "Kalagayan ng serbisyo"
+  },
+  "errors": {
+    "UNAUTHENTICATED": "Mangyaring mag-sign in muli.",
+    "FORBIDDEN": "Wala kang pahintulot para dito.",
+    "CONSENT_REQUIRED": "Kailangan ng consent record ang account mo. Tanungin ang School Admin.",
+    "NOT_FOUND": "Hindi namin ito natagpuan.",
+    "VALIDATION_FAILED": "Tingnan ang mga na-highlight na field.",
+    "EVENT_FULL": "Puno na ang event. Maaari kang sumali sa waitlist.",
+    "NOT_ELIGIBLE": "Hindi ka kwalipikado para sa event na ito.",
+    "TOKEN_EXPIRED": "Ipa-refresh ang ID niya.",
+    "TOKEN_INVALID": "Hindi mabasa ang code. Subukan muli.",
+    "SCAN_OUTSIDE_EVENT_WINDOW": "Labas sa oras ng event ang scan na ito at kailangan ng rebyu ng adviser.",
+    "RATE_LIMITED": "Masyadong maraming subok. Maghintay muna.",
+    "INTERNAL": "May naganap na mali sa aming panig."
+  }
+}

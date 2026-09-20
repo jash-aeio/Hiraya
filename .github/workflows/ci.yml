@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck · lint · test · tenancy
+    runs-on: ubuntu-latest
+
+    # The integration suite needs a real Postgres: RLS policies, GRANTs and
+    # triggers are the thing under test, and nothing but Postgres implements them.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hiraya_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/hiraya_test
+      # The build imports modules that read this; no query runs during a build,
+      # so a placeholder is correct here and a real credential would be wrong.
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/hiraya_test
+      ALLOW_DESTRUCTIVE_TESTS: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint (includes the db/admin.ts import ban — CLAUDE.md R2)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Migration consistency
+        run: npm run db:check
+
+      - name: Apply migrations and RLS
+        run: npm run db:migrate
+
+      # Asserts what the policy files were meant to achieve actually landed:
+      # RLS on and FORCEd everywhere, school_id present and indexed, a policy
+      # comparing against current_school_id(), no UPDATE/DELETE grant on the
+      # ledger, no privileges for anon.
+      - name: Verify tenancy invariants
+        run: npm run db:verify-rls
+
+      # Includes the non-negotiable cross-tenant denial test (CLAUDE.md §5).
+      - name: Unit and integration tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
