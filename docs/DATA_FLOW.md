@@ -69,7 +69,7 @@ flowchart TD
   end
 
   subgraph Derived
-    MV["xp_balances<br/>materialized view"]
+    MV["xp_balances<br/>security_invoker view"]
     SNAP["leaderboard_snapshots"]
     RPT["Reports + exports"]
   end
@@ -155,7 +155,7 @@ expression of the processor arrangement, not a courtesy.
 
 | Data | At rest | In transit | Who can read | Never |
 |---|---|---|---|---|
-| **LRN** | `lrn_hmac` only — HMAC-SHA256 with a server pepper | TLS; only during import | School Admin (match, not value) | Returned below School Admin; shown to a learner; logged |
+| **LRN** | `lrn_hmac` only — HMAC-SHA256 with a server pepper, in its own table `profile_identifiers` | TLS; only during import | School Admin (match, not value) | Returned below School Admin; shown to a learner; logged |
 | Name, grade, section | Plain in Postgres, RLS-protected | TLS | Own + school staff by role | Logged; sent to Sentry; in a push payload beyond a display name |
 | Password | Supabase Auth (bcrypt) | TLS | No one | Logged or exported |
 | Consent record | Metadata only — granted, date, recorder, paper reference | TLS | School Admin, DPO | **Scans or images of consent forms are never uploaded** |
@@ -209,7 +209,7 @@ flowchart LR
 | Demo tenant data | Deleted when the demo is retired | Synthetic; no basis needed |
 
 **Deletion.** A learner may request deletion except for records the school must keep. Honouring it
-erases personal fields (`display_name`, `lrn_hmac`, `avatar_key`) and retains anonymized participation
+erases personal fields (`display_name`, `avatar_key`, and the whole `profile_identifiers` row) and retains anonymized participation
 counts, because removing ledger rows would corrupt the leaderboard history of every other learner. The
 ledger row survives; the person it points at does not. This trade-off should be stated in the privacy
 notice in plain language rather than buried.

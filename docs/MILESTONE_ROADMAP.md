@@ -39,7 +39,7 @@ proposal document from an outside developer stalls.
 
 **Deliverables**
 
-- Next.js 15 + TypeScript strict + Tailwind; `/api/v1` skeleton; Drizzle configured
+- Next.js 16 + TypeScript strict + Tailwind; `/api/v1` skeleton; Drizzle configured
 - Supabase project, core schema, **RLS enabled on every table from the first migration**
 - Design tokens and primitives per `docs/DESIGN_SYSTEM.md`
 - Tier 1 assets authored per `docs/ASSET_CHECKLIST.md` (wordmark, PWA icons, 4 level badges, 6 category
@@ -56,7 +56,7 @@ proposal document from an outside developer stalls.
 
 - [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds
 - [ ] The full loop is walkable in the demo: browse → register → check in → see XP → see leaderboard
-- [ ] Cross-tenant denial test passes against seeded schools A and B
+- [x] Cross-tenant denial test passes against seeded schools A and B — all 21 tenant tables, plus a case proving the test fails when RLS is disabled (2026-09-21)
 - [ ] First load ≤ 500 KB, verified via `browser_network_requests`
 - [ ] WCAG AA passes on every demo screen via the a11y tree
 - [ ] No real learner data exists anywhere

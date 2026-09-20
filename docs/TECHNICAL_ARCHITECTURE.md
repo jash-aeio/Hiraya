@@ -22,7 +22,7 @@ one of these.
 
 | # | Decision | Rationale | Trade-off accepted |
 |---|---|---|---|
-| **D1** | Next.js 15 (App Router) + Supabase (Postgres + RLS, Auth, Storage), Drizzle ORM, hosted on Vercel | One vendor; free tier; RLS makes tenancy a *database* invariant rather than a convention app code must remember | Vendor concentration — mitigated by plain Postgres and full export (NFR-12) |
+| **D1** | Next.js 16 (App Router) + Supabase (Postgres + RLS, Auth, Storage), Drizzle ORM, hosted on Vercel | One vendor; free tier; RLS makes tenancy a *database* invariant rather than a convention app code must remember | Vendor concentration — mitigated by plain Postgres and full export (NFR-12) |
 | **D1a** | **`/api/v1` is the single data layer. No Server Actions.** | A Capacitor bundle cannot run Server Actions or RSC; one API for both targets means **one authorization path instead of two** | Loses Server Action ergonomics and form progressive enhancement |
 | **D2** | MVP is the full Phase 1 list, offline check-in and push included | Offline scanning mitigates the High-likelihood "weak signal at venues" risk and protects the ≥15/min KPI | More Phase 3 complexity than a thin MVP |
 | **D3** | Solo developer + Claude Code | — | Automation and agents substitute for a QA role |
@@ -40,6 +40,10 @@ one of these.
 | **D15** | `hiraya-checkpoint` skill is the doc/progress/git engine; CLAUDE.md holds policy; optional `Stop` hook guards | A skill cannot guarantee it runs; a hook cannot write prose; CLAUDE.md cannot execute | Three layers to keep coherent |
 | **D16** | Commit freely, push at milestones; never force-push or commit to `main` unasked | Clean history without approving every commit | Remote lags local slightly |
 | **D17** | Repo private now; transfer to a school-owned GitHub org is a **Gate B deliverable** | Reconciles the personal account with D8 ownership; a gate item cannot quietly not happen | Transfer friction at Gate B |
+| **D18** | **Check-in XP is written by a `SECURITY DEFINER` function, not by the scanning session.** `xp_ledger` INSERT is granted only to School Admin and the SSLG adviser | An officer session that could insert ledger rows is an XP faucet on a phone at the gate. The function verifies the citing `checkins` row exists, so a point cannot be created without the attendance it claims | One more database object to review; XP and check-in must commit in one transaction. Lands with the Phase 3 check-in slice |
+| **D19** | **`xp_balances` is a regular view with `security_invoker = true`, never a materialized view** | Materialized views cannot carry RLS policies — one would be readable across schools by anyone granted SELECT, the exact failure R1 exists to prevent. Leaderboards read `leaderboard_snapshots` instead, so the performance argument for materializing does not apply | Balances are computed per read. Revisit with measurements, never by reaching for `MATERIALIZED` |
+| **D20** | **TypeScript pinned to 6.x and ESLint to 9.x**, against the latest of each | TypeScript 7 is unsupported by `typescript-eslint`, and ESLint 10 breaks the `eslint-plugin-react` that `eslint-config-next` depends on. Either would have silently disabled `npm run lint` — and with it the import ban that is the only thing enforcing R2 | Two pins to revisit; the newest compiler waits until the lint chain catches up |
+| **D21** | Column-level rules that RLS cannot express are enforced by **triggers**, not by services alone | `authenticated` is one database role for learners and admins alike, so a column GRANT cannot distinguish them. A learner able to edit `section` or `grade_level` can enter events they are not eligible for and move themselves into an easier leaderboard | A little PL/pgSQL to maintain; the rule holds against direct database access, which a service check does not |
 
 ---
 
@@ -47,7 +51,7 @@ one of these.
 
 | Layer | Choice | Why this one |
 |---|---|---|
-| **Frontend** | Next.js 15 App Router, React 19, TypeScript strict, Tailwind CSS | RSC keeps JS off the wire, which is the 500 KB budget's biggest lever. Tailwind means no runtime CSS-in-JS cost |
+| **Frontend** | Next.js 16 App Router, React 19, TypeScript strict, Tailwind CSS | RSC keeps JS off the wire, which is the 500 KB budget's biggest lever. Tailwind means no runtime CSS-in-JS cost |
 | **PWA** | Serwist service worker | Maintained successor to `next-pwa`; precached app shell; offline route for the scanner |
 | **Native** | Capacitor 6 (Android + iOS) | Wraps the same build; native camera, push, secure storage; no second UI codebase |
 | **API** | Next.js Route Handlers under `/api/v1` | One data layer for web and native (D1a) |
@@ -59,7 +63,7 @@ one of these.
 | **i18n** | `next-intl` | App Router native; message catalogues from commit 1 |
 | **Client state** | TanStack Query; Zustand only in the scanner | Server owns truth; the scanner is the one genuinely offline-first surface |
 | **Charts** | Recharts | Adviser/admin dashboards. Load the `dataviz` skill before writing any chart |
-| **Testing** | Vitest, Playwright | Unit/integration; E2E and mobile/a11y/perf audits |
+| **Testing** | Vitest, Playwright, `embedded-postgres` (dev only) | Unit/integration; E2E and mobile/a11y/perf audits. RLS cannot be tested against a mock, so the integration suite uses `TEST_DATABASE_URL` or boots its own Postgres |
 | **Observability** | Sentry free tier, Vercel Analytics, `audit_log` table | Errors, vitals, and an in-domain trail of admin actions |
 | **Hosting** | Vercel free (web) + Supabase free (data), in a school-owned account | Near-zero cost during the pilot |
 
@@ -295,6 +299,7 @@ Xcode, then store upload (Phase 5).
 | **App stores restrict child-directed apps** | Rejection at submission | Play Families / Apple Kids rules settled in Phase 5; no advertising-ID SDKs |
 | **D1a means more boilerplate than idiomatic Next.js** | Slower feature velocity | Accepted deliberately — one auth path is worth it |
 | **Supabase concentration** | Vendor dependence, the Classcraft lesson | Plain Postgres underneath; full export (NFR-12); no proprietary query features |
+| **Toolchain moves faster than its lint plugins** | A latest-version install can silently disable `npm run lint`, and with it the R2 import ban | TypeScript and ESLint pinned (D20); CI runs lint as a required step, so a break fails loudly rather than passing quietly |
 | **Solo maintainer** | Bus factor of one | Documentation, school-owned repo at Gate B, ICT club custodian |
 
 ---

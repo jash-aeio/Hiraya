@@ -194,8 +194,10 @@ Most users are **minors**. Privacy and child safety are requirements, not a revi
   agreement. Compliance target: Data Privacy Act of 2012 (RA 10173) and DepEd child-protection policy.
 - **Data minimization.** Collect only: name, grade, section, school ID or LRN, org memberships. **Not**
   home address, birthday, family data, or photographs of learners.
-- **LRN handling.** Stored only as `lrn_hmac` (HMAC-SHA256 + server pepper) for import de-duplication.
-  Never returned by any query path below School Admin. Never rendered to another learner.
+- **LRN handling.** Stored only as `lrn_hmac` (HMAC-SHA256 + server pepper) for import de-duplication,
+  in its own table `profile_identifiers` — **not on `profiles`**. RLS is row-level and cannot hide a
+  column from a role, so separating the row is what makes "never returned below School Admin" a database
+  invariant rather than a query-writing habit. Never rendered to another learner.
 - **Avatars.** Curated SVG set only. **No photo uploads** — that would create a moderation queue for
   images of minors and a biometric-adjacent data store, for a cosmetic gain.
 - **No adult↔learner private messaging.** There is no DM feature and must not be one. Adult-to-learner
@@ -244,14 +246,17 @@ npm run lint             # eslint, includes the db/admin.ts import ban
 npm run test             # vitest unit + integration
 npm run test:e2e         # playwright
 npm run db:generate      # drizzle-kit generate  (after editing src/db/schema.ts)
-npm run db:migrate       # apply migrations
-npm run db:rls           # apply RLS policy SQL
+npm run db:check         # drizzle-kit check - migration consistency
+npm run db:migrate       # apply migrations AND RLS policies, in that order
+npm run db:rls           # apply RLS policy SQL only (idempotent; db:migrate calls it)
+npm run db:verify-rls    # assert the tenancy invariants actually landed
 npm run db:seed:demo     # synthetic demo tenant
 npm run cap:sync         # copy web build into android/ + ios/
 npm run cap:android      # open Android Studio
 ```
 
-*(Scripts land in Phase 0; this table is the contract they must satisfy.)*
+*(All but `test:e2e`, `cap:sync` and `cap:android` are wired as of 2026-09-21; the Capacitor and
+Playwright scripts land in Phase 5 and alongside the first walkable loop respectively.)*
 
 ---
 

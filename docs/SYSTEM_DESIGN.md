@@ -154,7 +154,7 @@ caps a replayed or captured token at exactly one check-in regardless of device c
 flowchart LR
   C[Check-in confirmed] --> R{xp_rules lookup<br/>participation_type}
   R --> L["Append xp_ledger row<br/>source_type=checkin<br/>source_id=checkin_id"]
-  L --> B[Refresh xp_balances<br/>materialized view]
+  L --> B[Recompute xp_balances<br/>security_invoker view]
   B --> V{Level threshold<br/>crossed?}
   V -->|yes| N[Notify: new level + title]
   V -->|no| D[Update progress bar]
@@ -177,7 +177,7 @@ sequenceDiagram
 
   SA->>API: POST /admin/import (CSV)
   API->>API: parse, validate, HMAC each LRN
-  API->>DB: upsert profiles on (school_id, lrn_hmac)
+  API->>DB: upsert profiles, matching<br/>profile_identifiers on (school_id, lrn_hmac)
   Note over API,DB: Idempotent - re-running updates,<br/>never duplicates
   API-->>SA: per-row result + error report
   SA->>API: POST /admin/activation-codes (by section)
@@ -213,6 +213,7 @@ erDiagram
   profiles ||--o{ checkins : attends
   profiles ||--o{ xp_ledger : earns
   profiles ||--o{ user_roles : holds
+  profiles ||--o| profile_identifiers : "LRN hash, admin-only"
   profiles ||--o| consent_records : "gated by"
   profiles ||--o{ devices : owns
 
@@ -237,14 +238,16 @@ enabled. Only distinguishing columns are listed.
 | Table | Notable columns | Notes |
 |---|---|---|
 | `schools` | `slug`, `name`, `settings_json`, `is_demo` | `is_demo=true` drives the DEMO DATA marker |
-| `profiles` | `user_id`, `display_name`, `grade`, `section`, `lrn_hmac`, `avatar_key`, `hidden_from_boards`, `status` | **No** address, birthday, family data, or photo. `lrn_hmac` unique per school |
+| `profiles` | `user_id`, `username`, `display_name`, `grade_level`, `section`, `avatar_key`, `locale`, `hidden_from_boards`, `status` | **No** address, birthday, family data, or photo. **No LRN** — see below. A learner may edit only `avatar_key`, `locale` and `hidden_from_boards`, enforced by trigger |
+| `profile_identifiers` | `profile_id`, `lrn_hmac` | **The LRN hash, in its own table.** RLS is row-level, so a policy cannot hide one column from one role: the rule "never returned below School Admin" is a database invariant only because non-admins cannot select these rows at all. Unique `(school_id, lrn_hmac)` — what makes import idempotent |
 | `user_roles` | `profile_id`, `role`, `org_id` (nullable) | Null `org_id` = school-scoped. Multiple rows per user |
 | `consent_records` | `profile_id`, `consent_type`, `granted_at`, `recorded_by`, `reference` | **Gates activation.** `reference` points at the paper form; scans are never stored |
 | `organizations` | `name`, `slug`, `category`, `logo_key`, `mission`, `status` | `category` drives the six-color palette |
 | `org_memberships` | `org_id`, `profile_id`, `status`, `applied_at` | `status`: applied / active / inactive |
 | `org_officers` | `org_id`, `profile_id`, `position`, `term_start`, `term_end` | Term bounds preserve history across turnover |
+| `org_advisers` | `org_id`, `profile_id`, `is_primary`, `term_start`, `term_end` | Written by School Admin only — an adviser appointing advisers is a staffing decision |
 | `events` | `org_id`, `title`, `starts_at`, `ends_at`, `venue`, `capacity`, `eligibility_json`, `status`, `requires_sslg_approval` | `status`: draft / pending / approved / rejected / cancelled / completed |
-| `event_approvals` | `event_id`, `approver_id`, `role`, `decision`, `reason`, `decided_at` | Multiple rows when SSLG approval also applies. `reason` required on reject |
+| `event_approvals` | `event_id`, `approver_id`, `role`, `decision`, `reason`, `decided_at` | Multiple rows when SSLG approval also applies. `reason` required on reject. An officer may insert only an **undecided** row; writing a `decision` requires an approver, enforced by two separate INSERT policies |
 | `event_registrations` | `event_id`, `profile_id`, `status`, `waitlist_position` | Unique `(event_id, profile_id)` |
 | `checkins` | `event_id`, `profile_id`, `jti`, `scanned_at`, `synced_at`, `device_id`, `method`, `direction` | **Unique `(event_id, profile_id, jti)`** — the idempotency key. `method`: officer_scan / learner_scan / manual |
 | `xp_ledger` | `profile_id`, `season_id`, `delta`, `participation_type`, `source_type`, `source_id`, `reversal_of` | **Append-only. No UPDATE or DELETE grant, for any role** |
@@ -257,7 +260,12 @@ enabled. Only distinguishing columns are listed.
 | `devices` | `profile_id`, `platform`, `push_token`, `is_scanner`, `last_seen_at` | Scanner registry and push targeting |
 | `audit_log` | `actor_id`, `action`, `target_type`, `target_id`, `meta_json` | **Ids, never names.** Includes every non-participant-list access |
 
-**Derived:** `xp_balances` (materialized view: lifetime XP, season XP, level, rank per scope).
+**Derived:** `xp_balances` (lifetime XP, season XP, level, rank per scope). **Not a materialized
+view** — Postgres materialized views cannot carry RLS policies, so one would be readable across schools
+by anyone granted SELECT on it, which is precisely the failure R1 exists to prevent. It is a regular view
+declared `WITH (security_invoker = true)` so the caller's policies on `xp_ledger` still apply, and the
+leaderboard reads from `leaderboard_snapshots` rather than aggregating per request. Revisit only with
+measurements, and never by reaching for `MATERIALIZED`. Lands with the XP slice in Phase 3.
 
 ---
 
