@@ -309,3 +309,62 @@ and handle everything else inline.
    alternative is a platform that either leaks a child's data or awards points nobody believes in.
 6. **Prefer boring.** This is maintained by one person and must survive being handed to a school's ICT
    club. Clever is a liability here. If a junior developer could not read it a year from now, simplify.
+7. **Ask with `AskUserQuestion`, not in prose.** Every confirmation, decision, and surfaced risk goes
+   through the tool — see §11 for what always warrants a question and what does not.
+
+---
+
+## 11. Asking before acting — use `AskUserQuestion`
+
+When you need a decision, a confirmation, or a go/no-go from the maintainer, **ask with the
+`AskUserQuestion` tool**, not with a question in prose. Prose questions at the end of a turn get lost in
+scrollback and are easy to answer ambiguously; a structured question forces the options to be named and
+records the answer as a choice. This repo is maintained by one person, holds minors' data, and has rules
+in §3 and §6 that are cheaper to confirm than to unwind.
+
+### Always ask before proceeding
+
+Stop and call `AskUserQuestion` — do not pick a default and continue — when any of these is true:
+
+1. **A rule in §3 or §6 is in tension with the request.** Tenancy, the service-role key, the `/api/v1`
+   data layer, the append-only ledger, QR asymmetry, idempotent sync, PII handling, LRN, avatars,
+   adult↔learner contact. Present the conforming option and the requested option, and let the
+   maintainer choose knowingly.
+2. **A phase gate or roadmap phase would be crossed.** Building ahead of the current phase, or anything
+   that touches real learner data before Gate B.
+3. **An irreversible or outward-facing action.** Force-push, history rewrite, commit to `main`, deleting
+   or rewriting a migration that has been applied, dropping a table or column, destructive `db:*`
+   commands, anything that leaves the machine.
+4. **A design fork with real consequences.** Two or more reasonable approaches whose costs differ in
+   schema shape, authorization path, dependency count, or bundle budget — ask before writing the
+   version that is hard to back out of.
+5. **The docs and the code disagree** (§10.4) and resolving it requires knowing which one was intended.
+6. **A risk or blocker surfaces mid-task.** A failing non-negotiable test, a budget regression, a
+   missing asset or credential, an agent or `/security-review` finding that changes the plan. Report
+   what you found, then ask how to proceed rather than routing around it.
+7. **Scope is about to grow.** Anything beyond what was asked — a refactor discovered en route, an
+   extra module, a dependency added. Ask; do not fold it in silently.
+
+### Do not ask
+
+Asking about everything is as unhelpful as never asking. Handle these yourself:
+
+- Routine judgement a careful developer would make alone: file naming, test structure, where a helper
+  lives, phrasing of an i18n key, commit message wording.
+- Anything already settled in `docs/` or in this file — read it instead of asking.
+- Permission to start work the maintainer already asked for, or to commit as work completes (§7).
+
+If you can state a defensible default and the cost of being wrong is one small edit, take the default,
+say which default you took in one line, and keep going.
+
+### How to ask
+
+- **One question per decision**, 2–4 concrete options, each with its consequence — not "A or B?" but
+  what each buys and costs. Put your recommendation first and mark it `(Recommended)`.
+- **Batch related questions** into a single call rather than interrogating across several turns.
+- **Do everything that does not depend on the answer first**, then ask at the point it actually blocks
+  you. Only stop with nothing delivered when proceeding either way would be unsafe or wasted work.
+- **Reaffirmation ends the debate.** If the maintainer picks an option after you have flagged the
+  concern, that is the decision: build it in full, and record the trade-off in
+  `docs/TECHNICAL_ARCHITECTURE.md` (D-table) or `docs/PROGRESS.md` if it is one a future session would
+  otherwise re-litigate.
