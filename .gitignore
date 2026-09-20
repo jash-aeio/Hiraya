@@ -1,0 +1,68 @@
+# ---------------------------------------------------------------------------
+# Hiraya .gitignore
+# Policy: this repository holds minors' data-adjacent code. Nothing below is
+# ever committed, even temporarily, even on a private repo. See CLAUDE.md
+# "Checkpoint policy > Never commit".
+# ---------------------------------------------------------------------------
+
+# Secrets and environment ---------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+!**/public.key            # QR Ed25519 PUBLIC key may be committed; private never
+
+# Real learner data ---------------------------------------------------------
+# Demo seed data lives in /seed/demo-* and IS committed (it renders a DEMO DATA
+# marker). Anything matching these patterns is real or unverified and is not.
+/seed/real-*
+/seed/import-*
+*.dump
+*.sqlite
+*.sqlite3
+exports/
+consent-scans/
+
+# Build and tooling ---------------------------------------------------------
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# Hosting -------------------------------------------------------------------
+.vercel
+.supabase/
+
+# Capacitor native shells ---------------------------------------------------
+# Signing material must never reach the repo: a native binary is trivially
+# unpacked, so anything shipped to a device is effectively public.
+android/app/*.keystore
+android/app/google-services.json
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+ios/App/Pods/
+ios/**/*.mobileprovision
+ios/App/App/GoogleService-Info.plist
+ios/DerivedData/
+
+# Test artifacts ------------------------------------------------------------
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# Editor / OS ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code ---------------------------------------------------------------
+.claude/settings.local.json
