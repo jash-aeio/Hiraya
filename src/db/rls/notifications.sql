@@ -15,9 +15,10 @@ CREATE POLICY notifications_select_self ON public.notifications
     AND profile_id = public.current_profile_id()
   );
 
--- Fan-out is a server-side job performed with the admin client for its one
--- documented reason (src/lib/db/admin.ts). A session may only notify itself,
--- so no session can spam the school.
+-- Fan-out is a server-side job performed by withServiceRole() for its one
+-- documented reason (src/lib/db/admin.ts), which runs as the table owner and
+-- so is not filtered here. A session may only notify itself, which is what
+-- stops a compromised account from messaging the school.
 DROP POLICY IF EXISTS notifications_insert_self ON public.notifications;
 CREATE POLICY notifications_insert_self ON public.notifications
   FOR INSERT TO authenticated
