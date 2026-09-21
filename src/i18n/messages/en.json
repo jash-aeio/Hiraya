@@ -9,6 +9,34 @@
     "loading": "Loading",
     "required": "required"
   },
+  "roles": {
+    "learner": "Learner",
+    "org_officer": "Org Officer",
+    "org_adviser": "Org Adviser",
+    "sslg_officer": "SSLG Officer",
+    "sslg_adviser": "SSLG Adviser",
+    "moderator": "Moderator",
+    "guidance": "Guidance",
+    "school_head": "School Head",
+    "school_admin": "School Admin",
+    "super_admin": "Super Admin"
+  },
+  "demo": {
+    "label": "Demo tenant",
+    "title": "Choose a persona",
+    "intro": "Everyone here is invented. Pick someone to see the app as they would — the screens behind this run under the same tenancy rules the pilot will.",
+    "loading": "Loading personas",
+    "viewAs": "View as",
+    "gradeSection": "Grade {grade} · {section}",
+    "emptyTitle": "No demo tenant here",
+    "emptyBody": "This deployment holds no school flagged as demo data. Run the demo seed before a pitch.",
+    "failedTitle": "Could not load the personas",
+    "failedBody": "The demo database may be asleep. Open service health, then try again.",
+    "marker": "Demo data",
+    "viewingAs": "Viewing as {name} at {school}. Every name, event and point here is synthetic.",
+    "switch": "Switch",
+    "exit": "Exit demo"
+  },
   "landing": {
     "heading": "Hiraya",
     "subheading": "Participation that counts, verified by the teacher who was there.",
@@ -16,7 +44,8 @@
     "phaseTitle": "Foundation in place",
     "phaseBody": "The database, its tenancy rules and the API skeleton are in place. Learner-facing screens arrive with the identity and events slices.",
     "healthLink": "Service health",
-    "designLink": "Design system"
+    "designLink": "Design system",
+    "demoLink": "Open the demo"
   },
   "errors": {
     "UNAUTHENTICATED": "Please sign in again.",

@@ -16,6 +16,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // Services and session plumbing are all `server-only`, which throws when
+      // imported outside a Server Component. See tests/stubs/server-only.ts.
+      "server-only": fileURLToPath(new URL("./tests/stubs/server-only.ts", import.meta.url)),
     },
   },
 });

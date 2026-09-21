@@ -3,24 +3,33 @@ import "server-only";
 import type { TenantClaims } from "@/lib/db/client";
 import { errors } from "@/lib/errors";
 
+import { readDemoPersonaId, resolveDemoSession } from "./demo-session";
+
 /**
  * Session and role resolution.
  *
- * Phase 0 ships the shape only: `resolveSession` returns null, so every guarded
- * endpoint answers 401 rather than pretending. Phase 1 fills it in — Supabase
- * Auth verifies the token, the profile and its roles are read once, and the
- * claims below are what RLS then reads (docs/DATA_FLOW.md §3).
+ * Phase 0 has one session source: the `is_demo`-gated persona switcher (D23,
+ * src/lib/auth/demo-session.ts). Phase 1 adds the real one — Supabase Auth
+ * verifies the token, the profile and its roles are read once, and the claims
+ * below are what RLS then reads (docs/DATA_FLOW.md §3).
  *
  * The one rule that must survive that work: claims come from the verified token,
  * never from the request. An endpoint that reads school_id out of a body or a
- * query string has undone every policy in src/db/rls/.
+ * query string has undone every policy in src/db/rls/. The demo source obeys it
+ * too — the cookie names a profile, and the claims are read from the database.
  */
 
 export type Session = TenantClaims;
 
-export async function resolveSession(_request: Request): Promise<Session | null> {
-  // Phase 1 (identity slice) implements this against Supabase Auth.
-  return Promise.resolve(null);
+export async function resolveSession(request: Request): Promise<Session | null> {
+  // Phase 1 (identity slice) tries Supabase Auth here first, and the demo source
+  // stays the fallback rather than the override: a real session must never be
+  // displaceable by a cookie, whatever `is_demo` says about some other tenant.
+  const personaId = readDemoPersonaId(request);
+  if (!personaId) return null;
+
+  const demo = await resolveDemoSession(personaId);
+  return demo?.claims ?? null;
 }
 
 export async function requireSession(request: Request): Promise<Session> {

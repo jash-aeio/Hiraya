@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { ToastProvider } from "@/design";
 import { fontSans } from "@/design/font";
+import { DemoBar } from "@/features/demo/components/DemoBar";
 
 import "./globals.css";
 
@@ -34,7 +35,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           Dark mode is deliberately not in the MVP — DESIGN_SYSTEM.md §2. */}
       <body className="min-h-dvh">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            {/* The DEMO DATA marker lives here, above every screen, because a
+                marker each screen has to remember is a marker one screen will
+                forget — and that screen is the one in the deck (D23). It
+                renders nothing at all when there is no demo session. */}
+            <DemoBar />
+            {children}
+          </ToastProvider>
         </NextIntlClientProvider>
       </body>
     </html>

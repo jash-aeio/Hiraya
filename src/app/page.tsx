@@ -26,6 +26,9 @@ export default async function HomePage() {
       </Card>
 
       <div className="flex flex-wrap gap-3">
+        <a className={buttonClass("primary")} href="/demo">
+          {t("demoLink")}
+        </a>
         <a className={buttonClass("secondary")} href="/api/v1/health">
           {t("healthLink")}
         </a>

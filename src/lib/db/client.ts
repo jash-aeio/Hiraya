@@ -92,6 +92,28 @@ export async function withTenant<T>(
   });
 }
 
+/**
+ * Runs `fn` as `authenticated` with no claims at all.
+ *
+ * This is the pre-session privilege level: `current_school_id()` is NULL, so
+ * every tenancy policy fails closed and no table in src/db/rls/ returns a row.
+ * The only things reachable from here are the SECURITY DEFINER functions that
+ * resolve a session in the first place (src/db/rls/02_demo_session.sql), which
+ * carry their own gate in SQL.
+ *
+ * It exists because resolving claims is the one read that cannot present claims
+ * — the same chicken-and-egg the Phase 1 login path will have (docs/DATA_FLOW.md
+ * §3). Dropping the role anyway, rather than querying as the owner, keeps the
+ * EXECUTE grants on those functions meaningful: if a future one is granted to
+ * the wrong role, this call fails rather than quietly succeeding as the owner.
+ */
+export async function withoutClaims<T>(fn: (tx: TenantTransaction) => Promise<T>): Promise<T> {
+  return database().transaction(async (tx) => {
+    await tx.execute(sql`set local role authenticated`);
+    return fn(tx);
+  });
+}
+
 /** Liveness only. Touches no tenant data, so it needs no claims. */
 export async function pingDatabase(): Promise<boolean> {
   const rows = await connection()`select 1 as ok`;

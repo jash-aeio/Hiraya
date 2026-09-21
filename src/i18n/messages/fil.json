@@ -9,6 +9,34 @@
     "loading": "Naglo-load",
     "required": "kailangan"
   },
+  "roles": {
+    "learner": "Mag-aaral",
+    "org_officer": "Opisyal ng Org",
+    "org_adviser": "Tagapayo ng Org",
+    "sslg_officer": "Opisyal ng SSLG",
+    "sslg_adviser": "Tagapayo ng SSLG",
+    "moderator": "Moderator",
+    "guidance": "Guidance",
+    "school_head": "Punong-guro",
+    "school_admin": "School Admin",
+    "super_admin": "Super Admin"
+  },
+  "demo": {
+    "label": "Demo tenant",
+    "title": "Pumili ng persona",
+    "intro": "Imbento ang lahat dito. Pumili ng tao para makita ang app gaya ng nakikita nila — ang mga screen sa likod nito ay sumusunod sa parehong patakaran sa tenancy na gagamitin sa pilot.",
+    "loading": "Naglo-load ng mga persona",
+    "viewAs": "Tingnan bilang",
+    "gradeSection": "Baitang {grade} · {section}",
+    "emptyTitle": "Walang demo tenant dito",
+    "emptyBody": "Walang paaralang nakatatak bilang demo data sa deployment na ito. Patakbuhin ang demo seed bago ang pitch.",
+    "failedTitle": "Hindi ma-load ang mga persona",
+    "failedBody": "Maaaring tulog ang demo database. Buksan ang kalagayan ng serbisyo, pagkatapos subukan muli.",
+    "marker": "Demo data",
+    "viewingAs": "Tinitingnan bilang {name} sa {school}. Imbento ang bawat pangalan, event at puntos dito.",
+    "switch": "Palitan",
+    "exit": "Lumabas sa demo"
+  },
   "landing": {
     "heading": "Hiraya",
     "subheading": "Partisipasyong may halaga, na beripikado ng gurong naroroon.",
@@ -16,7 +44,8 @@
     "phaseTitle": "Nakatayo na ang pundasyon",
     "phaseBody": "Nakalagay na ang database, ang mga patakaran sa tenancy, at ang balangkas ng API. Susunod ang mga screen para sa mag-aaral.",
     "healthLink": "Kalagayan ng serbisyo",
-    "designLink": "Design system"
+    "designLink": "Design system",
+    "demoLink": "Buksan ang demo"
   },
   "errors": {
     "UNAUTHENTICATED": "Mangyaring mag-sign in muli.",
