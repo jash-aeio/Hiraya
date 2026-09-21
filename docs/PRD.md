@@ -86,7 +86,9 @@ DepEd's Learner Information System.
 
 ## 3. Target users and personas
 
-Seven roles. A learner can hold more than one — member of two organizations, officer of a third.
+Ten roles, matching the `user_role` enum in `src/db/schema.ts` — the enum is the authority, because a
+role the database does not know is a role RLS cannot grant against. A learner can hold more than one —
+member of two organizations, officer of a third.
 
 | Role | Who | Main permissions |
 |---|---|---|
@@ -94,12 +96,15 @@ Seven roles. A learner can hold more than one — member of two organizations, o
 | **Org Officer** | Elected officers of an organization | Draft events, scan attendance, manage members and org profile, post org announcements |
 | **Org Adviser** | Teacher assigned to an organization | Approve events and officers, moderate org boards, view org analytics |
 | **SSLG Officer** | Elected SSLG members | All officer rights for SSLG, school-wide announcements, manage suggestion box |
+| **SSLG Adviser** | Teacher adviser to the SSLG | Set point values, open and close seasons, approve any event school-wide, scan and correct attendance, resolve disputes |
 | **Moderator** | Designated advisers and trained SSLG members | Review reports, hide posts, suspend forum access |
+| **Guidance** | Guidance counselor | Read-only, school-wide: participation analytics and the non-participant list, for supportive outreach. Nothing writable |
+| **School Head** | Principal or assistant principal | Read-only view of the School Admin dashboard, including the audit log. No editing rights |
 | **School Admin** | ICT coordinator or designated staff | Import learners, create orgs, assign advisers, set point rules, enable modules, view all analytics |
 | **Super Admin** | Platform maintainers (later phases) | Create and manage school tenants |
 
-Guidance staff get a **read-only analytics view** for outreach. School heads get the School Admin
-dashboard **without editing rights**.
+The last four roles are staff accounts with no learner surface: they never register for an event or hold
+XP. Capability detail, column by column, is in `docs/SYSTEM_DESIGN.md` §2.
 
 ### Personas
 
@@ -183,7 +188,7 @@ Traced to objectives (O1–O10) and problems (P1–P8). **M** = MVP, **2** = Pha
 | FR-1.1 | School Admin imports learners from CSV (name, grade, section, LRN or school ID). Import is idempotent — re-running it updates rather than duplicates |
 | FR-1.2 | Each learner receives a username derived from (never equal to) their LRN, plus a one-time activation code distributed at homeroom |
 | FR-1.3 | Account activation is blocked until a `consent_records` row exists for that learner |
-| FR-1.4 | Seven roles with role-based access control; a user may hold multiple roles, org-scoped where relevant |
+| FR-1.4 | Ten roles with role-based access control; a user may hold multiple roles, org-scoped where relevant |
 | FR-1.5 | Password reset for learners is adviser- or admin-assisted via a fresh activation code (learners have no email) |
 | FR-1.6 | Staff accounts use real email addresses with standard self-service reset |
 | FR-1.7 | LRN is stored only as an HMAC and is never returned to any role below School Admin |

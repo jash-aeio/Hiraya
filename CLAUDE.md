@@ -266,8 +266,8 @@ npm run cap:sync         # copy web build into android/ + ios/
 npm run cap:android      # open Android Studio
 ```
 
-*(All but `test:e2e`, `cap:sync` and `cap:android` are wired as of 2026-09-21; the Capacitor and
-Playwright scripts land in Phase 5 and alongside the first walkable loop respectively.)*
+*(All but `db:seed:demo`, `test:e2e`, `cap:sync` and `cap:android` are wired as of 2026-09-21; the seed
+lands with the demo tenant, Playwright alongside the first walkable loop, Capacitor in Phase 5.)*
 
 ---
 

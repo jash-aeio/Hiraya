@@ -33,40 +33,63 @@ own service boundary. This is what keeps Phase 2 and 3 modules addable without t
 `—` none · `own` own records · `org` within their organization · `school` school-wide · `R` read ·
 `W` write · `A` approve
 
-| Capability | Learner | Org Officer | Org Adviser | SSLG Officer | Moderator | School Admin | Super Admin |
-|---|---|---|---|---|---|---|---|
-| View published events | school R | school R | school R | school R | school R | school R | all R |
-| Draft / edit event | — | org W | org W | school W | — | school W | — |
-| **Approve event** | — | — | **org A** | — | — | school A | — |
-| Register for event | own W | own W | — | own W | — | — | — |
-| **Scan attendance** | — | **org W** | org W | school W | — | school W | — |
-| Manual attendance override | — | — | org W | — | — | school W | — |
-| View own XP and rank | own R | own R | — | own R | — | — | — |
-| View others' XP | leaderboard only | org R | org R | school R | — | school R | all R |
-| **Set point rules** | — | — | — | — | — | **school W** | — |
-| File a point dispute | own W | own W | — | own W | — | — | — |
-| Resolve a point dispute | — | — | org A | — | — | school A | — |
-| Edit org profile | — | org W | org W | — | — | school W | — |
-| Review membership application | — | org W | org W | — | — | school W | — |
-| Assign officers | — | — | org A | — | — | school W | — |
-| Post org announcement | — | org W | org W | — | — | school W | — |
-| Post school announcement | — | — | — | **school W** | — | school W | — |
-| Moderate forum *(P2)* | — | — | org W | — | **school W** | school W | — |
-| Escalate to CPC *(P2)* | — | — | org W | — | school W | school W | — |
-| View participation analytics | — | org R | org R | school R | — | school R | all R |
-| **View non-participant list** | — | — | **org R** | — | — | school R | — |
-| Import learners | — | — | — | — | — | **school W** | — |
-| Export all data | — | — | — | — | — | **school W** | all |
-| Enable Apps Hub modules *(P3)* | — | — | — | — | — | school W | — |
-| Manage school tenants *(P3)* | — | — | — | — | — | — | all W |
+| Capability | Learner | Org Officer | Org Adviser | SSLG Officer | SSLG Adviser | Moderator | School Admin | Super Admin |
+|---|---|---|---|---|---|---|---|---|
+| View published events | school R | school R | school R | school R | school R | school R | school R | all R |
+| Draft / edit event | — | org W | org W | school W | school W *(edit only)* | — | school W | — |
+| **Approve event** | — | — | **org A** | — | **school A** | — | school A | — |
+| Register for event | own W | own W | — | own W | — | — | — | — |
+| **Scan attendance** | — | **org W** | org W | school W | school W | — | school W | — |
+| Manual attendance override | — | — | org W | — | school W | — | school W | — |
+| View own XP and rank | own R | own R | — | own R | — | — | — | — |
+| View others' XP | leaderboard only | org R | org R | school R | school R | — | school R | all R |
+| **Set point rules** | — | — | — | — | **school W** | — | **school W** | — |
+| Open / close a season | — | — | — | — | school W | — | school W | — |
+| File a point dispute | own W | own W | — | own W | — | — | — | — |
+| Resolve a point dispute | — | — | org A | — | school A | — | school A | — |
+| Edit org profile | — | org W | org W | — | — | — | school W | — |
+| Review membership application | — | org W | org W | — | — | — | school W | — |
+| Assign officers | — | — | org A | — | — | — | school W | — |
+| Post org announcement | — | org W | org W | — | — | — | school W | — |
+| Post school announcement | — | — | — | **school W** | — | — | school W | — |
+| Moderate forum *(P2)* | — | — | org W | — | — | **school W** | school W | — |
+| Escalate to CPC *(P2)* | — | — | org W | — | — | school W | school W | — |
+| View participation analytics | — | org R | org R | school R | school R | — | school R | all R |
+| **View non-participant list** | — | — | **org R** | — | school R | — | school R | — |
+| Import learners | — | — | — | — | — | — | **school W** | — |
+| Export all data | — | — | — | — | — | — | **school W** | all |
+| Enable Apps Hub modules *(P3)* | — | — | — | — | — | — | school W | — |
+| Manage school tenants *(P3)* | — | — | — | — | — | — | — | all W |
 
-**Read-only variants.** *Guidance staff* receive the non-participant list and participation analytics at
-school scope, read-only, nothing else. *School heads* receive the full School Admin dashboard, read-only.
+**The two oversight roles.** `guidance` and `school_head` are staff accounts with no learner surface —
+they never register for an event and hold no XP — and no write capability whatsoever. They are listed
+separately because a column of twenty-four dashes hides the one thing worth knowing about them, which is
+exactly what they can see.
+
+| Capability | Guidance | School Head |
+|---|---|---|
+| View published events | school R | school R *(any status)* |
+| View others' XP and the ledger behind it | school R | school R |
+| View participation analytics | school R | school R |
+| **View non-participant list** | **school R** | school R |
+| View attendance records | — | school R |
+| View approval decisions | — | school R |
+| Read the `audit_log` | — | **school R** |
+| Anything writable, anywhere | — | — |
+
+Guidance is deliberately narrower than the school head: it is an outreach tool, not a supervisory view,
+so it reaches participation and its absence and stops there. The school head gets the School Admin
+dashboard with every write path removed — including the audit log, so that the person accountable for
+the school can see who looked at the non-participant list.
 
 **Rules that are not obvious from the grid:**
 
 - Point values are set by School Admin and the SSLG adviser, **never by an organization** — otherwise
   orgs inflate their own events, which is a named risk.
+- The SSLG adviser may edit and approve any event in the school but **cannot draft one**: there is no
+  INSERT grant for the role. Proposing an activity stays with the organization that will run it.
+- The SSLG adviser and the school head see events **at any status, school-wide**. Everyone else sees an
+  unapproved event only inside the organization that drafted it.
 - An adviser cannot approve their own drafted event; a second adviser or School Admin must.
 - SSLG-wide events require both the org adviser and the SSLG adviser.
 - Every access to the non-participant list writes an `audit_log` row. It is an outreach tool, and it

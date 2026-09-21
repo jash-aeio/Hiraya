@@ -94,7 +94,7 @@ Approach a second school with a demo that now has a real click-path behind it.
 ## 4. Phase 1 — Identity and organizations · weeks 4–7
 
 **Deliverables.** CSV roster import (idempotent, per-row errors); activation codes in printable
-per-section batches; consent-gated activation; seven roles with RBAC; admin-assisted password reset;
+per-section batches; consent-gated activation; ten roles with RBAC; admin-assisted password reset;
 org profiles with officers, advisers and terms; membership applications with officer review; Discover
 Orgs with the six category filters; School Admin console; full data export.
 

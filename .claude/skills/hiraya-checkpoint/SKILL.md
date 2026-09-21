@@ -93,7 +93,8 @@ inside that PRD table row and nowhere else.
 Then verify by reading:
 
 - [ ] MVP feature list identical in `PRD.md` §4, `MILESTONE_ROADMAP.md` §14, `CLAUDE.md`
-- [ ] Seven roles identical in `PRD.md` §3 and `SYSTEM_DESIGN.md` §2
+- [ ] The role list is identical in `src/db/enums.ts` (`user_role`, the authority), `PRD.md` §3 and
+      `SYSTEM_DESIGN.md` §2 — ten roles
 - [ ] Entity names match between `SYSTEM_DESIGN.md` §4 and `DATA_FLOW.md`
 - [ ] Design tokens identical in `DESIGN_SYSTEM.md` §2 and `ASSET_CHECKLIST.md`
 - [ ] Every D-number referenced anywhere exists in the `TECHNICAL_ARCHITECTURE.md` table
