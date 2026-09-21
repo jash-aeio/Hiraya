@@ -58,8 +58,9 @@ Hiraya/
 │   └── PROGRESS.md                 # append-only checkpoint log
 ├── .claude/skills/                 # 5 project skills
 ├── .claude/agents/                 # 5 project agents
+├── .githooks/                      # pre-push: refuses a direct push to main
 ├── src/                            # (from Phase 0)
-├── assets/                         # authored SVG source
+├── public/                         # static authored SVG: avatars, empty states, hero, brand
 └── tests/{unit,e2e}/
 ```
 
@@ -82,7 +83,7 @@ src/
 │   ├── native/               # Capacitor wrappers, each with a web fallback
 │   ├── db/client.ts          # anon key + RLS  <- the default
 │   └── db/admin.ts           # service role  <- server-only, import-banned
-├── design/                   # tokens, primitives
+├── design/                   # tokens, primitives, and art/ (authored SVG components)
 └── i18n/                     # next-intl catalogues
 ```
 

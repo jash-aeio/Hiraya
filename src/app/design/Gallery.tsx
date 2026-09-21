@@ -12,12 +12,17 @@ import {
   Card,
   CardFooter,
   CardHeader,
+  CategoryIcon,
   Checkbox,
   Chip,
   Dialog,
   EmptyState,
   IconButton,
   Input,
+  LEVEL_TITLES,
+  LevelBadge,
+  Logomark,
+  Podium,
   ProgressBar,
   Radio,
   RadioGroup,
@@ -28,6 +33,9 @@ import {
   Switch,
   Tabs,
   Textarea,
+  UnlockFrame,
+  Wordmark,
+  XpCoin,
   useToast,
 } from "@/design";
 import type { OrgCategory } from "@/design";
@@ -40,6 +48,30 @@ const CATEGORIES: readonly OrgCategory[] = [
   "faith",
   "interest",
 ];
+
+/*
+ * The category marks carry their own colour class rather than inheriting one:
+ * a token class is the only way a component may reach a colour, and these are
+ * the six the palette assigns (DESIGN_SYSTEM.md §10).
+ */
+const CATEGORY_ART: readonly { key: OrgCategory; tone: string }[] = [
+  { key: "academic", tone: "text-cat-academic" },
+  { key: "arts", tone: "text-cat-arts" },
+  { key: "sports", tone: "text-cat-sports" },
+  { key: "service", tone: "text-cat-service" },
+  { key: "faith", tone: "text-cat-faith" },
+  { key: "interest", tone: "text-cat-interest" },
+];
+
+const AVATARS = Array.from({ length: 14 }, (_, i) => String(i + 1).padStart(2, "0"));
+
+const EMPTY_STATES = [
+  "no-events",
+  "no-orgs",
+  "no-checkins",
+  "no-announcements",
+  "offline",
+] as const;
 
 /*
  * Swatches name their token rather than their value. The hex then lives in exactly
@@ -272,6 +304,88 @@ export function Gallery() {
               {t("openSheet")}
             </Button>
           </div>
+        </Card>
+      </Section>
+
+      <Section heading={t("art")}>
+        <Card>
+          <CardHeader as="h3" label={t("artBrandLabel")} title={t("artBrand")} />
+          <div className="flex flex-wrap items-center gap-6">
+            <Wordmark size={32} />
+            <Logomark size={48} />
+            <Logomark size={24} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader as="h3" label={t("artCategoryLabel")} title={t("artCategory")} />
+          <ul className="flex flex-wrap gap-5">
+            {CATEGORY_ART.map(({ key, tone }) => (
+              <li key={key} className="flex w-20 flex-col items-center gap-1.5 text-center">
+                <CategoryIcon category={key} size={28} className={tone} />
+                <span className="type-caption text-ink-muted">{t(`cat.${key}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card>
+          <CardHeader as="h3" label={t("artLevelLabel")} title={t("artLevel")} />
+          <ul className="flex flex-wrap gap-6">
+            {([1, 2, 3, 4] as const).map((tier) => (
+              <li key={tier} className="flex flex-col items-center gap-1.5">
+                <LevelBadge tier={tier} size={64} />
+                <span className="type-caption text-ink-muted">{LEVEL_TITLES[tier]}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex flex-wrap items-center gap-5">
+            {([1, 2, 3, 4] as const).map((tier) => (
+              <UnlockFrame key={tier} tier={tier} size={44} />
+            ))}
+            <span className="inline-flex items-center gap-1.5">
+              <XpCoin size={18} />
+              <span className="type-body-strong text-xp-ink">1,250</span>
+            </span>
+            <Podium size={120} />
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader as="h3" label={t("artAvatarLabel")} title={t("artAvatar")} />
+          <ul className="flex flex-wrap gap-3">
+            {AVATARS.map((n) => (
+              <li key={n}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/avatars/avatar-${n}.svg`}
+                  width={44}
+                  height={44}
+                  alt=""
+                  loading="lazy"
+                />
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card>
+          <CardHeader as="h3" label={t("artEmptyLabel")} title={t("artEmpty")} />
+          <ul className="flex flex-wrap gap-4">
+            {EMPTY_STATES.map((name) => (
+              <li key={name}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/empty/${name}.svg`}
+                  width={140}
+                  height={112}
+                  alt=""
+                  loading="lazy"
+                  className="rounded-md bg-surface-sunk"
+                />
+              </li>
+            ))}
+          </ul>
         </Card>
       </Section>
 

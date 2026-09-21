@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" width="360" height="260" role="img" aria-hidden="true">
+  <!--
+    The landing illustration. One per app (DESIGN_SYSTEM.md 11.2) and hidden
+    below 480px, so it never costs a learner on a prepaid connection anything.
+
+    Abstract rather than figurative: the same reason avatars are (D13). Three
+    ascending columns under a rising chevron - participation accumulating into
+    recognition - with the amber point that the logomark also carries.
+  -->
+  <circle cx="180" cy="128" r="112" fill="#e3f2f1"/>
+
+  <rect x="92" y="156" width="46" height="64" rx="10" fill="#7fc4c2"/>
+  <rect x="157" y="124" width="46" height="96" rx="10" fill="#0d7f7c"/>
+  <rect x="222" y="142" width="46" height="78" rx="10" fill="#3b6ff6"/>
+
+  <path d="M110 108 180 58l70 50" fill="none" stroke="#0a6a67" stroke-width="9"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="180" cy="36" r="15" fill="#f5a524"/>
+
+  <g fill="#fff" opacity="0.9">
+    <circle cx="115" cy="178" r="6"/>
+    <circle cx="180" cy="148" r="6"/>
+    <circle cx="245" cy="164" r="6"/>
+  </g>
+
+  <rect x="72" y="220" width="216" height="8" rx="4" fill="#0a6a67" opacity="0.25"/>
+</svg>

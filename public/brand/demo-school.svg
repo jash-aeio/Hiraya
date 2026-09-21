@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Halimbawa National High School">
+  <!--
+    The synthetic tenant's crest (ASSET_CHECKLIST 1.8). "Halimbawa" is Filipino
+    for "example", and the mark is deliberately generic: a demo logo that
+    resembled a real school's seal would put that school's identity on a screen
+    full of invented learners.
+  -->
+  <path d="M32 4 58 13v22c0 14-11 22.5-26 25C17 57.5 6 49 6 35V13z" fill="#2f4a6b"/>
+  <path d="M32 10 52 17v18c0 11-8.6 17.6-20 19.8C20.6 52.6 12 46 12 35V17z" fill="#f4f5f8"/>
+  <path d="M32 22c-3.4-2-6.6-2.6-9.8-2.6V38c3.2 0 6.4.6 9.8 2.6 3.4-2 6.6-2.6 9.8-2.6V19.4c-3.2 0-6.4.6-9.8 2.6z" fill="#2f4a6b"/>
+  <path d="M32 22v18.6" stroke="#f4f5f8" stroke-width="1.6"/>
+  <circle cx="32" cy="46" r="3.2" fill="#c9a227"/>
+</svg>
