@@ -1,0 +1,84 @@
+{
+  "$comment": "Tenant-level demo data. Dates are offsets from the moment the seed runs, never absolute, so a demo rehearsed in September still looks alive in December.",
+
+  "school": {
+    "slug": "halimbawa-demo",
+    "name": "Halimbawa National High School",
+    "abbreviation": "HNHS",
+    "settings": {
+      "note": "Synthetic tenant. is_demo drives the DEMO DATA marker; nothing here describes a real school."
+    }
+  },
+
+  "seasons": [
+    {
+      "key": "prev",
+      "name": "Unang Markahan (past)",
+      "startsInDays": -165,
+      "endsInDays": -76,
+      "isCurrent": false
+    },
+    {
+      "key": "now",
+      "name": "Ikalawang Markahan",
+      "startsInDays": -75,
+      "endsInDays": 30,
+      "isCurrent": true
+    }
+  ],
+
+  "$levels": "Thresholds are product parameters tuned during the pilot, not design constants (DESIGN_SYSTEM.md section 9). These are set so that one pilot quarter can actually span all four tiers: attendance alone puts Bayani fifteen events away, while organizing and volunteering get there much faster, which is the behaviour the economy is meant to reward. hiraya-gamification-balancer revisits them against real data.",
+  "levels": [
+    { "levelNumber": 1, "title": "Kasapi", "thresholdXp": 0, "badgeKey": "level-1-kasapi" },
+    { "levelNumber": 2, "title": "Lingkod", "thresholdXp": 40, "badgeKey": "level-2-lingkod" },
+    { "levelNumber": 3, "title": "Tagapagtaguyod", "thresholdXp": 90, "badgeKey": "level-3-tagapagtaguyod" },
+    { "levelNumber": 4, "title": "Bayani", "thresholdXp": 150, "badgeKey": "level-4-bayani" }
+  ],
+
+  "$xpRules": "The PRD FR-5 starting values, unchanged. The demo must not quietly invent a different economy from the one the pitch describes.",
+  "xpRules": [
+    { "participationType": "attend_event", "xpValue": 10 },
+    { "participationType": "event_feedback", "xpValue": 3 },
+    { "participationType": "volunteer", "xpValue": 25 },
+    { "participationType": "committee_member", "xpValue": 40 },
+    { "participationType": "organize_event", "xpValue": 50 },
+    { "participationType": "external_representation", "xpValue": 60 }
+  ],
+
+  "announcements": [
+    {
+      "key": "a1",
+      "scope": "school",
+      "authorKey": "admin",
+      "title": "Ikalawang Markahan season is open",
+      "body": "A new season means a fresh leaderboard. Lifetime XP is kept — only the seasonal board resets.",
+      "publishInDays": -74
+    },
+    {
+      "key": "a2",
+      "scope": "school",
+      "authorKey": "l01",
+      "title": "Club Fair on the covered court",
+      "body": "All six organizations will have tables. Bring your ID — officers will be scanning attendance at the entrance.",
+      "publishInDays": -9
+    },
+    {
+      "key": "a3",
+      "scope": "org",
+      "orgKey": "agham",
+      "authorKey": "l03",
+      "title": "Science Fair results are posted",
+      "body": "Thank you to everyone who came. XP for attendance has been credited and should already show on your profile.",
+      "publishInDays": -20
+    },
+    {
+      "key": "a4",
+      "scope": "org",
+      "orgKey": "robotika",
+      "authorKey": "l07",
+      "title": "Line-follower build night, this Friday",
+      "body": "Kits are limited to twenty builders. Register in the app so we know how many to prepare.",
+      "publishInDays": -3
+    }
+  ]
+}

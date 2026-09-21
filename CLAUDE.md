@@ -266,8 +266,10 @@ npm run cap:sync         # copy web build into android/ + ios/
 npm run cap:android      # open Android Studio
 ```
 
-*(All but `db:seed:demo`, `test:e2e`, `cap:sync` and `cap:android` are wired as of 2026-09-21; the seed
-lands with the demo tenant, Playwright alongside the first walkable loop, Capacitor in Phase 5.)*
+*(All but `test:e2e`, `cap:sync` and `cap:android` are wired as of 2026-09-21; Playwright lands
+alongside the first walkable loop, Capacitor in Phase 5. `db:seed:demo` reads `seed/demo-*.json` —
+see `seed/README.md` — writes as School Admin under RLS rather than around it, and refuses to run if
+any school in the database is not flagged `is_demo`.)*
 
 ---
 

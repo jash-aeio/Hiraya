@@ -1,0 +1,90 @@
+{
+  "$comment": "Six organizations, one per category in src/db/enums.ts, so Discover Orgs has something in every filter. Officer and adviser terms all start at the top of the current school year; the script sets the dates.",
+
+  "organizations": [
+    {
+      "key": "agham",
+      "name": "Samahang Agham",
+      "slug": "samahang-agham",
+      "category": "academic",
+      "mission": "Science investigatory projects, quiz bees, and the annual fair. Open to any learner willing to be curious out loud.",
+      "advisers": [{ "staffKey": "advA", "isPrimary": true }],
+      "officers": [
+        { "learnerKey": "l03", "position": "President" },
+        { "learnerKey": "l09", "position": "Secretary" }
+      ],
+      "members": ["l01", "l03", "l05", "l09", "l11", "l13", "l15", "l20", "l27", "l34"],
+      "applicants": ["l17"]
+    },
+    {
+      "key": "sining",
+      "name": "Sining Guild",
+      "slug": "sining-guild",
+      "category": "arts",
+      "mission": "Visual arts, chorale, and the stage crew that makes every school programme work.",
+      "advisers": [{ "staffKey": "advA", "isPrimary": true }],
+      "officers": [
+        { "learnerKey": "l04", "position": "President" },
+        { "learnerKey": "l16", "position": "Vice President" }
+      ],
+      "members": ["l04", "l08", "l16", "l17", "l24", "l25", "l29", "l35"],
+      "applicants": []
+    },
+    {
+      "key": "palaro",
+      "name": "Palaro Athletics Club",
+      "slug": "palaro-athletics",
+      "category": "sports",
+      "mission": "Intramurals, the district meet, and training that welcomes beginners as loudly as it welcomes varsity.",
+      "advisers": [{ "staffKey": "advB", "isPrimary": true }],
+      "officers": [
+        { "learnerKey": "l06", "position": "President" },
+        { "learnerKey": "l14", "position": "Team Captain" }
+      ],
+      "members": ["l06", "l14", "l18", "l21", "l22", "l28", "l31", "l36", "l38"],
+      "applicants": ["l33"]
+    },
+    {
+      "key": "bayanihan",
+      "name": "Bayanihan Service Corps",
+      "slug": "bayanihan-service",
+      "category": "service",
+      "mission": "Coastal clean-ups, feeding programmes, and the reading buddies scheme with the nearby elementary school.",
+      "advisers": [{ "staffKey": "advB", "isPrimary": true }],
+      "officers": [
+        { "learnerKey": "l02", "position": "President" },
+        { "learnerKey": "l10", "position": "Secretary" }
+      ],
+      "members": ["l02", "l10", "l12", "l19", "l26", "l30", "l33", "l37"],
+      "applicants": []
+    },
+    {
+      "key": "sinag",
+      "name": "Sinag Fellowship",
+      "slug": "sinag-fellowship",
+      "category": "faith_based",
+      "mission": "Morning reflections and outreach, run to be welcoming to learners of any faith or none.",
+      "advisers": [{ "staffKey": "advC", "isPrimary": true }],
+      "officers": [
+        { "learnerKey": "l05", "position": "President" },
+        { "learnerKey": "l23", "position": "Secretary" }
+      ],
+      "members": ["l05", "l13", "l22", "l23", "l26", "l32"],
+      "applicants": []
+    },
+    {
+      "key": "robotika",
+      "name": "Robotika Circuit Club",
+      "slug": "robotika-circuit",
+      "category": "special_interest",
+      "mission": "Line followers, microcontrollers, and one very patient soldering iron. No prior experience assumed.",
+      "advisers": [{ "staffKey": "advC", "isPrimary": true }],
+      "officers": [
+        { "learnerKey": "l07", "position": "President" },
+        { "learnerKey": "l11", "position": "Vice President" }
+      ],
+      "members": ["l01", "l07", "l11", "l21", "l25", "l30", "l34"],
+      "applicants": ["l15", "l36"]
+    }
+  ]
+}

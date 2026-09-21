@@ -1,0 +1,57 @@
+{
+  "$comment": "The cast. Names are built from Filipino nature and virtue words rather than plausible roster names, so no synthetic learner can be mistaken for a real one in a screenshot. Usernames and avatar keys are derived by the script; they are not worth hand-maintaining.",
+
+  "$staff": "Org-scoped adviser roles are granted in demo-orgs.json, where the organization they belong to is named. Only school-wide roles appear here.",
+  "staff": [
+    { "key": "admin", "name": "Marisol Tagapamahala", "schoolRoles": ["school_admin"] },
+    { "key": "advA", "name": "Rosalinda Tanglaw", "schoolRoles": ["sslg_adviser"] },
+    { "key": "advB", "name": "Benigno Gabay", "schoolRoles": [] },
+    { "key": "advC", "name": "Corazon Sanggunian", "schoolRoles": [] }
+  ],
+
+  "learners": [
+    { "key": "l01", "name": "Tala Silangan", "gradeLevel": 12, "section": "STEM-B", "schoolRoles": ["learner", "sslg_officer"] },
+    { "key": "l02", "name": "Bagwis Karagatan", "gradeLevel": 12, "section": "HUMSS-A", "schoolRoles": ["learner", "sslg_officer"] },
+    { "key": "l03", "name": "Liwayway Talahib", "gradeLevel": 12, "section": "STEM-B", "schoolRoles": ["learner"] },
+    { "key": "l04", "name": "Alon Bundukin", "gradeLevel": 12, "section": "HUMSS-A", "schoolRoles": ["learner"] },
+    { "key": "l05", "name": "Marikit Amihan", "gradeLevel": 12, "section": "STEM-B", "schoolRoles": ["learner"] },
+    { "key": "l06", "name": "Tanglaw Habagat", "gradeLevel": 12, "section": "HUMSS-A", "schoolRoles": ["learner"] },
+    { "key": "l07", "name": "Sinag Dagatan", "gradeLevel": 11, "section": "STEM-A", "schoolRoles": ["learner"] },
+    { "key": "l08", "name": "Ligaya Talampas", "gradeLevel": 11, "section": "ABM-A", "schoolRoles": ["learner"] },
+    { "key": "l09", "name": "Haraya Alindahaw", "gradeLevel": 11, "section": "STEM-A", "schoolRoles": ["learner"] },
+    { "key": "l10", "name": "Malaya Sampaga", "gradeLevel": 11, "section": "ABM-A", "schoolRoles": ["learner"] },
+    { "key": "l11", "name": "Diwa Palayan", "gradeLevel": 11, "section": "STEM-A", "schoolRoles": ["learner"] },
+    { "key": "l12", "name": "Mithi Bukana", "gradeLevel": 11, "section": "ABM-A", "schoolRoles": ["learner"] },
+    { "key": "l13", "name": "Bituin Lawiswis", "gradeLevel": 10, "section": "Adelfa", "schoolRoles": ["learner"] },
+    { "key": "l14", "name": "Agila Batisan", "gradeLevel": 10, "section": "Kampupot", "schoolRoles": ["learner"] },
+    { "key": "l15", "name": "Dalisay Gubatan", "gradeLevel": 10, "section": "Adelfa", "schoolRoles": ["learner"] },
+    { "key": "l16", "name": "Himig Palaspas", "gradeLevel": 10, "section": "Kampupot", "schoolRoles": ["learner"] },
+    { "key": "l17", "name": "Alab Tuktukin", "gradeLevel": 10, "section": "Adelfa", "schoolRoles": ["learner"] },
+    { "key": "l18", "name": "Ulap Sapaan", "gradeLevel": 10, "section": "Kampupot", "schoolRoles": ["learner"] },
+    { "key": "l19", "name": "Luntian Ilayaan", "gradeLevel": 10, "section": "Adelfa", "schoolRoles": ["learner"] },
+    { "key": "l20", "name": "Araw Kanluran", "gradeLevel": 9, "section": "Kalachuchi", "schoolRoles": ["learner"] },
+    { "key": "l21", "name": "Bulan Hilagaan", "gradeLevel": 9, "section": "Waling-Waling", "schoolRoles": ["learner"] },
+    { "key": "l22", "name": "Hangin Dalampasig", "gradeLevel": 9, "section": "Kalachuchi", "schoolRoles": ["learner"] },
+    { "key": "l23", "name": "Ambon Bukirin", "gradeLevel": 9, "section": "Waling-Waling", "schoolRoles": ["learner"] },
+    { "key": "l24", "name": "Sining Anluwage", "gradeLevel": 9, "section": "Kalachuchi", "schoolRoles": ["learner"] },
+    { "key": "l25", "name": "Awit Pandayan", "gradeLevel": 9, "section": "Waling-Waling", "schoolRoles": ["learner"] },
+    { "key": "l26", "name": "Paraluman Batohan", "gradeLevel": 9, "section": "Kalachuchi", "schoolRoles": ["learner"] },
+    { "key": "l27", "name": "Lakan Silanganin", "gradeLevel": 8, "section": "Rosal", "schoolRoles": ["learner"] },
+    { "key": "l28", "name": "Makisig Tarukan", "gradeLevel": 8, "section": "Gumamela", "schoolRoles": ["learner"] },
+    { "key": "l29", "name": "Adarna Sagingan", "gradeLevel": 8, "section": "Rosal", "schoolRoles": ["learner"] },
+    { "key": "l30", "name": "Ilaw Bagahan", "gradeLevel": 8, "section": "Gumamela", "schoolRoles": ["learner"] },
+    { "key": "l31", "name": "Apoy Kawayanan", "gradeLevel": 8, "section": "Rosal", "schoolRoles": ["learner"] },
+    { "key": "l32", "name": "Pag-asa Nayunin", "gradeLevel": 8, "section": "Gumamela", "schoolRoles": ["learner"] },
+    { "key": "l33", "name": "Sigla Taluktukan", "gradeLevel": 8, "section": "Rosal", "schoolRoles": ["learner"] },
+    { "key": "l34", "name": "Bango Halamanan", "gradeLevel": 7, "section": "Sampaguita", "schoolRoles": ["learner"] },
+    { "key": "l35", "name": "Simoy Parangan", "gradeLevel": 7, "section": "Ilang-Ilang", "schoolRoles": ["learner"] },
+    { "key": "l36", "name": "Batis Kaparangan", "gradeLevel": 7, "section": "Sampaguita", "schoolRoles": ["learner"] },
+    { "key": "l37", "name": "Dahon Tubigan", "gradeLevel": 7, "section": "Ilang-Ilang", "schoolRoles": ["learner"] },
+    { "key": "l38", "name": "Ulan Talaharan", "gradeLevel": 7, "section": "Sampaguita", "schoolRoles": ["learner"] },
+    { "key": "l39", "name": "Umaga Talon", "gradeLevel": 7, "section": "Ilang-Ilang", "schoolRoles": ["learner"] },
+    { "key": "l40", "name": "Gabi Tahimikan", "gradeLevel": 7, "section": "Sampaguita", "schoolRoles": ["learner"] }
+  ],
+
+  "$withoutConsent": "Two learners are deliberately left without a consent record and stay at status 'imported'. Activation must refuse them (FR-1.x, CONSENT_REQUIRED), and a demo that cannot show the gate working is a demo the DPO has no reason to believe.",
+  "withoutConsent": ["l39", "l40"]
+}
