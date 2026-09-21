@@ -36,7 +36,11 @@ export function Chip({ children, selected = false, onToggle, category, className
   ) : null;
 
   const shell = cn(
-    "type-small inline-flex items-center gap-2 rounded-full border px-3 font-semibold",
+    // `shrink-0` because a chip row is a flex container: without it the items
+    // shrink to their min-width and clip their own labels rather than letting
+    // the row scroll. English never showed this and Filipino did immediately,
+    // which is the whole argument for auditing both locales.
+    "type-small inline-flex shrink-0 items-center gap-2 rounded-full border px-3 font-semibold",
     selected
       ? "border-primary bg-primary-soft text-primary-ink"
       : "border-border bg-surface text-ink-muted",
@@ -59,7 +63,15 @@ export function Chip({ children, selected = false, onToggle, category, className
       onClick={onToggle}
       // A filter row of 44px-tall pills eats a third of a 360x800 screen, so the
       // chip stays visually small and gains its touch target from padding.
-      className={cn(shell, "min-h-11 py-1.5 transition-colors duration-[var(--duration-feedback)]")}
+      //
+      // `min-w-11` for the same reason in the other axis, and it took a real
+      // measurement to notice: the height was already handled, but a short
+      // label like "All" came out 41px wide and failed the 44px minimum while
+      // every longer chip beside it passed.
+      className={cn(
+        shell,
+        "min-h-11 min-w-11 justify-center py-1.5 transition-colors duration-[var(--duration-feedback)]",
+      )}
     >
       {dot}
       {children}

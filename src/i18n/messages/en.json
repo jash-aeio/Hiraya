@@ -133,5 +133,51 @@
       "faith": "Faith-based",
       "interest": "Special interest"
     }
+  },
+  "events": {
+    "label": "Discover",
+    "title": "What's on",
+    "intro": "Events your organizations are running. Check in at the gate to earn XP.",
+    "scopeLabel": "Time",
+    "categoryLabel": "Category",
+    "loading": "Loading events",
+    "scope": {
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "category": {
+      "all": "All",
+      "academic": "Academic",
+      "arts": "Arts",
+      "sports": "Sports",
+      "service": "Service",
+      "faith_based": "Faith-based",
+      "special_interest": "Special interest"
+    },
+    "capacity": "{count} spots",
+    "registration": {
+      "registered": "Registered",
+      "waitlisted": "Waitlisted",
+      "cancelled": "Cancelled",
+      "attended": "Attended"
+    },
+    "register": {
+      "soon": "Registration opens soon"
+    },
+    "empty": {
+      "upcoming": {
+        "title": "Nothing coming up",
+        "description": "No approved events are scheduled yet. Check back after your org proposes one."
+      },
+      "past": {
+        "title": "Nothing here yet",
+        "description": "Past events will appear here once they have finished."
+      }
+    },
+    "failed": {
+      "title": "Could not load events",
+      "description": "Check your connection and try again.",
+      "retry": "Try again"
+    }
   }
 }

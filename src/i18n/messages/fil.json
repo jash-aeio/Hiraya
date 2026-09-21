@@ -133,5 +133,51 @@
       "faith": "Pananampalataya",
       "interest": "Espesyal na interes"
     }
+  },
+  "events": {
+    "label": "Tuklasin",
+    "title": "Mga gaganapin",
+    "intro": "Mga aktibidad ng inyong mga organisasyon. Mag-check in sa gate para kumita ng XP.",
+    "scopeLabel": "Panahon",
+    "categoryLabel": "Kategorya",
+    "loading": "Naglo-load ng mga aktibidad",
+    "scope": {
+      "upcoming": "Paparating",
+      "past": "Nakaraan"
+    },
+    "category": {
+      "all": "Lahat",
+      "academic": "Akademiko",
+      "arts": "Sining",
+      "sports": "Palakasan",
+      "service": "Serbisyo",
+      "faith_based": "Pananampalataya",
+      "special_interest": "Espesyal na interes"
+    },
+    "capacity": "{count} na puwesto",
+    "registration": {
+      "registered": "Nakarehistro",
+      "waitlisted": "Nasa waitlist",
+      "cancelled": "Kanselado",
+      "attended": "Dumalo"
+    },
+    "register": {
+      "soon": "Malapit nang magbukas ang rehistro"
+    },
+    "empty": {
+      "upcoming": {
+        "title": "Wala pang paparating",
+        "description": "Wala pang aprubadong aktibidad. Bumalik kapag nagmungkahi na ang inyong org."
+      },
+      "past": {
+        "title": "Wala pa rito",
+        "description": "Lilitaw dito ang mga nakaraang aktibidad kapag natapos na ang mga ito."
+      }
+    },
+    "failed": {
+      "title": "Hindi ma-load ang mga aktibidad",
+      "description": "Tingnan ang inyong koneksyon at subukan muli.",
+      "retry": "Subukan muli"
+    }
   }
 }
