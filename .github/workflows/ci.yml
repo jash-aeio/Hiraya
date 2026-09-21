@@ -57,6 +57,19 @@ jobs:
       - name: Migration consistency
         run: npm run db:check
 
+      # The service container is a bare postgres:17, which has none of the roles
+      # Supabase provides. Every file in src/db/rls/ GRANTs and REVOKEs against
+      # `anon`, `authenticated` and `service_role`, so without this step the very
+      # first policy file fails with `role "anon" does not exist` — and did, on
+      # every run of this workflow since it was written.
+      #
+      # The integration suite bootstraps its own database the same way
+      # (tests/integration/helpers/db.ts), from this same file. That is the point:
+      # CI must apply the production GRANTs, not a relaxed copy, or a policy that
+      # forgot a REVOKE would pass here and leak on the project.
+      - name: Bootstrap the roles Supabase provides
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/bootstrap-roles.sql
+
       - name: Apply migrations and RLS
         run: npm run db:migrate
 

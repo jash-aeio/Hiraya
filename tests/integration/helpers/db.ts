@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { createServer } from "node:net";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -29,6 +30,13 @@ export interface TestDatabase {
   stop: () => Promise<void>;
 }
 
+/** The same connection string, pointed at a different database on that server. */
+function withDatabase(url: string, database: string): string {
+  const parsed = new URL(url);
+  parsed.pathname = `/${database}`;
+  return parsed.toString();
+}
+
 async function freePort(): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = createServer();
@@ -45,17 +53,58 @@ async function freePort(): Promise<number> {
   });
 }
 
+/**
+ * A scratch database name. Unique per call, so two test files never share one.
+ */
+function scratchName(): string {
+  return `hiraya_test_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+}
+
 export async function startTestDatabase(): Promise<TestDatabase> {
   const external = process.env.TEST_DATABASE_URL;
 
   if (external) {
     assertDisposableDatabase(external);
-    await prepare(external);
+
+    /*
+     * Every test file calls this, and it must get a database of its own.
+     *
+     * The embedded path below already behaves that way — a fresh cluster per
+     * file — and for a long time that was the only path anyone ran, so the
+     * asymmetry went unnoticed: pointed at one long-lived server, every file
+     * shared a single database and each one's fixtures leaked into the next
+     * one's assertions. It surfaced as the demo seed refusing to run (it will
+     * not write synthetic learners beside a school that is not `is_demo`) next
+     * to a cross-tenant test whose whole job is to seed exactly such a school.
+     *
+     * Both tests were right. The isolation was missing, so create it here
+     * rather than weakening either of them.
+     */
+    const name = scratchName();
+    const admin = postgres(external, { max: 1, onnotice: () => {} });
+    try {
+      await admin.unsafe(`CREATE DATABASE ${name}`);
+    } finally {
+      await admin.end();
+    }
+
+    const url = withDatabase(external, name);
+    await prepare(url);
+    const sql = postgres(url, { max: 1, onnotice: () => {} });
+
     return {
-      url: external,
-      sql: postgres(external, { max: 1, onnotice: () => {} }),
+      url,
+      sql,
       stop: async () => {
-        /* an external database outlives the suite */
+        await sql.end();
+        const cleanup = postgres(external, { max: 1, onnotice: () => {} });
+        try {
+          // FORCE (PG13+) so a connection the suite failed to close does not
+          // leave a database behind on a shared server, run after run.
+          await cleanup.unsafe(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`);
+        } finally {
+          await cleanup.end();
+        }
       },
     };
   }
