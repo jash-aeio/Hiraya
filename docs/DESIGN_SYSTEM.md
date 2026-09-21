@@ -54,6 +54,7 @@ learners reading it on a cheap screen in daylight.
   /* Points and progress */
   --xp:            #F5A524;   /* XP coin, progress fill — decorative only */
   --xp-ink:        #8A5A00;   /* XP text on light       — 4.8:1 */
+  --xp-soft:       #FEF6E7;   /* tinted background      — added 2026-09-21 */
 
   /* Text */
   --ink:           #141824;   /* headings, body         — 15.8:1 */
@@ -61,11 +62,13 @@ learners reading it on a cheap screen in daylight.
   --ink-subtle:    #7A8494;   /* tertiary, >=16px only  — 4.0:1  NOT for body text */
   --ink-inverse:   #FFFFFF;
 
-  /* Status */
-  --success:       #0F7B4F;
-  --warning:       #B45309;
-  --danger:        #C0392B;
-  --info:          #2563A8;
+  /* Status — each with a tinted background, added 2026-09-21 when Badge needed
+     one: a status pill has to sit on something, and picking a tint per call site
+     is how six slightly different greens appear. The ink is the token above it. */
+  --success:       #0F7B4F;   --success-soft: #E6F4ED;
+  --warning:       #B45309;   --warning-soft: #FDF1E3;
+  --danger:        #C0392B;   --danger-soft:  #FCECEB;
+  --info:          #2563A8;   --info-soft:    #E9F0F9;
 
   /* Organization categories */
   --cat-academic:  #3B6FF6;
@@ -82,9 +85,17 @@ learners reading it on a cheap screen in daylight.
 - `--xp` amber is **decorative only** — never text, never an icon carrying meaning alone. Use `--xp-ink`
   for any amber-toned text.
 - `--ink-subtle` is for 16px and larger only. It fails AA for body copy and must never be used for it.
+  **In practice this leaves it with no correct use yet:** no style in the §3 scale is both secondary and
+  16px or larger, so every use of it in the first build was a contrast failure and the first mobile audit
+  found all four. Reach for `--ink-muted` (5.9:1). The token stays defined for the day a large secondary
+  style exists.
 - Never encode meaning in color alone. Status chips carry an icon and a word; the scanner confirms with
   sound and motion as well as color (colour-blind officers work the gate too).
 - Category colors identify, they do not rank. Never order or grade by them.
+
+**Implementation.** `src/design/tokens.css` is this block in code, declared inside Tailwind's `@theme`
+so each token also generates a utility (`bg-surface`, `text-ink-muted`). A colour is therefore reachable
+only by naming a token, which is what makes "no literal hex in a component" cost nothing to obey.
 
 **Dark mode** is not in the MVP. Tokens are structured so it can be added by redefining this block,
 but shipping one untested theme is better than two half-tested ones.
@@ -158,9 +169,18 @@ keeps it one product; the register keeps it credible to both.
 
 ## 6. Components
 
-**Primitives** (`src/design/`): Button (primary pill / secondary / ghost / danger), IconButton, Input,
-Select, Textarea, Checkbox, Radio, Switch, Chip, Badge, Card, Sheet, Dialog, Tabs, Toast, Skeleton,
-EmptyState, Avatar, ProgressBar, Spinner.
+**Primitives** (`src/design/primitives/`, built 2026-09-21): Button (primary pill / secondary / ghost /
+danger), IconButton, Input, Select, Textarea, Checkbox, Radio, Switch, Chip, Badge, Card, Sheet, Dialog,
+Tabs, Toast, Skeleton, EmptyState, Avatar, ProgressBar, Spinner.
+
+Two of these are shared internals rather than new inventory: `Modal` is what `Dialog` and `Sheet` both
+are (a native `<dialog>`, which brings its own focus trap, Escape handling and inert background), and
+`Field` is the label/hint/error wiring `Input`, `Select` and `Textarea` share so they cannot drift apart
+on the thing that matters — that the label, the hint and the error are all tied to the control by id.
+
+**`/design` renders every primitive on one page.** It is the Phase 0 review point, the surface
+`hiraya-mobile-audit` runs against, and the place to look before building a component that may already
+exist. See `src/design/README.md` for the working rules.
 
 **Learner components**
 

@@ -7,6 +7,100 @@ Maintained by the `hiraya-checkpoint` skill. See `CLAUDE.md` §7 for the six tri
 
 ---
 
+## 2026-09-21 — Design system in code; the role list reconciled to ten
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track
+
+**Shipped**
+
+- **The token layer exists.** `src/design/tokens.css` is `DESIGN_SYSTEM.md` §2-§4 in code, declared
+  inside Tailwind's `@theme` so every token also generates a utility. A component can reach a colour
+  only by naming a token, which makes "no literal hex in a component" free to obey and visible in
+  review when broken. The §3 type scale is one `@utility` per row of that table, carrying size, line
+  height, weight and tracking together, so a heading cannot drift by being assembled from three
+  half-remembered utilities
+- **21 primitives** under `src/design/primitives/`, the full §6 inventory. Two are shared internals
+  rather than new inventory: `Modal` is what `Dialog` and `Sheet` both are — a native `<dialog>`, which
+  brings its own focus trap, Escape handling and inert background, none of which we now maintain — and
+  `Field` is the label/hint/error wiring the three text controls share
+- **The dual register is a CSS fact, not a convention.** `data-register="staff"` collapses
+  `--duration-celebrate` to zero, so an adviser surface cannot celebrate by accident (D12). Verified in
+  the browser: the gallery reports `0s`
+- **Plus Jakarta Sans self-hosted** by `next/font` as one variable file covering 400-800, and
+  `lucide-react` for icons. Both were already settled in `DESIGN_SYSTEM.md` §11 and the asset checklist
+- **`/design` renders every primitive on one page** — the Phase 0 review point, the surface
+  `hiraya-mobile-audit` runs against, and the answer to "does a primitive for this already exist?"
+- **The role list now agrees.** `PRD.md` §3 lists ten roles; `SYSTEM_DESIGN.md` §2 gains an SSLG Adviser
+  column and an "Open / close a season" row, and gives `guidance` and `school_head` their own capability
+  table instead of a prose footnote. Every cell was read off `src/db/rls/*.sql` as applied, not intent
+
+**Decisions**
+
+- None new in the D-table. The role contradiction was resolved in favour of the code, which is what
+  `CLAUDE.md` §10.4 asks for once the disagreement is surfaced rather than silently picked
+
+**Docs updated**
+
+- `docs/PRD.md` §3 — ten role rows; the enum named as the authority. FR-1.4 says ten
+- `docs/SYSTEM_DESIGN.md` §2 — SSLG Adviser column, oversight-role table, two non-obvious rules the
+  policies already enforce: the SSLG adviser may edit and approve any event but cannot draft one (no
+  INSERT grant), and `sslg_adviser`/`school_head` see events at any status school-wide
+- `docs/DESIGN_SYSTEM.md` §2, §6 — the status tint tokens Badge needed, the implementation note, what
+  the mobile audit proved about `--ink-subtle`
+- `docs/TECHNICAL_ARCHITECTURE.md` §3 — typeface and icon rows added to the stack table
+- `docs/ASSET_CHECKLIST.md` §1.2, §1.3 — typography and Lucide ticked
+- `.claude/skills/hiraya-checkpoint` — the consistency check names the enum as the authority instead of
+  asserting seven roles
+- `CLAUDE.md` §8 — `db:seed:demo` is declared but not yet wired
+
+**Risks**
+
+- Materialized: **the first mobile audit found six defects, all fixed before the commit.** The two worth
+  remembering: `buttonClass` was exported from a `"use client"` module, so the landing page answered 500
+  the moment a Server Component called it — a build and a typecheck both passed first; and both modals
+  hardcoded `id="modal-title"`, so `aria-labelledby` resolved to whichever rendered first. The other
+  four were a 28px switch target, `Tabs` reading "Upcoming3", an empty live region inside every loading
+  button, and every `--ink-subtle` use in the codebase sitting on text below 16px
+- Retired: none
+
+**Next**
+
+- Tier 1 SVG assets — wordmark, logomark, PWA icons, 4 level badges, 6 category icons, 12-16 avatars,
+  5 empty states, hero. The tokens they recolour from now exist
+- `scripts/seed-demo.ts` and the synthetic demo tenant with its DEMO DATA marker
+- Then the walkable loop, the Vercel deploy, and the pitch kit
+
+**Flagged**
+
+- **`--ink-subtle` has no correct use at the current type scale.** It is 4.0:1 and permitted only at
+  16px and up, and no style in `DESIGN_SYSTEM.md` §3 is both secondary and that large. All four uses in
+  the first build were contrast failures. The token stays defined; `--ink-muted` is the answer until a
+  large secondary style exists
+- **The production build needs network access once.** `next/font` downloads Plus Jakarta Sans at build
+  time and self-hosts it, so a fully offline build fails on a cold cache. The alternative — committing
+  the woff2 — was not taken because it puts a binary in the repo for a cost we have not yet felt
+- **First load is 192.6 KB on `/design`**, the page that imports every primitive, against the 500 KB
+  budget: 151.6 KB JS, 26.6 KB font, 8.5 KB document, 5.9 KB CSS. The landing page is 185.9 KB. The
+  design system cost roughly 10 KB over the previous near-empty baseline, so the headroom for features
+  is real but the `next-intl` catalogue still serializes whole into every RSC payload, and the gallery
+  added 64 keys to it
+- **The Supabase MCP server is connected but unauthorized.** `.mcp.json` is correct — read-only, pinned
+  to `zpdyybdqezkfiupobjaj` — but `SUPABASE_ACCESS_TOKEN` is absent from the process environment, so
+  every call returns `Unauthorized`. It must be set in the user environment, not `.env.local`, and
+  Claude Code restarted. Not blocking: `DATABASE_URL` reaches the project directly
+- **`npm start` fails silently when a previous server still holds port 3000.** It exits non-zero into a
+  log while the old build keeps answering, and an audit run against it measures the wrong code. This
+  happened once during this session and produced a clean bill of health for a build that had none. Kill
+  by PID from `netstat`, and check the served HTML for the change you just made
+- Carried, unchanged: everything above ran against an empty database — no fixture, demo tenant or
+  learner row exists, so the cross-tenant denial test still proves itself only on the embedded Postgres
+  the suite boots; `TEST_DATABASE_URL` must stay unset on this machine; the QR Ed25519 keypair is still
+  deliberately empty; `test:e2e`, `db:seed:demo`, `cap:sync` and `cap:android` are declared but unwired;
+  assumptions A1-A7 unverified; Apple Developer fee ownership undecided; R13 (Supabase pauses idle free
+  projects after ~7 days) live
+
+---
+
 ## 2026-09-21 — Supabase project live; schema and RLS applied to real infrastructure
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track

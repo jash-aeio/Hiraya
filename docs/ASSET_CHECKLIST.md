@@ -53,12 +53,14 @@ Without these there is nothing to show the school, and the pitch is where this p
 
 ### 1.2 Typography
 
-- [ ] Plus Jakarta Sans, weights 400 / 500 / 600 / 700 / 800
-- [ ] Latin subset, self-hosted via `next/font` — **no runtime font CDN**
+- [x] Plus Jakarta Sans — shipped as the **variable** font covering 400-800 in one file, rather than five
+      static weights. Fewer bytes, one request (2026-09-21)
+- [x] Latin subset, self-hosted via `next/font` — **no runtime font CDN**. Costs a build that needs
+      network access once, and caches after (2026-09-21)
 
 ### 1.3 Icons
 
-- [ ] Lucide wired up, tree-shaken
+- [x] Lucide wired up, tree-shaken — `lucide-react`, imported per icon (2026-09-21)
 - [ ] **6 org-category icons — authored**, one per category, each matched to its token color:
 
 | Category | Motif | Token |

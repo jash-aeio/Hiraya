@@ -61,6 +61,8 @@ one of these.
 | **Auth** | Supabase Auth | Sessions, hashing, refresh; JWT claims carry `school_id` and roles into RLS |
 | **Storage** | Supabase Storage (S3-compatible) | Event photos, certificates, report exports |
 | **Notifications** | Web Push (VAPID) on web; Capacitor Push natively; Resend free tier for **staff email only** | Learners have no email (D4) |
+| **Typeface** | Plus Jakarta Sans (SIL OFL), self-hosted by `next/font` | The geometric sans the reference calls for. Shipped as one **variable** file covering 400-800 rather than five static weights — fewer bytes and fewer requests. Never a runtime font CDN |
+| **Icons** | `lucide-react` (ISC) | Tree-shaken per icon, never an icon font. Settled in DESIGN_SYSTEM §11.3 |
 | **i18n** | `next-intl` | App Router native; message catalogues from commit 1 |
 | **Client state** | TanStack Query; Zustand only in the scanner | Server owns truth; the scanner is the one genuinely offline-first surface |
 | **Charts** | Recharts | Adviser/admin dashboards. Load the `dataviz` skill before writing any chart |
