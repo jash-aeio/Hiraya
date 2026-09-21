@@ -23,6 +23,19 @@ npm run db:verify-rls  # asserts the invariants actually landed
 tenants for as long as the gap lasts, so there is no supported way to create one without the other.
 Every policy file is idempotent, so re-running is always safe.
 
+### Two developers, one migration at a time
+
+**Only one migration may be open across the whole repository** (`docs/WORKSTREAMS.md` §3). Two branches
+each holding a valid generated migration produce a pair whose *combined* apply order nobody tested, and
+drizzle-kit's numbering will happily accept both. Announce the migration, keep the branch short, merge
+it, then the next one starts.
+
+**Applying to Supabase is the maintainer's step, not yours** (D26). Lane D authors and verifies the
+migration locally; the maintainer applies it to the Supabase project and reports back. The local
+database is bootstrapped with Supabase's roles *and* its default privileges precisely so that most
+surprises reproduce here — but `postgres` is not a superuser there, and `FORCE ROW LEVEL SECURITY`,
+default grants and the `rls_auto_enable()` event trigger have each produced one already.
+
 ## Adding a table
 
 1. Define it in `schema.ts` with `school_id`, `created_at`, `updated_at`, and an index on `school_id`.

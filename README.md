@@ -37,31 +37,41 @@ Storage) · Drizzle · Capacitor · Vercel.
 
 ## Development
 
+**New here? Read [`CONTRIBUTING.md`](CONTRIBUTING.md)** — it has the full local setup, the branch and PR
+rules, and the eight things that will get a PR rejected. The short version:
+
 ```bash
-cp .env.example .env.local   # fill in Supabase URL, keys, and DATABASE_URL
 npm install
+cp .env.example .env.local   # local Postgres is enough; no Supabase account needed
 npm run db:migrate           # schema + RLS policies, in that order
 npm run db:verify-rls        # asserts the tenancy invariants landed
+npm run db:seed:demo         # the synthetic tenant
 npm test                     # unit + integration, including cross-tenant denial
-npm run dev
+npm run dev                  # then open /demo and pick a persona
 ```
 
 The integration suite needs a real Postgres, because RLS policies and GRANTs are what it tests. Set
-`TEST_DATABASE_URL` to a throwaway database (Supabase local, or any Postgres) and it will use it;
-leave it unset and the suite downloads and boots its own. See [`src/db/README.md`](src/db/README.md)
-for the schema and policy workflow.
+`TEST_DATABASE_URL` to a throwaway database — it must not be the same one `DATABASE_URL` points at —
+and it will use it; leave it unset and the suite downloads and boots its own. See
+[`src/db/README.md`](src/db/README.md) for the schema and policy workflow.
+
+Work is split into two lanes with an explicit dependency board:
+[`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md). `main` is protected — changes land by pull request with
+green CI.
 
 ## Documentation
 
 | Document | Contents |
 |---|---|
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | **Start here.** Onboarding, local setup, branch and PR rules |
 | [`CLAUDE.md`](CLAUDE.md) | Architecture rules, coding standards, and how to work in this repo |
 | [`SKILLS.md`](SKILLS.md) | The five project skills and five project agents |
 | [`docs/PRD.md`](docs/PRD.md) | Problem, personas, requirements, user stories, KPIs |
-| [`docs/TECHNICAL_ARCHITECTURE.md`](docs/TECHNICAL_ARCHITECTURE.md) | Stack, decisions D1–D17, trade-offs |
+| [`docs/TECHNICAL_ARCHITECTURE.md`](docs/TECHNICAL_ARCHITECTURE.md) | Stack, decisions D1–D26, trade-offs |
 | [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md) | Modules, permissions, workflows, entities, API, threat model |
 | [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md) | Data lifecycle, auth flow, sensitive-data handling |
 | [`docs/MILESTONE_ROADMAP.md`](docs/MILESTONE_ROADMAP.md) | 17 weeks, two gates, risk register |
+| [`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) | The two lanes, the task board, and what depends on what |
 | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Tokens, dual register, components |
 | [`docs/ASSET_CHECKLIST.md`](docs/ASSET_CHECKLIST.md) | Every asset, tiered by what it blocks |
 | [`docs/PROGRESS.md`](docs/PROGRESS.md) | Append-only checkpoint log |

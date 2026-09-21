@@ -44,13 +44,15 @@ sharing one Supabase database.
 ```
 Hiraya/
 ├── CLAUDE.md                       # you are here
+├── CONTRIBUTING.md                 # onboarding, local setup, branch and PR rules
 ├── SKILLS.md                       # skills + agents catalogue and combined workflow
 ├── docs/
 │   ├── PRD.md                      # what to build, for whom, with acceptance criteria
-│   ├── TECHNICAL_ARCHITECTURE.md   # stack, decisions D1-D17, trade-offs
+│   ├── TECHNICAL_ARCHITECTURE.md   # stack, decisions D1-D26, trade-offs
 │   ├── SYSTEM_DESIGN.md            # modules, roles, workflows, entities, API contracts
 │   ├── DATA_FLOW.md                # data lifecycle, auth flow, sensitive-data handling
 │   ├── MILESTONE_ROADMAP.md        # phases, gates, acceptance criteria
+│   ├── WORKSTREAMS.md              # the two lanes, task board, dependencies
 │   ├── DESIGN_SYSTEM.md            # tokens, dual register, component inventory
 │   ├── ASSET_CHECKLIST.md          # every asset needed, tiered by what it blocks
 │   └── PROGRESS.md                 # append-only checkpoint log
@@ -242,8 +244,19 @@ Keeping docs, progress, and the remote current is part of the work, not an after
 6. The stack or a dependency changes
 
 **Git policy.** Commit freely as work completes — no need to ask. **Push at checkpoints**, and say so in
-one line. Never force-push, and never commit directly to `main` without asking first. Conventional commit
-messages; tag `phase-N-complete` at phase boundaries.
+one line. Never force-push. Conventional commit messages; tag `phase-N-complete` at phase boundaries.
+
+**`main` is protected (D26).** Since this repository has two developers, work lands through a pull
+request with green CI, never by a direct push to `main`. Branch as `feat/`, `fix/`, `docs/` or `chore/`;
+squash-merge so `main` reads as one commit per slice. A PR that spans two lanes, or two features, is
+hard to review and harder to revert — split it.
+
+**Two lanes.** `docs/WORKSTREAMS.md` holds the task board, who owns which paths, and what depends on
+what. **Lane D** (schema, RLS, services, `/api/v1`, scripts, integration tests) belongs to the incoming
+developer; **Lane P** (screens, design system, i18n, assets, E2E) to the maintainer. Before editing a
+file outside the lane you are working in, say so; before starting a feature, check that its Zod contract
+in `features/<f>/schema.ts` has already merged — that contract is the handshake that lets both lanes
+work at once. Only one migration may be open repo-wide at a time.
 
 **Never commit:** real learner data, `.env` files, the Supabase service-role key, the QR Ed25519 private
 key, database dumps or exports, guardian-consent scans, Android keystores, iOS provisioning profiles.
@@ -322,15 +335,18 @@ and handle everything else inline.
 
 1. **Read `docs/PRD.md` and `docs/MILESTONE_ROADMAP.md` before proposing work.** Know which phase you
    are in. Do not build Phase 2 features during Phase 1 — scope creep is how a 17-week plan becomes 40.
-2. **Check `docs/PROGRESS.md`** for what the last session actually did and what it flagged.
+2. **Check `docs/PROGRESS.md`** for what the last session actually did and what it flagged, and
+   **`docs/WORKSTREAMS.md`** for which lane you are in, what is open, and what it depends on. There are
+   two developers now: another branch may be mid-slice in the file you were about to change.
 3. **Respect the phase gates.** Gate A (school buy-in) and Gate B (DPO + consent + repo transfer) are
    hard blockers, not checklists. Nothing touches real learner data before Gate B.
 4. **When the docs and the code disagree, say so.** Do not silently pick a side — a doc set that quietly
    contradicts itself is worse than one that flags the conflict, because trust in it decays invisibly.
 5. **When a request conflicts with §3 or §6, raise it before building.** These rules exist because the
    alternative is a platform that either leaks a child's data or awards points nobody believes in.
-6. **Prefer boring.** This is maintained by one person and must survive being handed to a school's ICT
-   club. Clever is a liability here. If a junior developer could not read it a year from now, simplify.
+6. **Prefer boring.** This is maintained by two people — one of them accountable for it after Gate B —
+   and must survive being handed to a school's ICT club. Clever is a liability here. If a junior
+   developer could not read it a year from now, simplify.
 7. **Ask with `AskUserQuestion`, not in prose.** Every confirmation, decision, and surfaced risk goes
    through the tool — see §11 for what always warrants a question and what does not.
 
@@ -341,7 +357,8 @@ and handle everything else inline.
 When you need a decision, a confirmation, or a go/no-go from the maintainer, **ask with the
 `AskUserQuestion` tool**, not with a question in prose. Prose questions at the end of a turn get lost in
 scrollback and are easy to answer ambiguously; a structured question forces the options to be named and
-records the answer as a choice. This repo is maintained by one person, holds minors' data, and has rules
+records the answer as a choice. Decision authority stays with the maintainer regardless of which lane
+the work is in (`docs/WORKSTREAMS.md`). This repo holds minors' data and has rules
 in §3 and §6 that are cheaper to confirm than to unwind.
 
 ### Always ask before proceeding

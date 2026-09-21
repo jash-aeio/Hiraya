@@ -298,4 +298,5 @@ that stops.
 ## 7. Related documents
 
 `CLAUDE.md` §9 · `docs/MILESTONE_ROADMAP.md` for testing checkpoints per phase ·
-`.claude/skills/` and `.claude/agents/` for the definitions themselves.
+`docs/WORKSTREAMS.md` for which lane owns which agent run · `CONTRIBUTING.md` §7 for the three that
+matter most on the data lane · `.claude/skills/` and `.claude/agents/` for the definitions themselves.
