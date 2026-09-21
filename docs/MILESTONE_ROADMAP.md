@@ -1,9 +1,15 @@
 # Hiraya — Milestone Roadmap
 
-**Status:** Approved for Phase 0 · **Version:** 1.0 · **Last updated:** 2026-09-21
+**Status:** Approved for Phase 0 · **Version:** 1.1 · **Last updated:** 2026-09-21
 
-17 weeks from start to launch, then a one-semester pilot. One developer. Calendar dates are set once
-Phase 0 begins; weeks are relative throughout.
+17 weeks from start to launch, then a one-semester pilot. Two developers from 2026-09-21 (D26), split
+across the lanes in [`docs/WORKSTREAMS.md`](WORKSTREAMS.md) — this document says what and when, that one
+says who and in what order. Calendar dates are set once Phase 0 begins; weeks are relative throughout.
+
+The week counts below were estimated for one developer and have **not** been re-cut for two. Treat them
+as the ceiling they were, not as a new target: a second pair of hands shortens Phases 1, 2 and 4, where
+the lanes genuinely run in parallel, and shortens Phase 3 barely at all, because the scanner queue and
+the sync endpoint are one correctness argument and splitting them is how duplicate XP ships.
 
 ---
 
@@ -328,8 +334,14 @@ through with real people.
 | R14 | **App store rejection under child-directed policy** | Med | Med | Policy review in Phase 5; no advertising-ID SDKs; early submission | 5 |
 | R15 | Offline sync proves harder than estimated | Med | High | Start week 11; the offline tester agent; degrade to online-only check-in rather than slip the launch | 3 |
 | R16 | Apple's annual fee is unbudgeted | High | Low | Decide who pays before Phase 5; Android-only ships if unresolved | 5 |
+| R17 | Toolchain versions break the lint chain that enforces R2 | Med | High | TypeScript and ESLint pinned (D20); lint is a required CI step | ongoing |
+| R18 | **A second developer violates a rule that was never written down** | Med | High | Rules enforced by the database, lint and CI rather than by review; `CONTRIBUTING.md` §5 states the eight that cannot be inferred from the code; `main` protected with required CI (D26) | ongoing |
+| R19 | Parallel work produces conflicting migrations, or a table without its policy or fixture | Med | Med | One open migration repo-wide; the PR template requires policy and fixture in the same PR; `db:verify-rls` in CI | ongoing |
+| R20 | Migration round-trip through the maintainer becomes the bottleneck, or a Supabase-only surprise surfaces late | Med | Med | Lane D's local Postgres is bootstrapped with Supabase's roles *and* default privileges, so most surprises reproduce locally; batch migrations rather than trickling them | ongoing |
 
 R13, R14 and R16 are new relative to the original proposal and follow directly from D7, D11 and D17.
+R17 follows from D20; R18–R20 from D26, and all three are about coordination rather than about the
+product — which is what a second developer actually costs.
 
 ---
 

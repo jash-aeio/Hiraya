@@ -47,6 +47,8 @@ reports what happened.
 | Stack, dependency, or a new decision | `TECHNICAL_ARCHITECTURE.md` §2–3 |
 | UI components, tokens, assets | `DESIGN_SYSTEM.md`, `ASSET_CHECKLIST.md` |
 | Roles or permissions | `SYSTEM_DESIGN.md` §2, `PRD.md` §3 |
+| A task merged, added, or re-sequenced | `WORKSTREAMS.md` §5–7 — strike the closed task, naming its commit |
+| Onboarding, setup, branch or PR rules | `CONTRIBUTING.md` |
 | A new rule future sessions must follow | `CLAUDE.md` |
 
 ### 3. Append to `docs/PROGRESS.md`
@@ -57,7 +59,7 @@ a record you can rewrite is a record nobody trusts.
 ```markdown
 ## YYYY-MM-DD — <short title>
 
-**Phase:** N — <name> · **Status:** on track | slipping | blocked
+**Phase:** N — <name> · **Status:** on track | slipping | blocked · **By:** <author>
 
 **Shipped**
 - <what actually works now, in user terms>
@@ -99,6 +101,9 @@ Then verify by reading:
 - [ ] Design tokens identical in `DESIGN_SYSTEM.md` §2 and `ASSET_CHECKLIST.md`
 - [ ] Every D-number referenced anywhere exists in the `TECHNICAL_ARCHITECTURE.md` table
 - [ ] Phase numbering consistent across roadmap, PRD, and SKILLS.md
+- [ ] Every task id in `WORKSTREAMS.md` is either open or struck with the commit that closed it, and
+      no merged slice is still listed as open
+- [ ] Commands in `CONTRIBUTING.md` §2 still match `package.json` scripts and `.env.example`
 - [ ] Any Mermaid block added this checkpoint parses
 
 **When documents disagree, report the contradiction. Never silently resolve it.** Record it under

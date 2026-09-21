@@ -5,6 +5,87 @@ reason the XP ledger is: a record you can rewrite is a record nobody trusts.
 
 Maintained by the `hiraya-checkpoint` skill. See `CLAUDE.md` §7 for the six triggers.
 
+**With two developers** (D26): every entry names its author on the `Phase:` line, and both may append.
+A merge conflict here is always resolved by **keeping both entries, newest first** — never by choosing
+one. An entry that describes only one lane's work is fine and expected; an entry that quietly drops the
+other lane's is the failure this file exists to prevent.
+
+---
+
+## 2026-09-21 — Two developers, and a boundary drawn while it is still cheap
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped** — documentation only; no application code changed.
+
+- **`docs/WORKSTREAMS.md`.** Two lanes — **D** (schema, RLS, services, `/api/v1`, scripts, integration
+  tests) for the incoming developer, **P** (screens, design system, i18n, assets, E2E) for the
+  maintainer — with the Phase 0 and Phase 1 task boards, explicit `depends on` edges, a dependency
+  graph, and the shared-file contention rules
+- **The handshake is `features/<f>/schema.ts`.** The Zod contract merges in its own small PR *before*
+  either lane starts; Lane D then builds downward from it and Lane P upward, against fixtures. This is
+  what makes the lanes parallel rather than merely separate, and it costs nothing —
+  `hiraya-feature-slice` already prescribed that order for one person
+- **`CONTRIBUTING.md`.** First-hour reading order, a local setup that needs **no Supabase account**,
+  branch and PR rules, and the eight prohibitions that cannot be inferred from reading the code
+- **`.github/pull_request_template.md`.** The §5 test gates and the R1–R8 checks as a checklist,
+  sectioned by what the PR touches so it is not ceremony on a docs change
+- **One open migration repo-wide**, recorded in `src/db/README.md` and in the PR template. Two branches
+  each holding a valid generated migration produce a combined apply order nobody tested, and
+  drizzle-kit's numbering accepts both
+
+**Decisions**
+
+- **D26** — a second developer joins on the data-and-API lane **with no production access**. They run
+  against a local Postgres and the synthetic tenant; the maintainer alone holds the service-role key,
+  the LRN pepper, the QR private key, Supabase and Vercel, and applies migrations to Supabase. `main`
+  becomes protected: PR with green CI, no direct pushes. The reason the boundary is drawn at access
+  rather than at trust is D8 — **the processor agreement names one processor**, and a second person
+  holding production credentials is a sub-processor the school would have to accept. Before Gate B
+  there is no real data for the boundary to protect, which is precisely when it is cheap to establish
+- **D3 amended** and **D16 superseded in part** by the above
+
+**Docs updated**
+
+- `docs/TECHNICAL_ARCHITECTURE.md` — D26; D3 and D16 amended; §1 constraint 3 rewritten; two new rows in
+  the known-limitations table
+- `docs/MILESTONE_ROADMAP.md` — two developers in the header, with an explicit note that the week counts
+  were **not** re-cut; **R17 added to the register** (it was identified in the last checkpoint and never
+  landed in the table); R18–R20 added for the coordination costs D26 introduces
+- `CLAUDE.md` — §2 tree, §7 git policy (protected `main`, the two lanes, one open migration), §10.2 and
+  §10.6, §11 preamble
+- `README.md` — a contributor-first Development section and the two new documents in the table
+- `docs/PRD.md` §10 — the constraints line
+- `docs/PROGRESS.md` — this file's preamble now carries the author and merge convention
+- `src/db/README.md`, `.env.example`, `SKILLS.md`, `.claude/skills/hiraya-checkpoint/SKILL.md`
+
+**Risks**
+
+- Materialized: none
+- Newly identified: **R18** a second developer violates a rule nobody wrote down — mitigated by keeping
+  the rules in the database, lint and CI rather than in review; **R19** parallel work produces
+  conflicting migrations or a table without its policy or fixture; **R20** the migration round-trip
+  through the maintainer becomes the bottleneck
+- Registered late: **R17** (toolchain versus lint plugins), from the previous checkpoint
+
+**Next**
+
+- Turn on branch protection for `main` in GitHub settings — **nothing in this repository can enforce
+  it**, and D26 assumes it
+- J-01, the registration Zod contract, is the first task and blocks both lanes
+- P-05, the Tier 1 assets, has no dependency and can start immediately
+
+**Flagged**
+
+- **Branch protection is not yet on.** Until it is, D26's git half is a convention, not a control
+- **`feat/xp-balances` holds two unmerged commits** — the `xp_balances` `security_invoker` view and the
+  events browse screen. They are on the branch, not on `main`, so a contributor cloning `main` today
+  gets neither. They should land before the second developer clones
+- Repository visibility **still unconfirmed as private** (carried from the last three checkpoints).
+  D17 and now D26 both assume it, and a second collaborator makes it materially more urgent
+- The second developer is not yet named in anything. If they ever need production access, D26 is
+  reopened and the Gate B processor agreement has to name them — that is a decision, not a permission
+
 ---
 
 ## 2026-09-21 — A session exists, and it cannot reach a real school
