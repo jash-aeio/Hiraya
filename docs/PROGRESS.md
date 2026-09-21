@@ -12,6 +12,56 @@ other lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-21 — Green, and the first two pull requests
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped**
+
+- **`main` is green.** First successful CI run in the project's history: lint, typecheck, migration
+  check, migrate, `db:verify-rls`, 72 tests, build — all seven steps, on a runner, in 2m21s. The
+  cross-tenant denial test has now actually executed somewhere other than a laptop
+- **A second fix was needed** and is not named in the entry below, which was written before it: the
+  suite assumed **a fresh database per test file**. True on the embedded path, which boots a cluster
+  per call, and false the moment `TEST_DATABASE_URL` points at one long-lived server — as CI does. Each
+  file's fixtures leaked into the next file's assertions. It surfaced as the demo seed refusing to run
+  beside a school that is not `is_demo`, next to a cross-tenant test whose entire job is to seed exactly
+  such a school. **Both tests were right; the isolation was missing.** The external path now creates a
+  scratch database per call and drops it on stop
+- **PR #1 and PR #2 — the repository's first two.** Both squash-merged after green CI, the CI fix
+  first because the art PR was blocked behind it. Five stale branches cleaned up; `main` is the only
+  branch left
+- **`docs/PROGRESS.md` hit its first merge conflict**, exactly where `WORKSTREAMS.md` §3 predicted, and
+  was resolved by that section's rule: keep both entries, newest first. The already-merged entry was
+  restored byte-for-byte rather than re-flowed — worth doing deliberately the first time, since the
+  append-only rule is only as good as the first conflict resolved under it
+
+**Risks**
+
+- Materialized: none new. The one from the entry below is answered — the fix did reveal a second
+  failure, as predicted, and it was a real bug in the test harness rather than a CI quirk
+- Newly identified: **the embedded and external test paths had drifted**, and only one of them was ever
+  exercised. Worth remembering when the next piece of infrastructure grows a second mode
+- Retired: **"CI pipeline green"**, a Phase 0 deliverable that was never true and now is
+
+**Next**
+
+- **J-01, the registration contract.** With P-05 closed, every remaining Lane P task in Phase 0 is
+  downstream of a Lane D contract. Nothing else is a better use of the next hour
+- P-06: the first real `hiraya-mobile-audit`, with `browser_network_requests` against the 500 KB budget
+
+**Flagged**
+
+- **Everything merged today merged without review**, because there is one person. That is the documented
+  path for the maintainer (`CONTRIBUTING.md` §4) and it stops being the path the moment the second
+  developer starts
+- Unchanged: `main` cannot be protected server-side on this plan (D26 as amended), so green CI is
+  advisory rather than blocking
+- Unchanged: the OG card's typeface; no Supabase apply or Vercel deploy yet (M-01); the art has still
+  never been seen on a real phone over mobile data
+
+---
+
 ## 2026-09-21 — Tier 1 art exists, and main is guarded by a hook because it cannot be guarded properly
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
