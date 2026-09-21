@@ -1,15 +1,2 @@
 @import "tailwindcss";
-
-/*
- * Phase 0 baseline only. The token layer (colour, type scale, spacing, the dual
- * visual register) is authored against docs/DESIGN_SYSTEM.md in the design-system
- * pass, and belongs in src/design/ — not here.
- */
-
-:root {
-  color-scheme: light dark;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-}
+@import "../design/tokens.css";
