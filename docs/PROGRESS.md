@@ -7,6 +7,104 @@ Maintained by the `hiraya-checkpoint` skill. See `CLAUDE.md` §7 for the six tri
 
 ---
 
+## 2026-09-21 — A session exists, and it cannot reach a real school
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track
+
+**Shipped**
+
+- **The persona switcher (D23).** `/demo` lists the seeded tenant's 42 active personas, staff first;
+  choosing one issues real `TenantClaims` through `withTenant`. It is a session, not a bypass: every
+  screen behind it runs under the policies in `src/db/rls/` that the pilot will run under
+- **The gate is in SQL, not in a service.** Two `SECURITY DEFINER` functions,
+  `public.demo_personas()` and `public.demo_session_claims(uuid)`, filter on `s.is_demo` in their own
+  WHERE clause. Neither takes a `school_id` from the caller — the tenant is read off the profile row —
+  so a demo session for a real tenant is a row the function cannot reach rather than a rule somebody
+  has to remember. Chosen over a fourth `AdminReason`, which would have put the gate in TypeScript
+- **The cookie is a pointer, not a claim.** One profile id, httpOnly, 8 hours, `SameSite=Lax`. Claims
+  are re-derived from the database every request, so there is nothing in it to forge — editing it can
+  only name a different profile, which is exactly what the gate adjudicates
+- **The DEMO DATA marker.** In the root layout, so no screen can forget it, plus its own copy on
+  `/demo` — that page lists synthetic names *before* a session exists, so the layout's marker cannot
+  cover it. Server-rendered, so it is in the first paint and cannot be photographed missing
+- **`resolveSession` returns a session for the first time.** The demo source is wired as a *fallback*,
+  so Phase 1's real source cannot be displaced by a cookie
+- **`db:verify-rls` now checks functions** — no `SECURITY DEFINER` function may be callable by `anon`
+  or leave its `search_path` unpinned. It found one on the first run (see Risks)
+- **17 new tests, 72 in total** (9 unit, 8 integration). The gate is tested against a real school
+  sitting in the same database as a synthetic one
+
+**Decisions**
+
+- **D25** — a demo tenant is two independent facts: `is_demo` **and** this deployment's
+  `HIRAYA_DEMO_SCHOOLS` allowlist. Chosen by the maintainer after the privacy audit found one boolean
+  column was the whole authorization boundary for an unauthenticated endpoint returning learners'
+  names, grades and sections. Fails closed — unset serves nobody
+- **D23 landed as specified**, with the switcher rather than a no-auth path, and with `/security-review`
+  run before it shipped, as the decision asked
+
+**Docs updated**
+
+- `docs/TECHNICAL_ARCHITECTURE.md` §2 — D25
+- `docs/SYSTEM_DESIGN.md` §5 — the three `/demo` endpoints, marked Phase 0 only and deleted rather than
+  extended when real auth lands
+- `docs/ASSET_CHECKLIST.md` §1.8 — the DEMO DATA marker landed, with its two limits
+- `CLAUDE.md` §6 — a demo tenant is two facts, never one
+
+**Risks**
+
+- Materialized: **`rls_auto_enable()` existed only on the Supabase project, and `anon` held EXECUTE on
+  it.** The D22 safety net that enables RLS on every new table was created by hand in the dashboard and
+  was in no file, so a rebuilt database would silently not have had it — and the check it performs is
+  invisible when missing, which is the worst property a safety net can have. Supabase's default
+  privileges had also left it callable by `anon`. It is now `src/db/rls/03_ensure_rls.sql`, with the
+  grant revoked, and the new function check in `db:verify-rls` is what found it
+- Materialized, and answered: **the `is_demo` gate was a single point of failure** (privacy audit,
+  HIGH). Answered by D25's second factor and by a trigger making the flag immutable after creation, so
+  no existing school can ever be flipped into a demo tenant. A school still has to be *created*
+  correctly — that is the residual, and it is why the allowlist exists
+- Retired: none
+
+**Next**
+
+- The five loop screens, Tier 1 asset batches alongside — the switcher is the door, and there is
+  nothing behind it yet
+- `xp_balances`, which the XP and leaderboard screens need and which no migration creates
+
+**Flagged**
+
+- **CSRF on `POST /api/v1/demo/session`** — both reviews raised it, and both judged the impact nil
+  today: every persona it can force is synthetic, and the catalogue is public anyway. It becomes real
+  the moment `resolveSession` gains a Supabase Auth source, because a tokenless cookie-setting public
+  endpoint must not sit beside a real login. **Phase 1 must not inherit this shape.**
+- **The Capacitor shell has no server render**, so `DemoBar` — which resolves the marker server-side
+  from the cookie — needs a client variant in Phase 5. Noted in the component and in
+  `ASSET_CHECKLIST.md` §1.8
+- **`/demo` first load is 206 KB** against the 500 KB budget, up from the 183 KB floor. Parsing the API
+  response with the shared Zod schema had put all of Zod in the client bundle and cost 294 KB; the
+  client now uses a shallow type guard and Zod stays server-side where R7 asks for it. Worth knowing
+  before the next client component imports a schema module
+- **A `server-only` stub now exists** at `tests/stubs/server-only.ts`, aliased in `vitest.config.ts`.
+  Without it no service, query module, or session module can be unit-tested at all, because
+  `server-only` throws on import outside a Server Component
+- **`next dev` writes to `CLAUDE.md`.** Next 16 appends a `<!-- BEGIN:nextjs-agent-rules -->` block on
+  every dev run. It is committed so the tree stays clean, but an instruction file that grows
+  agent-directed content from a dependency is worth knowing about — both auditors flagged it
+  independently as content not to trust by default
+- **The level thresholds are still invented** (0 / 40 / 90 / 150) and `hiraya-gamification-balancer`
+  has not seen them
+- **`.claude/skills/hiraya-checkin-integrity` still calls `xp_balances` a materialized view**, which
+  D19 reversed — carried, still not resolved
+- Carried, unchanged: `TEST_DATABASE_URL` must stay unset on this machine; the QR Ed25519 keypair is
+  deliberately empty; `test:e2e`, `cap:sync` and `cap:android` are declared but unwired; the Supabase
+  MCP server is connected but `SUPABASE_ACCESS_TOKEN` is absent so every call returns `Unauthorized`;
+  Next 16 refuses a second `next dev` in the same directory, which matters when testing two
+  configurations; assumptions A1-A7 unverified; Apple Developer fee ownership undecided; R13 (Supabase
+  pauses idle free projects after ~7 days) live; repository visibility **still unconfirmed as
+  private**, now across five checkpoints, and D17 assumes it
+
+---
+
 ## 2026-09-21 — The demo tenant exists, and re-running it is a no-op
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track

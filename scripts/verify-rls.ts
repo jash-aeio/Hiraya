@@ -20,6 +20,8 @@ import { isMain } from "./is-main";
  *   4. a policy that actually compares school_id to current_school_id()
  *   5. append-only tables hold no UPDATE/DELETE grant and carry their trigger
  *   6. `anon` holds no privilege on anything (pre-login reads)
+ *   7. no SECURITY DEFINER function is callable by `anon` or leaves its
+ *      search_path unpinned (functions that run as the owner, past RLS)
  */
 
 const APPEND_ONLY = ["xp_ledger", "audit_log"] as const;
@@ -193,8 +195,43 @@ export async function verifyRls(connectionString: string): Promise<Finding[]> {
       }
     }
 
+    // 7. SECURITY DEFINER functions. These run as the owner, so RLS does not
+    //    apply to them and their grants are the only thing standing between a
+    //    role and whatever they select. Supabase grants ALL on new functions in
+    //    `public` to anon, authenticated and service_role by default privilege
+    //    (scripts/bootstrap-roles.sql mirrors it), so one left at its defaults
+    //    is an RLS bypass reachable by anyone who reaches the database — and
+    //    unlike a missing policy, nothing else in this script would notice.
+    const definers = await sql<
+      { name: string; args: string; anon: boolean; pins_search_path: boolean }[]
+    >`
+      SELECT p.proname AS name,
+             pg_get_function_identity_arguments(p.oid) AS args,
+             has_function_privilege('anon', p.oid, 'EXECUTE') AS anon,
+             COALESCE(p.proconfig::text LIKE '%search_path=%', false) AS pins_search_path
+      FROM pg_proc p
+      JOIN pg_namespace n ON n.oid = p.pronamespace
+      WHERE n.nspname = 'public' AND p.prosecdef
+      ORDER BY p.proname
+    `;
+    for (const fn of definers) {
+      const signature = `${fn.name}(${fn.args})`;
+      if (fn.anon) {
+        findings.push({
+          severity: "CRITICAL",
+          detail: `${signature}: SECURITY DEFINER and anon holds EXECUTE — an RLS bypass callable without a session`,
+        });
+      }
+      if (!fn.pins_search_path) {
+        findings.push({
+          severity: "HIGH",
+          detail: `${signature}: SECURITY DEFINER without SET search_path — a caller can shadow the tables it reads`,
+        });
+      }
+    }
+
     process.stdout.write(
-      `Checked ${tables.length} tables · ${policies.length} policies · ${APPEND_ONLY.length} append-only tables\n`,
+      `Checked ${tables.length} tables · ${policies.length} policies · ${APPEND_ONLY.length} append-only tables · ${definers.length} SECURITY DEFINER functions\n`,
     );
   } finally {
     await sql.end();

@@ -42,6 +42,7 @@ interface ClaimsRow {
   org_grants: { org_id: string; role: string }[];
   display_name: string;
   school_name: string;
+  school_slug: string;
 }
 
 async function claimsFor(profileId: string): Promise<ClaimsRow[]> {
@@ -136,6 +137,41 @@ describe("demo_session_claims — the gate", () => {
       WHERE n.nspname = 'public' AND p.proname = 'demo_session_claims'
     `;
     expect(signature!.args).toBe("target_profile uuid");
+  });
+});
+
+describe("is_demo is fixed at creation", () => {
+  it("refuses to turn a real school into a demo tenant", async () => {
+    // The gate is one boolean on an endpoint that answers without a session, so
+    // the path that matters is not "can a demo school be read" but "can a real
+    // school become one". The owner connection is used deliberately: this must
+    // hold against the most privileged caller there is, not only against
+    // `authenticated` (src/db/rls/01_guards.sql).
+    await expect(
+      db.sql`UPDATE schools SET is_demo = true WHERE id = ${realSchoolId}`,
+    ).rejects.toThrow(/demo_flag_immutable/);
+
+    const [school] = await db.sql<{ is_demo: boolean }[]>`
+      SELECT is_demo FROM schools WHERE id = ${realSchoolId}
+    `;
+    expect(school!.is_demo).toBe(false);
+  });
+
+  it("refuses to take the flag off a demo tenant either", async () => {
+    // Symmetry is the point: a flag that can only be turned on is a flag whose
+    // meaning drifts. Either direction is a decision made at creation.
+    await expect(
+      db.sql`UPDATE schools SET is_demo = false WHERE id = ${demoTenant.schoolId}`,
+    ).rejects.toThrow(/demo_flag_immutable/);
+  });
+
+  it("still allows a school to be renamed", async () => {
+    // The trigger guards one column, not the row.
+    await db.sql`UPDATE schools SET name = 'Renamed Demo School' WHERE id = ${demoTenant.schoolId}`;
+    const [school] = await db.sql<{ name: string }[]>`
+      SELECT name FROM schools WHERE id = ${demoTenant.schoolId}
+    `;
+    expect(school!.name).toBe("Renamed Demo School");
   });
 });
 

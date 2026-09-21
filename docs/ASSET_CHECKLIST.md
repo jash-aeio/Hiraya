@@ -134,10 +134,22 @@ learner records.
 - **No `profile_identifiers` rows.** Synthetic learners have no LRN, and seeding fake hashes would put
   a privacy-sensitive shape in the demo in exchange for nothing.
 
-Still open: the school **logo SVG** (Tier 1 brand art, section 1.1) and the **DEMO DATA marker**, which
-needs a resolved tenant to ask `is_demo` about and a route that works in the Capacitor shell - so it
-lands with the session work rather than here. Nothing renders seeded learner data yet, so the marker
-must exist before the first screen does, not before the next commit.
+**The DEMO DATA marker landed 2026-09-21**, with the persona switcher (D23) and for the reason the
+previous note gave: `/demo` is the first screen in the repository to render a seeded learner's name, so
+the marker became due the moment it existed. It is `src/features/demo/components/DemoBar.tsx`, rendered
+in the **root layout** rather than on each screen - a marker each screen has to remember is a marker one
+screen will forget, and that screen is the one in the deck. It names the persona and the synthetic
+school, carries the word as well as the colour, and is not dismissible. It renders nothing at all when
+there is no demo session, so it cannot mark a real tenant by accident.
+
+Two limits worth knowing. It resolves on the **server** from the session cookie, so it is in the first
+HTML painted and cannot be photographed missing - but a Capacitor static export has no server render,
+and Phase 5 needs a client variant of this component. And it marks a *session*, not a *page*: the
+`/demo` persona list itself renders synthetic names before any session exists and therefore carries no
+bar. That is defensible only because the page says "Demo tenant" and names the school in its own
+heading; a screen that lists learner data outside the demo route must not rely on it.
+
+Still open: the school **logo SVG** (Tier 1 brand art, section 1.1).
 
 ### 1.9 Pitch kit
 

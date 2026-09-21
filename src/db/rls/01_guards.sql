@@ -41,6 +41,41 @@ BEGIN
 END;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- `schools.is_demo` cannot change after the row is written.
+--
+-- That one boolean is the entire authorization boundary for an unauthenticated
+-- endpoint that returns learners' names, grades and sections (D23,
+-- src/db/rls/02_demo_session.sql). Today every school in the database is
+-- synthetic, so the blast radius is nil; after Gate B a real school will sit in
+-- the same table, and a single wrong UPDATE would publish its roster.
+--
+-- A trigger cannot stop a school being *created* with the flag set wrong — the
+-- server-config allowlist in src/lib/auth/demo-allowlist.ts is the second half
+-- of that answer. What it does stop is every path that turns an existing real
+-- tenant into a demo one: a mistaken manual UPDATE, a migration slip, or a
+-- future admin toggle nobody has designed yet.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.prevent_demo_flag_change()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.is_demo IS DISTINCT FROM OLD.is_demo THEN
+    RAISE EXCEPTION
+      'demo_flag_immutable: schools.is_demo is fixed at creation. A tenant cannot become a demo tenant, or stop being one.'
+      USING ERRCODE = '42501';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS schools_demo_flag_immutable ON public.schools;
+CREATE TRIGGER schools_demo_flag_immutable
+  BEFORE UPDATE ON public.schools
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_demo_flag_change();
+
 CREATE OR REPLACE FUNCTION public.touch_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql

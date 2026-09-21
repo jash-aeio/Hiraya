@@ -310,6 +310,18 @@ All endpoints under `/api/v1`. JSON in, JSON out. Bearer session. Every handler:
 | POST | `/admin/activation-codes` | school_admin | Generate printable batch by section |
 | POST | `/admin/password-reset/:profileId` | school_admin, org_adviser | Issue a fresh activation code (D4) |
 
+### Demo (Phase 0 only)
+
+Gated on `schools.is_demo` **and** the deployment's `HIRAYA_DEMO_SCHOOLS` allowlist (D23, D25). These
+exist so the Phase 0 demo can walk the loop before the Phase 1 identity slice does; they are deleted,
+not extended, when real auth lands.
+
+| Method | Path | Role | Purpose |
+|---|---|---|---|
+| GET | `/demo/personas` | public | Personas the switcher may offer. `{"schools":[]}` where no demo tenant is served |
+| POST | `/demo/session` | public | Become a persona. Body is `{profileId}` only — never a school or a role |
+| DELETE | `/demo/session` | public | Leave the persona. Never refused |
+
 ### Organizations
 
 | Method | Path | Role | Purpose |

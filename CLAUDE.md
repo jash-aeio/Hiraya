@@ -219,6 +219,10 @@ Most users are **minors**. Privacy and child safety are requirements, not a revi
 - **Consent.** `consent_records` gates account activation. **No real learner data enters any environment
   before Gate B** (DPO review + signed processor agreement + guardian consent). Demo tenants use
   synthetic data that renders its own "DEMO DATA" marker.
+- **A demo tenant is two facts, never one** (D25). `schools.is_demo`, immutable after creation by
+  trigger, **and** the school's slug in this deployment's `HIRAYA_DEMO_SCHOOLS`. Both are checked on
+  every demo read. Do not add a third way in, and do not let either become the only one: together they
+  are what stops an unauthenticated endpoint ever listing a real school's learners.
 - **Store policy.** Google Play Families and Apple Kids Category rules apply to a child-directed app. No
   SDK that collects an advertising ID. Settle this in Phase 5, not at submission.
 

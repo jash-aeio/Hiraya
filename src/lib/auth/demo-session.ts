@@ -7,6 +7,8 @@ import { z } from "zod";
 import { withoutClaims } from "@/lib/db/client";
 import type { TenantClaims } from "@/lib/db/client";
 
+import { isAllowedDemoSchool } from "./demo-allowlist";
+
 /**
  * The Phase 0 demo session (D23).
  *
@@ -24,11 +26,12 @@ import type { TenantClaims } from "@/lib/db/client";
  *      different profile, and naming a profile is exactly what the gate checks.
  *      A cookie that carried `roles` would be a cookie that grants roles.
  *
- *   2. **The gate is a database fact.** `public.demo_session_claims` returns
- *      rows only for a school flagged `is_demo` (src/db/rls/02_demo_session.sql).
- *      Not an env var — an env var is a fact about a deployment, forgeable by
- *      whoever can set one, and it would make the difference between the demo
- *      and the pilot a configuration mistake away.
+ *   2. **The gate is a database fact, and then a deployment fact.**
+ *      `public.demo_session_claims` returns rows only for a school flagged
+ *      `is_demo` (src/db/rls/02_demo_session.sql) — not an env var, because an
+ *      env var is forgeable by whoever can set one. But one boolean is thin for
+ *      an endpoint this exposed, so the school must *also* be named in this
+ *      deployment's allowlist (./demo-allowlist.ts). Both, independently.
  *
  *   3. **It fails closed.** No cookie, a malformed cookie, a profile in a real
  *      tenant, an inactive profile: all resolve to null, and every guarded
@@ -64,6 +67,7 @@ const claimsRow = z.object({
   org_grants: z.array(z.object({ org_id: UUID, role: z.string() })),
   display_name: z.string(),
   school_name: z.string(),
+  school_slug: z.string(),
 });
 
 export interface DemoSession {
@@ -94,6 +98,11 @@ export async function resolveDemoSession(profileId: string): Promise<DemoSession
   const row = claimsRow.safeParse(rows[0]);
   if (!row.success) return null;
 
+  // The second factor. Same null, so a school the database would serve but this
+  // deployment was not configured for is indistinguishable from one that does
+  // not exist.
+  if (!isAllowedDemoSchool(row.data.school_slug)) return null;
+
   return {
     claims: {
       schoolId: row.data.school_id,
@@ -116,7 +125,17 @@ export function readDemoPersonaId(request: Request): string | null {
     if (separator === -1) continue;
     if (part.slice(0, separator).trim() !== DEMO_SESSION_COOKIE) continue;
 
-    const value = decodeURIComponent(part.slice(separator + 1).trim());
+    const raw = part.slice(separator + 1).trim();
+    let value: string;
+    try {
+      value = decodeURIComponent(raw);
+    } catch {
+      // A malformed percent-escape ("%") makes decodeURIComponent throw. On the
+      // unauthenticated path that difference is visible: an exception becomes a
+      // 500 where every other bad cookie becomes a clean 401, and a 500 tells a
+      // prober they reached something the other inputs did not.
+      return null;
+    }
     return UUID.safeParse(value).success ? value : null;
   }
   return null;

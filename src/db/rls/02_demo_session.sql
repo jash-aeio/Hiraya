@@ -35,6 +35,14 @@
 -- matters far more here, where the function runs as the owner.
 -- ===========================================================================
 
+-- `RETURNS TABLE` is part of the signature, so CREATE OR REPLACE cannot add a
+-- column to it. Both functions are therefore dropped first: nothing in the
+-- database depends on them (no view, no default, no other function), and the
+-- grants they lose are re-issued at the foot of this file, which is the only
+-- place that sets them.
+DROP FUNCTION IF EXISTS public.demo_personas();
+DROP FUNCTION IF EXISTS public.demo_session_claims(uuid);
+
 -- ---------------------------------------------------------------------------
 -- The personas the switcher offers.
 --
@@ -105,9 +113,10 @@ COMMENT ON FUNCTION public.demo_personas() IS
 -- because what comes out of here is fed straight into withTenant and read by the
 -- policies in this directory. The demo runs under the rules the pilot will.
 --
--- The last two are for the DEMO DATA marker, which has to name who it is showing
--- and which synthetic school they belong to. They ride along rather than costing
--- a second query, and a second query would be a second place to forget the gate.
+-- The last three ride along rather than costing a second query, and a second
+-- query would be a second place to forget the gate: two name who is being shown
+-- and which synthetic school they belong to, for the DEMO DATA marker, and the
+-- slug is what src/lib/auth/demo-allowlist.ts checks the deployment against.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.demo_session_claims(target_profile uuid)
 RETURNS TABLE (
@@ -116,7 +125,8 @@ RETURNS TABLE (
   roles text[],
   org_grants jsonb,
   display_name text,
-  school_name text
+  school_name text,
+  school_slug text
 )
 LANGUAGE sql
 STABLE
@@ -141,7 +151,8 @@ AS $$
       '[]'::jsonb
     ),
     p.display_name,
-    s.name
+    s.name,
+    s.slug
   FROM public.profiles p
   JOIN public.schools s ON s.id = p.school_id
   WHERE p.id = target_profile

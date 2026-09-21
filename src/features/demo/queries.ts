@@ -3,6 +3,7 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { isAllowedDemoSchool } from "@/lib/auth/demo-allowlist";
 import { withoutClaims } from "@/lib/db/client";
 
 import type { DemoSchool, Persona } from "./schema";
@@ -11,10 +12,15 @@ import type { DemoSchool, Persona } from "./schema";
  * The persona catalogue.
  *
  * This is the one read in the repository issued with no claims in force, and it
- * is safe for exactly one reason: `public.demo_personas()` filters on
- * `s.is_demo` in SQL (src/db/rls/02_demo_session.sql). Drizzle's query builder
- * is not used because there is no table to build against — the whole point is
- * that the gate lives in the database and this file cannot widen it.
+ * is the widest thing the demo exposes: names, grades and sections, to anyone,
+ * with no session. Two independent things keep it synthetic —
+ * `public.demo_personas()` filters on `s.is_demo` in SQL
+ * (src/db/rls/02_demo_session.sql), and the loop below drops any school this
+ * deployment was not configured to serve (src/lib/auth/demo-allowlist.ts).
+ *
+ * Drizzle's query builder is not used because there is no table to build
+ * against — the whole point is that the primary gate lives in the database and
+ * this file cannot widen it. The allowlist can only ever narrow.
  */
 
 const personaRow = z.object({
@@ -45,6 +51,8 @@ export async function selectDemoPersonas(): Promise<DemoSchool[]> {
   // tenants interleave in the result.
   const schools = new Map<string, DemoSchool>();
   for (const row of parsed) {
+    if (!isAllowedDemoSchool(row.school_slug)) continue;
+
     const persona: Persona = {
       profileId: row.profile_id,
       displayName: row.display_name,
