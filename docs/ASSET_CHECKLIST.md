@@ -125,6 +125,20 @@ Committed under `/seed/demo-*`, loaded by `npm run db:seed:demo`.
 The marker is not decoration. It is what stops a screenshot of the demo from ever being mistaken for real
 learner records.
 
+**Landed 2026-09-21.** The tenant is seeded and re-runnable: 1 school, 44 profiles, 6 organizations,
+12 events, 74 check-ins and 90 ledger rows, from hand-authored JSON under `seed/` (see
+`seed/README.md`). Two deviations from the table above, both deliberate:
+
+- **No `leaderboard_snapshots` row.** The board is computed from the ledger. A seeded snapshot is the
+  one thing in the demo capable of disagreeing with the points it claims to summarise.
+- **No `profile_identifiers` rows.** Synthetic learners have no LRN, and seeding fake hashes would put
+  a privacy-sensitive shape in the demo in exchange for nothing.
+
+Still open: the school **logo SVG** (Tier 1 brand art, section 1.1) and the **DEMO DATA marker**, which
+needs a resolved tenant to ask `is_demo` about and a route that works in the Capacitor shell - so it
+lands with the session work rather than here. Nothing renders seeded learner data yet, so the marker
+must exist before the first screen does, not before the next commit.
+
 ### 1.9 Pitch kit
 
 | Asset | Format | Notes |

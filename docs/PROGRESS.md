@@ -7,6 +7,100 @@ Maintained by the `hiraya-checkpoint` skill. See `CLAUDE.md` §7 for the six tri
 
 ---
 
+## 2026-09-21 — The demo tenant exists, and re-running it is a no-op
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track
+
+**Shipped**
+
+- **A synthetic tenant with data in it.** `npm run db:seed:demo` writes 1 school, 44 profiles, 6
+  organizations, 12 events, 138 registrations, 74 check-ins, 90 ledger rows and 4 announcements, from
+  hand-authored JSON under `seed/` (`seed/README.md` explains how to edit it before a pitch). Applied
+  to the Supabase project and to the test database
+- **It writes through RLS, not around it.** Only the `schools` row is created as `service_role` — there
+  is no tenant to be inside of yet, the same reason `AdminReason.TENANT_PROVISIONING` exists. Every
+  other row inserts as `authenticated` carrying School Admin claims, so a policy that would refuse the
+  real roster import refuses the seed too. The script does not import `src/lib/db/*`: both modules are
+  `server-only`, which throws outside a Next runtime, so it mirrors `withTenant` over a raw connection
+  the way `tests/integration/helpers/db.ts` already does
+- **Re-running changes nothing.** `xp_ledger` holds no DELETE grant for any role and a trigger rejects
+  the attempt even from the table owner (R4), so drop-and-reseed is not available and never will be.
+  Every row therefore carries a UUIDv5 derived from a stable key (`profile:l07`, `checkin:e03:l12:2`),
+  and a second run is a replay. Verified twice against Supabase and asserted in the suite: identical
+  row counts, identical 1,370 total XP
+- **Dates are relative to the run**, so a demo rehearsed in September still looks alive in December, and
+  exactly one event is always an hour into its own window for the scanner to point at
+- **The data carries the arguments the pitch makes.** One learner was scanned at two entrances on
+  separate tokens, and the duplicate award is answered by a reversal row citing the original rather than
+  by an edit. One event is rejected with a reason. Two learners have no consent record and stay at
+  status `imported`, so the gate can be shown refusing rather than described
+- **11 new integration tests, 46 in total**, including the replay assertion, "every attendance award
+  cites a check-in that exists", "no LRN is stored for a synthetic learner", and the refusal to run
+  beside a school not flagged `is_demo`
+
+**Decisions**
+
+- **D23** — the Phase 0 demo session is an `is_demo`-gated persona switcher issuing real claims through
+  `withTenant`, not a bypass. Chosen by the maintainer over a no-auth demo path and over building Phase
+  1 auth early. Lands next; wants `/security-review`
+- **D24** — the Phase 0 scanner is a simulate-scan button, not a camera. `src/lib/qr` does not exist
+  until Phase 3, and a demo-grade unsigned token path is the shape R5 forbids
+
+**Docs updated**
+
+- `docs/ASSET_CHECKLIST.md` §1.8 — what landed, the two deliberate omissions, and the two items still
+  open (the school logo SVG and the DEMO DATA marker)
+- `docs/SYSTEM_DESIGN.md` §4 — `xp_rules` holds no UPDATE grant for any role: changing a point value
+  inserts a new effective-dated row
+- `docs/TECHNICAL_ARCHITECTURE.md` §2 — D23 and D24; §3 testing row now names the default privileges
+- `CLAUDE.md` §8 — `db:seed:demo` is wired, and what it refuses to do
+- `seed/README.md` — new
+
+**Risks**
+
+- Materialized: **the local test database started stricter than production, so every `REVOKE` in
+  `src/db/rls/` was untested.** Supabase grants `anon`, `authenticated` and `service_role` ALL on every
+  new table in `public` by default privilege, and the policy files then revoke what each must not keep.
+  `scripts/bootstrap-roles.sql` granted nothing, so a policy file that forgot its
+  `REVOKE ALL ... FROM anon` would have passed locally and leaked on the project — and the
+  `withServiceRole` path could not run under the harness at all. Found because the seed failed on
+  embedded Postgres having succeeded on Supabase. The bootstrap now mirrors the default privileges;
+  `db:verify-rls` is still clean under them, which is the first real evidence those revokes work
+- Retired: none
+
+**Next**
+
+- The `is_demo`-gated persona switcher (D23), then the DEMO DATA marker, which needs a resolved tenant
+  to ask `is_demo` about and a route that works in the Capacitor shell
+- Then the five loop screens, Tier 1 asset batches alongside
+
+**Flagged**
+
+- **Nothing renders seeded learner data yet, so the DEMO DATA marker is not yet late — but it must
+  exist before the first screen does.** A screenshot of an unmarked demo learner is the failure the
+  marker exists to prevent, and the first screen is the moment that becomes possible
+- **`xp_balances` does not exist.** It is documented in `SYSTEM_DESIGN.md` §4 and `DATA_FLOW.md` and
+  settled as a `security_invoker` view by D19, but no migration creates it. The XP and leaderboard
+  screens need it. `.claude/skills/hiraya-checkin-integrity` still calls it a materialized view, which
+  D19 reversed — **not resolved here**: correcting a skill's text is cheap, but whoever does it should
+  confirm the skill has no other pre-D19 assumptions
+- **The four level thresholds are invented.** Nothing in `docs/` specifies them, and the seed had to
+  pick: 0 / 40 / 90 / 150. They are set so one pilot quarter can span all four tiers rather than from
+  any evidence, and `hiraya-gamification-balancer` has not seen them
+- **`scripts/seed-demo.ts` is one 560-line function.** Linear and sectioned by table, which is the
+  right shape for reading an insert order top to bottom, but it is the longest function in the
+  repository and worth watching if the demo grows
+- Carried, unchanged: `TEST_DATABASE_URL` must stay unset on this machine; the QR Ed25519 keypair is
+  deliberately empty; `test:e2e`, `cap:sync` and `cap:android` are declared but unwired; the Supabase
+  MCP server is connected but `SUPABASE_ACCESS_TOKEN` is absent from the process environment so every
+  call returns `Unauthorized`; `npm start` fails silently when a previous server holds port 3000;
+  `--ink-subtle` has no correct use at the current type scale; assumptions A1-A7 unverified; Apple
+  Developer fee ownership undecided; R13 (Supabase pauses idle free projects after ~7 days) live —
+  wake the project before a pitch; repository visibility **still unconfirmed as private**, carried now
+  across four checkpoints, and D17 assumes it
+
+---
+
 ## 2026-09-21 — Design system in code; the role list reconciled to ten
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track

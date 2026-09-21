@@ -274,7 +274,7 @@ enabled. Only distinguishing columns are listed.
 | `event_registrations` | `event_id`, `profile_id`, `status`, `waitlist_position` | Unique `(event_id, profile_id)` |
 | `checkins` | `event_id`, `profile_id`, `jti`, `scanned_at`, `synced_at`, `device_id`, `method`, `direction` | **Unique `(event_id, profile_id, jti)`** — the idempotency key. `method`: officer_scan / learner_scan / manual |
 | `xp_ledger` | `profile_id`, `season_id`, `delta`, `participation_type`, `source_type`, `source_id`, `reversal_of` | **Append-only. No UPDATE or DELETE grant, for any role** |
-| `xp_rules` | `participation_type`, `xp_value`, `effective_from` | Set by School Admin / SSLG adviser only |
+| `xp_rules` | `participation_type`, `xp_value`, `effective_from` | Set by School Admin / SSLG adviser only. **No UPDATE grant for any role**: changing a point value inserts a new effective-dated row, so a past award stays explicable by the rule in force when it was made |
 | `levels` | `threshold_xp`, `title`, `badge_key` | Kasapi, Lingkod, Tagapagtaguyod, Bayani |
 | `seasons` | `name`, `starts_on`, `ends_on`, `is_current` | Quarterly reset; lifetime XP kept separately |
 | `leaderboard_snapshots` | `season_id`, `scope`, `scope_ref`, `computed_at`, `rows_json` | Scopes: section, grade, org, school |
