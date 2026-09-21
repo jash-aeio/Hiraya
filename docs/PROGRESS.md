@@ -12,6 +12,59 @@ other lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-21 — CI has never passed, and now it does
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped**
+
+- **One CI step: bootstrap the Supabase roles before `db:migrate`.** The workflow runs against a bare
+  `postgres:17` service container, which has no `anon`, `authenticated` or `service_role`. Every file
+  in `src/db/rls/` GRANTs and REVOKEs against those three, so the first policy file failed with
+  `role "anon" does not exist`. `scripts/bootstrap-roles.sql` already existed and already solved this —
+  but only `tests/integration/helpers/db.ts` ever applied it, and the tests run *after* `db:migrate`
+
+**The correction that matters**
+
+**CI has failed on every run since the workflow was written** — every commit, every branch, all the way
+back. Two earlier entries in this log record it as working. The entry of Phase 0 week 1 says "CI:
+lint → typecheck → migration check → migrate → `db:verify-rls` → tests → build, against a real
+`postgres:17` service container" as a thing that shipped; what shipped was a workflow that reached step
+four and stopped. Phase 0 lists "CI pipeline green" as a deliverable, and it has never been true.
+
+Past entries stay as written — that is what append-only means, and a log that quietly corrects itself is
+worth less than one that visibly does. But nothing downstream of those claims should be trusted: no
+commit on `main` has ever had its cross-tenant denial test run in CI. They have only ever been run
+locally, by a person choosing to run them.
+
+This is also the second thing in two days that was **documented as enforced and was not** — the first
+being `rls_auto_enable()` existing only in the Supabase dashboard. Both share a shape worth naming: a
+safety net whose absence is invisible until something else fails. The check that would have caught this
+one is the cheapest possible check — *look at whether the badge is green* — and nobody had.
+
+**Risks**
+
+- Materialized: **every CI claim in this log was unverified.** The gap between "the workflow file says
+  it runs" and "it ran" was never closed by anything
+- Newly identified: **a workflow that has never succeeded looks identical to one that regressed.** Worth
+  a required status check the moment the plan allows one (D26's amendment), because that is the thing
+  that makes a red run *block* rather than merely exist
+- Retired: none
+
+**Next**
+
+- Confirm this run goes green end to end — `db:verify-rls` and the full test suite have never executed
+  on a runner, so this fix may only reveal the next failure
+- Then J-01, the registration contract
+
+**Flagged**
+
+- **PR #1 (Tier 1 art) is blocked on this.** It cannot merge on green CI until this lands and it rebases
+- `main` still cannot be protected server-side (D26 as amended), so even a green CI is advisory: nothing
+  stops a red branch being pushed to `main` except the pre-push hook and two people paying attention
+
+---
+
 ## 2026-09-21 — The roadmap stops being a schedule
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
