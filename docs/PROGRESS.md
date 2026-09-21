@@ -12,6 +12,81 @@ other lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-21 — Tier 1 art exists, and main is guarded by a hook because it cannot be guarded properly
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped**
+
+- **Tier 1 assets, complete** (P-05, `ASSET_CHECKLIST.md` §1.1–§1.8). Logomark and wordmark; 6 category
+  marks; 4 level badges with unlock frames, the XP mark and the podium; 14 avatars; 5 empty states; the
+  hero; the demo school's crest. Reviewable together at `/design`, checked at 360×800
+- **The logomark is drawn once.** `src/app/icon.svg` for the browser tab and a component for the UI;
+  the PWA, Apple and OG rasters are generated at build from the same geometry by `ImageResponse`, so no
+  binary enters the repository and a raster cannot drift from its vector. Three prerendered icon
+  routes, an `apple-icon`, an `opengraph-image` and a `manifest.ts` — **no new dependency**
+- **Level badges carry their tier as pips**, not only as colour. DESIGN_SYSTEM.md §9 asks the
+  progression to survive greyscale and colour-blind viewers, and a cool-to-warm ramp alone does not: it
+  makes Bayani read as *yellow* rather than as *fourth*. The Bayani star went deep brown for the same
+  reason — white on amber is about 1.9:1
+- **The offline empty state is deliberately calm.** No red, no warning triangle, no severed cable. It
+  appears at the worst moment of the worst day and its job is "held safely, will send"
+- **`assets/` is gone from the plan.** A hand-written SVG is already its own editable source, so a
+  parallel source tree was two files to keep in step for nothing. Static art sits in `public/` and is
+  fetched lazily, off the JS budget; art that must take a token colour or a caller's size lives in
+  `src/design/art/`
+- **`.githooks/pre-push`**, refusing a direct push to `main`, plus the setup line that installs it
+
+**Decisions**
+
+- **D26 amended.** Branch protection on `main` **cannot be enabled**: GitHub gates both classic
+  protection and rulesets behind a paid plan for private repositories, and D17 keeps this one private
+  until Gate B. Both API calls return 403 "Upgrade to GitHub Pro or make this repository public". So
+  the rule is held by a committed pre-push hook, by CI on every push and PR, and by `CONTRIBUTING.md` —
+  three weaker things stacked, and the documents now say so rather than implying a control that is not
+  there. The ways out each cost something real: Pro against a near-zero budget, or publishing a repo
+  full of a school's future data before Gate B. It resolves at the Gate B transfer anyway
+
+**Docs updated**
+
+- `docs/ASSET_CHECKLIST.md` → v1.1 — every Tier 1 item ticked with its path and date; the file-location
+  and generated-raster policies; the OG typeface caveat recorded rather than hidden
+- `docs/TECHNICAL_ARCHITECTURE.md` — D26 amended; a limitation row for the unprotectable `main`
+- `CONTRIBUTING.md` §2 and §4 — the `core.hooksPath` step, and an honest account of what holds `main`
+- `CLAUDE.md` §2 — `assets/` replaced by `public/`; `.githooks/`; `design/art/`
+- `docs/WORKSTREAMS.md` §5 — P-05 struck; M-01's visibility check struck
+
+**Risks**
+
+- Materialized: **the guard on `main` is not a control.** Recorded in the D-table and in the known
+  limitations rather than papered over. R18 and R19 both rested partly on branch protection existing;
+  they now rest on CI and on two people reading a document
+- Newly identified: none
+- Retired: **repository visibility.** Confirmed private (`gh repo view`, 2026-09-21) after six
+  checkpoints carrying it. D17's assumption holds
+
+**Next**
+
+- **J-01, the registration contract.** With P-05 closed, every remaining Lane P task in Phase 0 is
+  downstream of a Lane D contract, so this is now the highest-value merge available
+- P-06, the first real `hiraya-mobile-audit` with `browser_network_requests` against the 500 KB budget
+
+**Flagged**
+
+- **The OG card renders in Satori's default typeface**, not Plus Jakarta Sans: `next/font` hands us a
+  hashed build artefact and Satori needs a real TTF. Fixing it means vendoring ~200 KB — worth deciding
+  deliberately. Caught only because the card was looked at; the first version also rendered a white
+  chevron on a white tile, which typechecked perfectly
+- **The category marks and badges have not been through `hiraya-design-system` or an a11y pass** beyond
+  a 360×800 look. P-06 is where that happens
+- No Supabase apply and no Vercel deploy yet (M-01). The art has never been seen on a real phone over
+  mobile data, which is the acceptance criterion that actually matters
+- Carried: the level thresholds are still invented and `hiraya-gamification-balancer` has not seen them;
+  `test:e2e`, `cap:sync`, `cap:android` declared but unwired; assumptions A1–A7 unverified; Apple
+  Developer fee ownership undecided; R13 live
+
+---
+
 ## 2026-09-21 — CI has never passed, and now it does
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio

@@ -132,7 +132,18 @@
       "service": "Serbisyo",
       "faith": "Pananampalataya",
       "interest": "Espesyal na interes"
-    }
+    },
+    "art": "Sining at mga asset",
+    "artBrandLabel": "Tatak",
+    "artBrand": "Wordmark at logomark",
+    "artCategoryLabel": "Mga kategorya",
+    "artCategory": "Ang anim na marka ng organisasyon",
+    "artLevelLabel": "Pagkilala",
+    "artLevel": "Mga badge ng antas, frame, marka ng XP at podium",
+    "artAvatarLabel": "Mga avatar",
+    "artAvatar": "Ang piniling set — walang pag-upload ng larawan",
+    "artEmptyLabel": "Mga walang laman na estado",
+    "artEmpty": "Lima, kasama ang offline"
   },
   "events": {
     "label": "Tuklasin",

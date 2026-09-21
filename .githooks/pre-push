@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Refuses a direct push to main (CLAUDE.md section 7, D26).
+#
+# This exists because server-side branch protection is unavailable: GitHub
+# gates both classic protection and rulesets behind a paid plan for PRIVATE
+# repositories, and this one is private until the Gate B transfer (D17). So the
+# guard runs here instead.
+#
+# Be clear about what that means: a client-side hook is a reminder, not a
+# control. It lives in the repository but git does not install it by itself -
+# `git config core.hooksPath .githooks` does, and CONTRIBUTING.md section 2
+# asks every clone to run it. Anyone can bypass it with --no-verify, and that
+# is the point: the bypass should be a thing you typed on purpose.
+#
+# The real enforcement remains CI, which runs on every push and every PR.
+
+protected="main"
+remote_ref_prefix="refs/heads/"
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  case "$remote_ref" in
+    "$remote_ref_prefix$protected")
+      branch=$(git rev-parse --abbrev-ref HEAD)
+      cat >&2 <<EOF
+
+  Refusing to push directly to '$protected'.
+
+  Work lands on main through a pull request with green CI (D26). You are on
+  '$branch'. If this is a branch, push it and open a PR:
+
+      git push -u origin $branch
+      gh pr create
+
+  If you genuinely mean to push to main - a release, or a fix while no one
+  else is working - say so explicitly:
+
+      git push --no-verify
+
+EOF
+      exit 1
+      ;;
+  esac
+done
+
+exit 0

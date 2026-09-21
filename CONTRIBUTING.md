@@ -40,7 +40,15 @@ git clone https://github.com/jash-aeio/Hiraya.git
 cd Hiraya
 npm install
 cp .env.example .env.local
+git config core.hooksPath .githooks   # do not skip — see below
 ```
+
+That last line installs `.githooks/pre-push`, which refuses a direct push to `main`. Git never installs
+a repository's hooks by itself, so this is opt-in by design and the one setup step nothing will remind
+you about. It matters more here than it would elsewhere: **server-side branch protection is
+unavailable** on this repository — GitHub gates both classic protection and rulesets behind a paid plan
+for private repos, and this one stays private until the Gate B transfer (D17, D26). The hook is a
+reminder, CI is the enforcement.
 
 Start a local Postgres with two databases — one to develop against, one for the integration suite to
 write fixtures into and toggle RLS on:
@@ -105,7 +113,12 @@ whatever the code already does, rather than what the rules allow.
 
 ## 4. Branches, commits, and pull requests
 
-`main` is protected: no direct pushes, PR required, CI must pass.
+Work lands on `main` through a pull request with green CI — no direct pushes.
+
+Be clear-eyed about what holds that up. GitHub will not enforce it on a private repository on this plan
+(§2), so the guarantee is three weaker things stacked: the `pre-push` hook you installed above, CI
+running on every push and every PR, and this document. `--no-verify` defeats the first, which is
+deliberate — the bypass should be something you typed on purpose, not something you drifted into.
 
 ```bash
 git checkout -b feat/registration-api      # feat/ fix/ docs/ chore/

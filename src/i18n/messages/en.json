@@ -132,7 +132,18 @@
       "service": "Service",
       "faith": "Faith-based",
       "interest": "Special interest"
-    }
+    },
+    "art": "Art and assets",
+    "artBrandLabel": "Brand",
+    "artBrand": "Wordmark and logomark",
+    "artCategoryLabel": "Categories",
+    "artCategory": "The six organization marks",
+    "artLevelLabel": "Recognition",
+    "artLevel": "Level badges, frames, XP mark and podium",
+    "artAvatarLabel": "Avatars",
+    "artAvatar": "The curated set — no photo uploads exist",
+    "artEmptyLabel": "Empty states",
+    "artEmpty": "Five, including the offline one"
   },
   "events": {
     "label": "Discover",

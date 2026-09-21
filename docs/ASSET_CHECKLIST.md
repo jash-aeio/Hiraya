@@ -1,6 +1,6 @@
 # Hiraya — Asset Checklist
 
-**Status:** Approved for Phase 0 · **Version:** 1.0 · **Last updated:** 2026-09-21
+**Status:** Approved for Phase 0 · **Version:** 1.1 · **Last updated:** 2026-09-21
 
 Everything that must exist before Hiraya can be demoed, piloted, and shipped to app stores. Tiered by
 **what each asset blocks**, so nothing is produced earlier than it is needed.
@@ -28,7 +28,17 @@ depends on.
 phone, before Phase 1 begins. If the authored style works, it stays for the life of the project; if it
 does not, that is the cheapest possible moment to change direction.
 
-Source lives in `assets/` (editable SVG). Build output goes to `public/`.
+**Where the files live.** There is no separate `assets/` source tree, and the earlier plan for one was
+dropped when the art was authored (2026-09-21): a hand-written SVG *is* its own editable source, so a
+second copy under `assets/` would have been two files to keep in step with nothing gained. Static art —
+avatars, empty states, hero, the demo crest — sits in `public/` and is fetched lazily, off the JavaScript
+budget entirely. Art that must be recolored by a token or sized by a caller — the logomark, wordmark,
+category marks, level badges, XP mark, podium — is authored as SVG inside components in
+`src/design/art/`, which is also what lets the category marks paint in `currentColor`.
+
+**Raster is generated, never committed.** The PWA, Apple and OG images are produced at build time by
+`ImageResponse` from the same logomark drawing (`src/design/art/logomarkDataUri.ts`), so a raster icon
+cannot drift from the vector it came from and no binary enters the repository.
 
 ---
 
@@ -38,18 +48,29 @@ Without these there is nothing to show the school, and the pitch is where this p
 
 ### 1.1 Brand
 
-| Asset | Format | Spec | Source |
+| Asset | Format | Spec | Status |
 |---|---|---|---|
-| Wordmark `hiraya.` | SVG | Horizontal; teal mark + amber dot, echoing the reference's logo | **Authored** |
-| Logomark | SVG | 1:1, works down to 24px | **Authored** |
-| `favicon.ico` | ICO | 32×32 | From logomark |
-| `icon-192.png` | PNG | 192×192 | From logomark |
-| `icon-512.png` | PNG | 512×512 | From logomark |
-| `icon-maskable-512.png` | PNG | 512×512, 20% safe-zone padding | From logomark |
-| `apple-touch-icon.png` | PNG | 180×180, no transparency | From logomark |
-| OG share image | PNG | 1200×630 | **Authored** — FR-6.3 needs clean Facebook/Messenger previews |
+| Wordmark `hiraya.` | Component | Logomark + real type in `--font-sans`; amber full stop | [x] `src/design/art/Wordmark.tsx` (2026-09-21) |
+| Logomark | SVG | 1:1, rising chevron under an amber point, legible at 24px | [x] `src/app/icon.svg` + `Logomark.tsx` (2026-09-21) |
+| Browser icon | SVG | `sizes="any"` — supersedes `favicon.ico` | [x] `src/app/icon.svg` (2026-09-21) |
+| `pwa-192.png` | PNG | 192×192 | [x] generated, `/icons/pwa-192.png` (2026-09-21) |
+| `pwa-512.png` | PNG | 512×512 | [x] generated, `/icons/pwa-512.png` (2026-09-21) |
+| `maskable-512.png` | PNG | 512×512, mark at 60% for the adaptive-icon crop | [x] generated (2026-09-21) |
+| Apple touch icon | PNG | 180×180, opaque | [x] `src/app/apple-icon.tsx` (2026-09-21) |
+| OG share image | PNG | 1200×630 | [x] `src/app/opengraph-image.tsx` (2026-09-21) — see the caveat below |
+| Web manifest | JSON | name, colors, the four icons | [x] `src/app/manifest.ts` (2026-09-21) |
 
-> PNGs are the one raster exception: PWA manifests and Apple touch icons require them.
+> **The wordmark is a component, not a file.** A wordmark baked into SVG either traces the glyphs —
+> unmaintainable, and a second copy of the licence question — or carries `<text>` that silently falls
+> back to a system font whenever the file is loaded through `<img>`, where no stylesheet reaches it.
+>
+> **`favicon.ico` is deliberately absent.** `icon.svg` covers every browser that matters on a budget
+> Android, at a fraction of the bytes, and Next emits `sizes="any"` for it.
+>
+> **Open: the OG card's typeface.** It renders in `ImageResponse`'s bundled default, not Plus Jakarta
+> Sans, because `next/font` hands us a hashed build artefact and Satori needs a real TTF. Fixing it
+> means vendoring a ~200 KB font file — a decision worth taking deliberately rather than quietly. The
+> mark and the palette carry the brand until then, and the card is legible and on-colour as it stands.
 
 ### 1.2 Typography
 
@@ -61,7 +82,8 @@ Without these there is nothing to show the school, and the pitch is where this p
 ### 1.3 Icons
 
 - [x] Lucide wired up, tree-shaken — `lucide-react`, imported per icon (2026-09-21)
-- [ ] **6 org-category icons — authored**, one per category, each matched to its token color:
+- [x] **6 org-category icons — authored** in `src/design/art/CategoryIcon.tsx`, drawn to Lucide's grid
+      and painting in `currentColor` so the caller applies the token (2026-09-21):
 
 | Category | Motif | Token |
 |---|---|---|
@@ -74,39 +96,49 @@ Without these there is nothing to show the school, and the pitch is where this p
 
 ### 1.4 Gamification art
 
-| Asset | Count | Spec |
-|---|---|---|
-| **Level badges — authored** | 4 | Kasapi, Lingkod, Tagapagtaguyod, Bayani. Layered SVG: medal disc + inner star + ribbon. Renders at 32, 64, 128px. Palette per `docs/DESIGN_SYSTEM.md` §9 |
-| XP coin | 1 | Small amber mark for XP values |
-| Podium frame | 1 | Top-three leaderboard, 1st raised |
-| Rank rings | — | CSS, not an asset — token-colored border by level tier |
+| Asset | Count | Spec | Status |
+|---|---|---|---|
+| **Level badges — authored** | 4 | Kasapi, Lingkod, Tagapagtaguyod, Bayani. Layered SVG: ribbon, disc, star, pips. Palette per `docs/DESIGN_SYSTEM.md` §9 | [x] `LevelBadge.tsx` (2026-09-21) |
+| XP coin | 1 | Small amber mark for XP values | [x] `XpCoin.tsx` (2026-09-21) |
+| Podium frame | 1 | Top-three leaderboard, 1st raised | [x] `XpCoin.tsx` (2026-09-21) |
+| Rank rings | — | CSS, not an asset — token-colored border by level tier | — |
+
+> **The tier number is drawn, not only coloured.** Each badge carries its tier as pips beneath the
+> star. DESIGN_SYSTEM.md §9 asks the progression to survive greyscale and colour-blind viewers, and a
+> cool-to-warm ramp alone does not do that — it makes Bayani read as *yellow* rather than as *fourth*.
+> The Bayani star is deep brown rather than white for the same reason: white on amber is about 1.9:1.
 
 > **No streak icons.** FR-5.10 bans daily login streaks. If an asset request for one ever appears, the
 > request is wrong, not the checklist.
 
 ### 1.5 Avatars (D13)
 
-| Asset | Count | Spec |
-|---|---|---|
-| **Avatar set — authored** | 12–16 | Geometric, non-photographic, non-figurative enough to avoid implying ethnicity or gender. Each ≤2 KB |
-| Unlock frames | 4 | Decorative rings tied to level tiers — the zero-cost reward FR-5 already asks for |
+| Asset | Count | Spec | Status |
+|---|---|---|---|
+| **Avatar set — authored** | 12–16 | Geometric, non-photographic, non-figurative enough to avoid implying ethnicity or gender. Each ≤2 KB | [x] 14 in `public/avatars/`, 273–430 bytes each (2026-09-21) |
+| Unlock frames | 4 | Decorative rings tied to level tiers — the zero-cost reward FR-5 already asks for | [x] `UnlockFrame` in `LevelBadge.tsx` (2026-09-21) |
 
 No photo uploads exist. That is a privacy decision (CLAUDE.md §6), not an asset shortfall.
 
 ### 1.6 Empty states
 
-Five, recolored from unDraw or authored — whichever reads better against the palette:
+Five. Authored rather than recolored from unDraw in the end — at this size the token palette and a flat
+geometric style read better than a recolored illustration, and each file came out under a kilobyte. All
+in `public/empty/` (2026-09-21):
 
-- [ ] No events yet
-- [ ] No organizations joined
-- [ ] No check-ins yet
-- [ ] No announcements
-- [ ] Offline / no connection *(this one appears at the worst moment, so it must be reassuring rather than alarming)*
+- [x] No events yet — `no-events.svg`
+- [x] No organizations joined — `no-orgs.svg`
+- [x] No check-ins yet — `no-checkins.svg`
+- [x] No announcements — `no-announcements.svg`
+- [x] Offline / no connection — `offline.svg`. *Deliberately calm: no red, no warning triangle, no
+      severed cable. It appears at the worst moment of the worst day — a scanner at a gate with no
+      signal — and its whole job is to say "held safely, will send".*
 
 ### 1.7 Hero illustration
 
-- [ ] One landing/login illustration, recolored to `--primary` + `--xp`. Hidden below 480px per the
-      performance rules.
+- [x] One landing illustration at `public/hero/hero.svg` (2026-09-21), `--primary` + `--xp`. Abstract
+      rather than figurative, for the same reason the avatars are: three ascending columns under a
+      rising chevron. Hidden below 480px per the performance rules.
 
 ### 1.8 Demo seed data
 
@@ -149,7 +181,9 @@ and Phase 5 needs a client variant of this component. And it marks a *session*, 
 bar. That is defensible only because the page says "Demo tenant" and names the school in its own
 heading; a screen that lists learner data outside the demo route must not rely on it.
 
-Still open: the school **logo SVG** (Tier 1 brand art, section 1.1).
+The school **logo SVG** landed at `public/brand/demo-school.svg` (2026-09-21): a generic crest for
+"Halimbawa" — Filipino for "example". A demo logo resembling a real school's seal would put that
+school's identity on a screen full of invented learners.
 
 ### 1.9 Pitch kit
 
