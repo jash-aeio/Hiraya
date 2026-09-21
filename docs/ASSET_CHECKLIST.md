@@ -232,4 +232,4 @@ project can lawfully hold a thousand minors' records.
 | **3** | — | — | Store copy | — | Store submission |
 
 **Total pre-demo production:** roughly 30 authored SVGs, three library integrations, and four pitch
-documents. All of it fits inside Phase 0's three weeks, and all of it fits inside 500 KB.
+documents. All of it belongs to Phase 0, and all of it fits inside 500 KB.

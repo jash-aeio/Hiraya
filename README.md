@@ -70,7 +70,7 @@ green CI.
 | [`docs/TECHNICAL_ARCHITECTURE.md`](docs/TECHNICAL_ARCHITECTURE.md) | Stack, decisions D1–D26, trade-offs |
 | [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md) | Modules, permissions, workflows, entities, API, threat model |
 | [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md) | Data lifecycle, auth flow, sensitive-data handling |
-| [`docs/MILESTONE_ROADMAP.md`](docs/MILESTONE_ROADMAP.md) | 17 weeks, two gates, risk register |
+| [`docs/MILESTONE_ROADMAP.md`](docs/MILESTONE_ROADMAP.md) | Seven phases, two gates, risk register |
 | [`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) | The two lanes, the task board, and what depends on what |
 | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Tokens, dual register, components |
 | [`docs/ASSET_CHECKLIST.md`](docs/ASSET_CHECKLIST.md) | Every asset, tiered by what it blocks |

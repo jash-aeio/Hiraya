@@ -1,15 +1,26 @@
 # Hiraya — Milestone Roadmap
 
-**Status:** Approved for Phase 0 · **Version:** 1.1 · **Last updated:** 2026-09-21
+**Status:** Approved for Phase 0 · **Version:** 2.0 · **Last updated:** 2026-09-21
 
-17 weeks from start to launch, then a one-semester pilot. Two developers from 2026-09-21 (D26), split
-across the lanes in [`docs/WORKSTREAMS.md`](WORKSTREAMS.md) — this document says what and when, that one
-says who and in what order. Calendar dates are set once Phase 0 begins; weeks are relative throughout.
+Seven phases and two gates, in order, then a one-semester pilot with a real school. Two developers from
+2026-09-21 (D26), split across the lanes in [`docs/WORKSTREAMS.md`](WORKSTREAMS.md) — this document says
+*what* and *in what order*, that one says *who* and *what depends on what*.
 
-The week counts below were estimated for one developer and have **not** been re-cut for two. Treat them
-as the ceiling they were, not as a new target: a second pair of hands shortens Phases 1, 2 and 4, where
-the lanes genuinely run in parallel, and shortens Phase 3 barely at all, because the scanner queue and
-the sync endpoint are one correctness argument and splitting them is how duplicate XP ships.
+**There is no week-by-week schedule, and that is deliberate** (D27). The earlier plan put calendar weeks
+on every phase; they were estimates for one developer working alone, and they were wrong in both
+directions at once. What is binding is the **order** and the **exit criteria**: a phase is finished when
+its acceptance criteria pass, not when a week ends, and the two gates are decisions that cannot be
+scheduled into existence.
+
+**What is still genuinely time-bound**, and is not up to us:
+
+- **The school calendar.** Gate A wants a term in session, and the pilot needs a whole semester ahead of
+  it. Miss the start of a semester and the pilot waits for the next one — this, not developer velocity,
+  is the real clock on this project
+- **Gate B's paperwork.** DPO review, a signed processor agreement and guardian consent move at the
+  school's pace, measured in weeks. Start them while Phase 5 and 6 are still running
+- **App store review** — days, sometimes more, and a child-directed rejection costs a full round trip
+- **R13:** the free Supabase project pauses when idle. Wake it before any pitch, whatever the date
 
 ---
 
@@ -17,28 +28,41 @@ the sync endpoint are one correctness argument and splitting them is how duplica
 
 ```mermaid
 flowchart TD
-  P0["Phase 0 · wks 1-3<br/>Foundation + demo tenant"] --> GA{"GATE A<br/>School buy-in"}
-  GA -->|yes| P1["Phase 1 · wks 4-7<br/>Identity and orgs"]
+  P0["Phase 0<br/>Foundation + demo tenant"] --> GA{"GATE A<br/>School buy-in"}
+  GA -->|yes| P1["Phase 1<br/>Identity and orgs"]
   GA -->|stalled| FB["Fallback:<br/>single-club pilot"]
   FB --> P1
-  P1 --> P2["Phase 2 · wks 8-10<br/>Events"]
-  P2 --> P3["Phase 3 · wks 11-13<br/>Check-in and XP"]
-  P3 --> P4["Phase 4 · wks 14-15<br/>Visibility"]
-  P4 --> P5["Phase 5 · wk 16<br/>Native packaging"]
-  P5 --> P6["Phase 6 · wk 17<br/>Hardening"]
+  P1 --> P2["Phase 2<br/>Events"]
+  P2 --> P3["Phase 3<br/>Check-in and XP"]
+  P3 --> P4["Phase 4<br/>Visibility"]
+  P4 --> P5["Phase 5<br/>Native packaging"]
+  P5 --> P6["Phase 6<br/>Hardening"]
   P6 --> GB{"GATE B<br/>DPO + consent<br/>+ repo transfer"}
-  GB -->|passed| P7["Phase 7 · wks 18-35<br/>Pilot"]
+  GB -->|passed| P7["Phase 7<br/>Pilot · one semester"]
   P7 --> POST["Post-MVP<br/>Phase 2 and 3 features"]
 ```
 
-**Priority order, when time runs short.** Cut from the bottom: (1) verified check-in works offline;
+**Relative weight, for planning only.** Not durations — a way to know which phases deserve room and
+which will not take long however fast the work goes.
+
+| Phase | Weight | Why |
+|---|---|---|
+| 0 · Foundation and demo | Medium | Mostly landed. What remains is the walkable loop and Tier 1 assets |
+| 1 · Identity and orgs | Large | Import edge cases — duplicate LRNs, mid-year transfers, missing sections — take longer than the happy path, always |
+| 2 · Events | Medium | The state machine is small; the adviser flow is where the care goes |
+| 3 · Check-in and XP | **Largest** | The highest-risk phase, and the one that parallelizes worst. Offline sync is the hardest thing in the build |
+| 4 · Visibility | Medium | Parallelizes well across the two lanes |
+| 5 · Native packaging | Small, but externally blocked | Store accounts, store review, and a policy question that has to be settled first |
+| 6 · Hardening | Medium | Hardening always finds something. Give it more room than feels necessary |
+
+**Priority order, when something has to give.** Cut from the bottom: (1) verified check-in works offline;
 (2) adviser approval is faster than paper; (3) learners can see XP that traces to a real action;
 (4) admin can import and export; (5) leaderboards; (6) announcements and push; (7) the analytics
 dashboard. Anything below line 4 can slip into the pilot. Nothing above it can.
 
 ---
 
-## 2. Phase 0 — Foundation, design system, demo tenant · weeks 1–3
+## 2. Phase 0 — Foundation, design system, demo tenant
 
 **Purpose.** Have something a teacher can hold in their hand. Teachers approve what they can touch; a
 proposal document from an outside developer stalls.
@@ -75,7 +99,7 @@ the demo: it needs to be *walkable*, not complete.
 
 ---
 
-## 3. GATE A — School buy-in · end of week 3
+## 3. GATE A — School buy-in · after Phase 0
 
 **Not a checklist. A decision point.**
 
@@ -97,7 +121,7 @@ Approach a second school with a demo that now has a real click-path behind it.
 
 ---
 
-## 4. Phase 1 — Identity and organizations · weeks 4–7
+## 4. Phase 1 — Identity and organizations
 
 **Deliverables.** CSV roster import (idempotent, per-row errors); activation codes in printable
 per-section batches; consent-gated activation; ten roles with RBAC; admin-assisted password reset;
@@ -118,13 +142,13 @@ Orgs with the six category filters; School Admin console; full data export.
 **Testing checkpoint.** `hiraya-tenancy-auditor` + `hiraya-privacy-auditor` must both run clean before
 this phase closes. `/security-review` on the auth diff.
 
-**Risks.** The school's roster shape differs from the template (mitigate: get a real sample in week 4,
-not week 7). Import edge cases — duplicate LRNs, mid-year transfers, missing sections — eat more time
-than expected; budget for it.
+**Risks.** The school's roster shape differs from the template (mitigate: ask for a real sample the day
+this phase opens, not the day the importer is written). Import edge cases — duplicate LRNs, mid-year
+transfers, missing sections — eat more time than expected; budget for it.
 
 ---
 
-## 5. Phase 2 — Events · weeks 8–10
+## 5. Phase 2 — Events
 
 **Deliverables.** Event draft → submit → adviser approval → publication; rejection with a required
 reason; SSLG dual approval; registration with capacity, eligibility filters and waitlist; reminders;
@@ -147,11 +171,12 @@ accomplishment report exportable as PDF; attendance CSV.
 advisory. If it says the flow adds work, the flow is wrong.
 
 **Risks.** Adviser flow feels like extra work (the Med/High adoption risk — mitigated by the advocate
-gate). Report template mismatch (mitigate: obtain it in week 8).
+gate). Report template mismatch (mitigate: obtain the school's current template before designing the
+report, not after generating one).
 
 ---
 
-## 6. Phase 3 — Check-in and XP · weeks 11–13
+## 6. Phase 3 — Check-in and XP
 
 The highest-risk phase. Everything the product claims rests here.
 
@@ -178,13 +203,15 @@ The highest-risk phase. Everything the product claims rests here.
 duplicate scan, mid-sync disconnect, capacity race. `hiraya-checkin-integrity` on every diff.
 `/security-review` on the QR implementation. **Both non-negotiable tests from CLAUDE.md §5 must pass.**
 
-**Risks.** Offline sync is the hardest thing in the build — start it week 11, not week 13. Clock skew on
-cheap Android is a real field problem, not theoretical. Camera performance varies wildly across budget
-devices: test on the cheapest phone available, not a flagship.
+**Risks.** Offline sync is the hardest thing in the build — **open this phase with the queue and the
+sync endpoint, not with the scanner UI.** It is the part most likely to be wrong in a way that only
+shows up at a real gate with real phones, and the part that benefits least from being left until the
+easy work is done. Clock skew on cheap Android is a real field problem, not theoretical. Camera
+performance varies wildly across budget devices: test on the cheapest phone available, not a flagship.
 
 ---
 
-## 7. Phase 4 — Visibility · weeks 14–15
+## 7. Phase 4 — Visibility
 
 **Deliverables.** Seasonal leaderboards at four scopes (section, grade, org, school); section-vs-section
 and grade team standings; hide-from-board option; "Most Improved"; merged announcement feed; in-app and
@@ -211,7 +238,7 @@ and by watching top-decile XP share during the pilot).
 
 ---
 
-## 8. Phase 5 — Native packaging · week 16
+## 8. Phase 5 — Native packaging
 
 **Deliverables.** Capacitor Android and iOS shells; native camera scanner replacing `getUserMedia`;
 native push (FCM + APNs); native secure storage and SQLite queue; store listings; **Play Families and
@@ -233,13 +260,15 @@ Apple Kids policy compliance review**; internal-testing builds.
 **Testing checkpoint.** `hiraya-offline-scenario-tester` re-run against the native shell.
 `/security-review` on the bundle. Manual test on the cheapest Android device available.
 
-**Risks.** **App-store rejection under child-directed policies** — settle it this week, not at submission.
-Store review latency can be days: submit early in the week. Apple's fee is a real, recurring cost the
-₱15,400 pilot budget does not currently allocate — decide who pays before Phase 5.
+**Risks.** **App-store rejection under child-directed policies** — settle the policy question at the
+start of this phase, not at submission. Store review latency is days and occasionally longer, and it is
+the one wait no amount of working faster removes: submit with slack in hand, and never with a pitch or a
+launch date immediately behind it. Apple's fee is a real, recurring cost the ₱15,400 pilot budget does
+not currently allocate — decide who pays before Phase 5 opens.
 
 ---
 
-## 9. Phase 6 — Hardening · week 17
+## 9. Phase 6 — Hardening
 
 **Deliverables.** `/security-review` across the codebase; all five agents run clean; WCAG 2.1 AA audit;
 500 KB budget verified; load test at ≥15 check-ins/min; error taxonomy complete and localized; admin
@@ -255,12 +284,14 @@ manual, officer quick-start, adviser quick-start, homeroom onboarding script; ba
 - [ ] **A restore from backup has actually been performed, not merely configured**
 - [ ] Every document exists and is current (`/hiraya-checkpoint` passes clean)
 
-**Risks.** Hardening always finds something; one week is tight. If Phase 3 slipped, take the time here
-rather than at Gate B — shipping unhardened software holding minors' data is not an option.
+**Risks.** Hardening always finds something, and the temptation to call it done early is strongest here,
+because everything visible already works. Take the time here rather than at Gate B — shipping unhardened
+software holding minors' data is not an option, and this is the last phase where finding a problem is
+cheap.
 
 ---
 
-## 10. GATE B — Legal and ownership · end of week 17
+## 10. GATE B — Legal and ownership · after Phase 6
 
 **A hard blocker. No real learner data enters any environment until every box is ticked.**
 
@@ -282,11 +313,15 @@ moves on" — the proposal's own High/High risk — comes true.
 
 ---
 
-## 11. Phase 7 — Pilot · weeks 18–35 (one semester)
+## 11. Phase 7 — Pilot · one semester
 
-**Week 18:** one organization only. Verify the loop with real learners and a real adviser.
-**Weeks 19–20:** homeroom onboarding; launch-week quests; SSLG promotion; school-wide open.
-**Weeks 21–35:** monthly check-ins with the Steering Group; KPI tracking; point-rule tuning via
+The one part of this plan that **is** measured in weeks, because it runs on the school's calendar and on
+real learners rather than on how fast code gets written. Weeks below are counted from the pilot's own
+first day, not from the start of the project.
+
+**Week 1:** one organization only. Verify the loop with real learners and a real adviser.
+**Weeks 2–3:** homeroom onboarding; launch-week quests; SSLG promotion; school-wide open.
+**Rest of the semester:** monthly check-ins with the Steering Group; KPI tracking; point-rule tuning via
 `hiraya-gamification-balancer`; Phase 2 features built alongside as capacity allows.
 
 **Watch from week 3 of the pilot.** Weekly-active decay is the earliest signal the design is failing, and
@@ -332,7 +367,7 @@ through with real people.
 | R12 | Free hosting limits exceeded | Low | Med | Usage monitoring; budgeted paid tier; image optimization | 7 |
 | R13 | **Supabase pauses the idle demo project** | Med | Med | Keep-alive before any pitch; verify the URL the morning of | 0 |
 | R14 | **App store rejection under child-directed policy** | Med | Med | Policy review in Phase 5; no advertising-ID SDKs; early submission | 5 |
-| R15 | Offline sync proves harder than estimated | Med | High | Start week 11; the offline tester agent; degrade to online-only check-in rather than slip the launch | 3 |
+| R15 | Offline sync proves harder than estimated | Med | High | Open Phase 3 with the queue and sync endpoint; the offline tester agent; degrade to online-only check-in rather than ship it unverified | 3 |
 | R16 | Apple's annual fee is unbudgeted | High | Low | Decide who pays before Phase 5; Android-only ships if unresolved | 5 |
 | R17 | Toolchain versions break the lint chain that enforces R2 | Med | High | TypeScript and ESLint pinned (D20); lint is a required CI step | ongoing |
 | R18 | **A second developer violates a rule that was never written down** | Med | High | Rules enforced by the database, lint and CI rather than by review; `CONTRIBUTING.md` §5 states the eight that cannot be inferred from the code; `main` protected with required CI (D26) | ongoing |

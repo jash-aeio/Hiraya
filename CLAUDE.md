@@ -334,7 +334,9 @@ and handle everything else inline.
 ## 10. Instructions for future sessions
 
 1. **Read `docs/PRD.md` and `docs/MILESTONE_ROADMAP.md` before proposing work.** Know which phase you
-   are in. Do not build Phase 2 features during Phase 1 — scope creep is how a 17-week plan becomes 40.
+   are in. Do not build Phase 2 features during Phase 1. There is no delivery deadline (D27), which
+   removes the pressure to rush but not the reason to stay in sequence: a phase built out of order is
+   a phase whose acceptance criteria nobody can honestly tick.
 2. **Check `docs/PROGRESS.md`** for what the last session actually did and what it flagged, and
    **`docs/WORKSTREAMS.md`** for which lane you are in, what is open, and what it depends on. There are
    two developers now: another branch may be mid-slice in the file you were about to change.

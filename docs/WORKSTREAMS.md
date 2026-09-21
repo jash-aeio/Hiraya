@@ -163,7 +163,7 @@ What is settled is which lane leads, and what blocks what.
 | Phase | Lane D leads | Lane P leads | Hard dependency |
 |---|---|---|---|
 | **2 · Events** | proposal → approval state machine, SSLG dual approval, waitlist promotion, report generation, attendance CSV | officer proposal form, **adviser ≤3-tap approval**, calendar with conflict flags, post-event feedback | Phase 1. `hiraya-adviser-advocate` is a **blocking gate** on the approval flow — run it against the design, before the code |
-| **3 · Check-in and XP** | `src/lib/qr` Ed25519, `/checkin/grant`, `/checkins/sync` idempotency, `xp_rules`, disputes, manual override | scanner UI, queue indicator, digital ID, dispute form | Phase 2. **Start week 11.** `hiraya-offline-scenario-tester` and both non-negotiable tests gate the close |
+| **3 · Check-in and XP** | `src/lib/qr` Ed25519, `/checkin/grant`, `/checkins/sync` idempotency, `xp_rules`, disputes, manual override | scanner UI, queue indicator, digital ID, dispute form | Phase 2. **Open the phase with the queue and the sync endpoint, not the scanner UI.** `hiraya-offline-scenario-tester` and both non-negotiable tests gate the close |
 | **4 · Visibility** | snapshots, push delivery, analytics endpoints including the audited non-participant list | boards, merged announcement feed, notification preferences, charts (load `dataviz` first) | Phase 3 — boards need a populated ledger |
 | **5 · Native** | nothing new server-side; verify no secret reaches a bundle | Capacitor shells, native camera, push, secure storage, store listings | Phases 1–4, and the maintainer's developer accounts |
 | **6 · Hardening** | all five agents clean; backup restore **actually performed** | WCAG AA sweep, 500 KB budget, the manuals | Everything |

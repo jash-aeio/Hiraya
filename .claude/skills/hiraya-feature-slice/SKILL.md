@@ -23,8 +23,10 @@ the code that would otherwise be written around them.
 | Roadmap phase | `docs/MILESTONE_ROADMAP.md` |
 | Which roles may do what | `docs/SYSTEM_DESIGN.md` §2 |
 
-**Stop if the feature is not in the current phase.** Building Phase 2 work during Phase 1 is how a
-17-week plan becomes 40. Say so and confirm before proceeding.
+**Stop if the feature is not in the current phase.** There is no delivery deadline (D27), so the reason
+to hold the sequence is not schedule — it is that a phase built out of order is a phase whose acceptance
+criteria nobody can honestly tick, and those criteria are the only definition of done this plan has. Say
+so and confirm before proceeding.
 
 ## Workflow
 

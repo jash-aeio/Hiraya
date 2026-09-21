@@ -12,6 +12,73 @@ other lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-21 — The roadmap stops being a schedule
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped**
+
+- **`main` is current again.** `feat/xp-balances` (the `xp_balances` `security_invoker` view and the
+  events browse screen) and `docs/two-developer-onboarding` both merged. The flagged gap from the last
+  entry — a contributor cloning `main` would have got neither — is closed. `typecheck` and `lint` clean
+  on the merged tree
+- **Week counts removed from Phases 0–6.** Phase headings, the flowchart labels, both gate headings and
+  every "by week N" risk mitigation now name a position in the sequence or a condition instead of a
+  date. The mitigations kept their teeth by becoming orderings: *start Phase 3 with the queue and the
+  sync endpoint, not the scanner UI* says what *start it in week 11* was trying to say, and says it
+  without needing a calendar to be true
+- **A relative-weight table replaces the durations** (`MILESTONE_ROADMAP.md` §1). Not estimates —
+  a way to know Phase 3 deserves room and Phase 5 will not take long however fast the work goes
+- **What is still time-bound is now stated explicitly**, because removing the schedule makes it easy to
+  forget that some clocks are not ours: the school calendar (Gate A needs a term in session, the pilot
+  needs a whole semester ahead of it), Gate B's paperwork, app store review latency, and R13's idle
+  Supabase project
+- **The pilot keeps its weeks**, renumbered from the pilot's own first day rather than from project
+  week 18. The week-3 weekly-active decay watch is a measurement window on real learners, not a
+  developer deadline, and it survives unchanged
+
+**Decisions**
+
+- **D27** — the roadmap is a sequence, not a schedule. Binding: phase order, each phase's exit
+  criteria, and the two gates. There is no external deadline — no defense, no client contract — so the
+  week counts were estimates presented as commitments, and phases already carry acceptance criteria
+  that say when they are done more precisely than a date could. **The cost is real and recorded:** we
+  lose the ability to say "we are behind". Slippage now shows only as a phase that will not close, and
+  nobody is counting
+
+**Docs updated**
+
+- `docs/MILESTONE_ROADMAP.md` → **v2.0** — header rewritten, flowchart relabelled, all nine phase and
+  gate headings, four risk paragraphs, R15, and §11's pilot numbering
+- `docs/TECHNICAL_ARCHITECTURE.md` → v1.2 — D27; two stale "inside 17 weeks" rationales corrected
+- `CLAUDE.md` §10.1, `docs/PRD.md` §10, `README.md`, `docs/ASSET_CHECKLIST.md` §summary,
+  `docs/WORKSTREAMS.md` §7, `.claude/skills/hiraya-feature-slice/SKILL.md` — every remaining
+  "17-week plan" and "week N" reference outside the pilot
+
+**Risks**
+
+- Materialized: none
+- Newly identified: **no schedule means no early warning.** The gates are the backstop — neither can be
+  passed by asserting progress — and this log's own dates are the other. Worth watching whether a phase
+  quietly stops appearing in new entries
+- Retired: none. The week counts were never a risk mitigation, which is part of why they went
+
+**Next**
+
+- Unchanged: branch protection on `main`, then J-01 (the registration Zod contract) and P-05 (Tier 1
+  assets, still unstarted, still dependency-free)
+
+**Flagged**
+
+- **Branch protection is still off**, and `main` was just pushed to directly — which is exactly what
+  D26 says should stop being possible. Until it is on, D26's git half remains a convention
+- Repository visibility **still unconfirmed as private**, now across six checkpoints
+- `docs/ASSET_CHECKLIST.md` still has `assets/` and `public/` in its plan and neither directory exists.
+  With no deadline, the risk shifts from *late* to *never* — Tier 1 assets are the one Phase 0
+  deliverable with no dependency and no forcing function
+
+---
+
 ## 2026-09-21 — Two developers, and a boundary drawn while it is still cheap
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
