@@ -9,6 +9,7 @@ The schema, its migrations, and the policies that make tenancy a database proper
 | `rls/00_functions.sql` | The four JWT-claim readers every policy is built from. |
 | `rls/01_guards.sql` | Triggers: `school_id` immutability, `updated_at`, and the append-only rejections. |
 | `rls/<table>.sql` | One file per table: `ENABLE`/`FORCE ROW LEVEL SECURITY`, explicit GRANTs, and its policies. |
+| `rls/04_xp_balances.sql` | The `xp_balances` view. Derived, not a table, so it has no policy of its own — `security_invoker = true` is what makes it defer to the reader's. |
 | `../../drizzle/` | Generated migration SQL. Read it before applying it. |
 
 ## Workflow
@@ -33,6 +34,20 @@ Every policy file is idempotent, so re-running is always safe.
    live schema and fails if one is unseeded, so coverage cannot silently lapse.
 4. `npm run db:generate`, read the SQL, `npm run db:migrate`, `npm test`.
 5. Run the `hiraya-tenancy-auditor` agent.
+
+## Adding a view
+
+Views live here too, and are dropped and recreated on every `db:rls` run rather than generated into a
+migration. A view is **not** covered by RLS: it reads as its *owner* unless it is declared
+`WITH (security_invoker = true)`, which makes it read as the caller instead and defer to their policies
+on the tables beneath it. So every view in `public` must carry that option, and `db:verify-rls` fails
+the build for one that does not — checks 1-6 would never notice, because they enumerate tables.
+
+A materialized view is banned outright (D19): it holds its own copy of the rows and cannot carry a
+policy at all, which makes it readable across schools by anyone granted SELECT.
+
+Declare the view in `schema.ts` with `pgView(...).existing()` so queries against it are typed without
+drizzle-kit trying to own it.
 
 ## What the rules are
 

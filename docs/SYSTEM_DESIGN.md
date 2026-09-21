@@ -283,12 +283,27 @@ enabled. Only distinguishing columns are listed.
 | `devices` | `profile_id`, `platform`, `push_token`, `is_scanner`, `last_seen_at` | Scanner registry and push targeting |
 | `audit_log` | `actor_id`, `action`, `target_type`, `target_id`, `meta_json` | **Ids, never names.** Includes every non-participant-list access |
 
-**Derived:** `xp_balances` (lifetime XP, season XP, level, rank per scope). **Not a materialized
-view** — Postgres materialized views cannot carry RLS policies, so one would be readable across schools
-by anyone granted SELECT on it, which is precisely the failure R1 exists to prevent. It is a regular view
-declared `WITH (security_invoker = true)` so the caller's policies on `xp_ledger` still apply, and the
-leaderboard reads from `leaderboard_snapshots` rather than aggregating per request. Revisit only with
-measurements, and never by reaching for `MATERIALIZED`. Lands with the XP slice in Phase 3.
+**Derived:** `xp_balances` — per profile: `lifetime_xp`, `season_xp`, `current_season_id`, and the
+level the lifetime total has reached (`level_number`, `level_title`, `badge_key`, `level_threshold_xp`,
+`next_threshold_xp`). **Not a materialized view** — Postgres materialized views cannot carry RLS
+policies, so one would be readable across schools by anyone granted SELECT on it, which is precisely the
+failure R1 exists to prevent. It is a regular view declared `WITH (security_invoker = true)` so the
+caller's policies on `xp_ledger`, `seasons` and `levels` still apply. Revisit only with measurements, and
+never by reaching for `MATERIALIZED`.
+
+**Rank is not in it.** An earlier version of this line listed "rank per scope" as a column, which
+contradicted the sentence after it: ranking is what `leaderboard_snapshots` is for, and a window
+function over every profile in a scope is exactly the per-request aggregation D19 declined to pay for.
+A learner's own rank comes from the snapshot their scope belongs to (FR-5.8).
+
+Level follows **lifetime** XP, not season XP: FR-5.1 says XP never decreases and drives levels, while
+FR-5.5 resets the board each quarter. Tying the title to the season would demote every learner on the
+morning a season opens.
+
+**Landed 2026-09-21**, in `src/db/rls/04_xp_balances.sql` rather than in a migration — ahead of the
+Phase 3 XP slice, because the Phase 0 loop screens read it. Drizzle knows its shape as an `.existing()`
+view so queries are typed; `db:verify-rls` asserts that every view in `public` carries
+`security_invoker` and that no materialized view exists at all.
 
 ---
 

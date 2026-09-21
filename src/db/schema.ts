@@ -6,6 +6,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  pgView,
   text,
   timestamp,
   uniqueIndex,
@@ -563,6 +564,33 @@ export const leaderboardSnapshots = pgTable(
       .where(sql`${t.scopeRef} IS NOT NULL`),
   ],
 );
+
+/**
+ * Derived XP totals per profile - lifetime, current season, and the level the
+ * lifetime total has reached (D19).
+ *
+ * Declared `.existing()` because this view is defined in
+ * `src/db/rls/04_xp_balances.sql`, not by a migration: its whole security
+ * property is the `security_invoker = true` option, and that belongs beside
+ * the policies it defers to rather than in generated SQL nobody reads twice.
+ * Drizzle is told its shape here only so queries against it are typed.
+ *
+ * Every column but the first four is nullable, and for a reason each time: a
+ * school with no current season, a learner below the lowest threshold, a
+ * learner at the top with no next threshold to climb to.
+ */
+export const xpBalances = pgView("xp_balances", {
+  schoolId: uuid("school_id").notNull(),
+  profileId: uuid("profile_id").notNull(),
+  currentSeasonId: uuid("current_season_id"),
+  lifetimeXp: integer("lifetime_xp").notNull(),
+  seasonXp: integer("season_xp").notNull(),
+  levelNumber: integer("level_number"),
+  levelTitle: text("level_title"),
+  badgeKey: text("badge_key"),
+  levelThresholdXp: integer("level_threshold_xp"),
+  nextThresholdXp: integer("next_threshold_xp"),
+}).existing();
 
 // ---------------------------------------------------------------------------
 // Announcements and notifications

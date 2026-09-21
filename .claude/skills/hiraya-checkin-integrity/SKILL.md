@@ -62,7 +62,9 @@ LRN, no section.** A photographed QR must reveal nothing about the learner holdi
 - `xp_ledger` has **no UPDATE and no DELETE grant, for any role, including School Admin**
 - Corrections are new reversal rows with `reversal_of` set
 - Every row carries `source_type` and `source_id` — every point traces to a verified action
-- Balances come from the `xp_balances` materialized view. **Never** compute from or store an editable total
+- Balances come from the `xp_balances` view - a regular view declared `security_invoker = true`, never
+  a materialized one (D19): a matview holds its own rows and cannot carry an RLS policy, so one would be
+  readable across schools. **Never** compute from or store an editable total
 - Dispute resolution writes a reversal row; it never edits history
 
 ### 6. Anti-farming
