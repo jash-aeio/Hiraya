@@ -166,11 +166,11 @@ Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets 
 | ~~D-05~~ | ~~Extend `db:seed:demo`~~ | D | jash-aeio | D-01…D-04 | **Done 2026-09-22** (PR #11). Also fixed a real defect: `eligibility_json` was double-encoded, so the Senior-High-only event silently admitted the whole school |
 | ~~P-05~~ | ~~Tier 1 assets~~ | P | jash-aeio | — | **Done 2026-09-21.** Reviewable at `/design`. One caveat open: the OG card's typeface |
 | ~~P-06~~ | ~~`hiraya-mobile-audit` on every demo screen~~ | P | jash-aeio | P-01…P-05 | **Done 2026-09-22** (`904f6d0`). 14 routes walked at 360×800 on a production build, P-04's deferred walk included. **Budget passes**: 200–209 KB per route. **Two a11y failures found and fixed**: `text-primary` at 4.44:1 on the canvas, and no `h1` on `/checkin/[eventId]` — which also never named the event it was scanning. **One left open**: no `nav` landmark anywhere, booked as P-14 |
-| **P-07** | **Delete the fixture seam** — `src/lib/fixtures.ts` and the four `components/fixtures.ts` | P | — | — | **Open, unblocked.** A sweep, not a rewrite: the screens already fetch the real endpoints and these are guarded fallbacks. Also closes a P-06 finding by itself — `/events/<id>` currently ignores its own id |
+| ~~P-07~~ | ~~Delete the fixture seam~~ | P | jash-aeio | — | **Done 2026-09-23** (PR #14). Six files and the `NEXT_PUBLIC_HIRAYA_FIXTURES` flag gone, 677 lines deleted. Closed the P-06 finding it was expected to: `/events/<id>` ignored its own id because `fixtureEventDetail` ignored its argument. Walked at 360×800 against the seeded tenant — 208 KB, no fixture chunk |
 | **M-01** | Apply the schema to Supabase; deploy to Vercel | **M** | jash-aeio | D-05, P-06 | **Open, blocking.** `SETUP_GUIDE.md` §4–§5. R13: the free project sleeps — wake it before a pitch. R21 is answered here and nowhere else: locally the owner is a superuser, so only Supabase proves whether three SECURITY DEFINER functions read correctly |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
-**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06~~ → P-07 → M-01 → M-02 → **Gate A**.
+**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07~~ → M-01 → M-02 → **Gate A**.
 
 ---
 
