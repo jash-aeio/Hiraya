@@ -28,6 +28,10 @@
 --   3. It awards **at most once per learner per event**, under the event row
 --      lock, so two officers scanning the same learner at two gates in the same
 --      second produce two attendance rows and one award.
+--   4. It awards nothing at all for an event no adviser approved. The role
+--      check answers "may this session write attendance here"; it does not
+--      answer "was this event ever allowed to happen", and an org officer is a
+--      learner who can file a proposal of their own.
 --
 -- What it deliberately does not do: nothing here deletes, updates or reverses.
 -- The ledger has no UPDATE or DELETE grant for any role (R4), and corrections
@@ -83,6 +87,19 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'award_checkin_xp: not an officer or adviser of the hosting organization.'
       USING ERRCODE = '42501';
+  END IF;
+
+  -- An unapproved event is worth no points, ever.
+  --
+  -- The role check above asks whether this session may write attendance for
+  -- this org. It does not ask whether the event was ever allowed to happen —
+  -- and an org officer is a learner, who can file a proposal and scan against
+  -- it before (or after) an adviser says no. Returning 0 rather than raising
+  -- leaves the attendance row standing: a scan is a record of something that
+  -- happened, and whether it was worth points is a separate question with a
+  -- separate answer.
+  IF v_event.status <> 'approved' THEN
+    RETURN 0;
   END IF;
 
   -- One award per learner per event, however many times they are scanned.

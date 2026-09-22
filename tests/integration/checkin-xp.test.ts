@@ -250,6 +250,52 @@ describe("replaying a whole queue", () => {
   });
 });
 
+describe("an event no adviser approved", () => {
+  /**
+   * The approval gate, which nothing else on this path enforces.
+   *
+   * `checkins_insert_hosts` asks for an org grant, not a status, and the
+   * scanner's picker filters on `approved` as a *listing* decision. An org
+   * officer is a learner: they can file a proposal, have it rejected, and still
+   * hold the grant that lets them write attendance for their own org. Without
+   * this rule they could mint points against an event that was never allowed to
+   * happen — which is the approval control itself, not the colluding-officer
+   * risk the threat model already accepts (T2).
+   */
+  it("is worth no points, even to an officer who may write its attendance", async () => {
+    const [rejected] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, status, publish_at)
+      VALUES (${schoolA.schoolId}, ${schoolA.orgId}, 'Fixture Rejected Outreach',
+              now() - interval '1 hour', now() + interval '2 hours', 'rejected', NULL)
+      RETURNING id
+    `;
+
+    const before = await ledgerTotal(learnerId);
+    const result = await scan(officer, rejected!.id, learnerId, randomUUID());
+
+    // The attendance row stands — a scan is a record of something that
+    // happened — and it is worth nothing.
+    expect(result.checkinId).not.toBeNull();
+    expect(result.xp).toBe(0);
+    expect(await ledgerTotal(learnerId)).toBe(before);
+  });
+
+  it("is worth no points while it is still only a draft", async () => {
+    const [draft] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, status, publish_at)
+      VALUES (${schoolA.schoolId}, ${schoolA.orgId}, 'Fixture Draft Rally',
+              now() - interval '1 hour', now() + interval '2 hours', 'draft', NULL)
+      RETURNING id
+    `;
+
+    const before = await ledgerTotal(learnerId);
+    const result = await scan(officer, draft!.id, learnerId, randomUUID());
+
+    expect(result.xp).toBe(0);
+    expect(await ledgerTotal(learnerId)).toBe(before);
+  });
+});
+
 describe("who may turn a scan into a point", () => {
   it("refuses a learner calling the award function on their own check-in", async () => {
     const [checkin] = await db.sql<{ id: string }[]>`

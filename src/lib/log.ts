@@ -29,6 +29,14 @@ const DENIED_KEYS = [
 
 export type LogFields = Record<string, unknown>;
 
+function scrubValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(scrubValue);
+  if (value && typeof value === "object" && !(value instanceof Date)) {
+    return scrub(value as LogFields);
+  }
+  return value;
+}
+
 function scrub(fields: LogFields): LogFields {
   const out: LogFields = {};
   for (const [key, value] of Object.entries(fields)) {
@@ -36,9 +44,12 @@ function scrub(fields: LogFields): LogFields {
       out[key] = "[redacted]";
       continue;
     }
-    out[key] = value && typeof value === "object" && !Array.isArray(value)
-      ? scrub(value as LogFields)
-      : value;
+    // Arrays are walked too, not skipped. The scrubber used to recurse into
+    // plain objects only, so `{ people: [{ display_name: "..." }] }` went out
+    // whole — the denied key was there, one level inside an array, and the
+    // guard stepped over it. Nothing in the codebase logs that shape today,
+    // which is exactly why it would have been found by shipping it.
+    out[key] = scrubValue(value);
   }
   return out;
 }

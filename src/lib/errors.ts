@@ -24,6 +24,7 @@ export const ERROR_CODES = [
   "VALIDATION_FAILED",
   "EVENT_FULL",
   "NOT_ELIGIBLE",
+  "EVENT_NOT_APPROVED",
   "DUPLICATE_CHECKIN",
   "TOKEN_EXPIRED",
   "TOKEN_INVALID",
@@ -43,6 +44,10 @@ const HTTP_STATUS: Record<ErrorCode, number> = {
   VALIDATION_FAILED: 422,
   EVENT_FULL: 409,
   NOT_ELIGIBLE: 403,
+  // Scanning for an event no adviser has approved. 403 rather than 404: the
+  // officer can see the event - it is their own org's - they simply may not
+  // turn it into attendance yet.
+  EVENT_NOT_APPROVED: 403,
   DUPLICATE_CHECKIN: 200,
   TOKEN_EXPIRED: 422,
   TOKEN_INVALID: 422,

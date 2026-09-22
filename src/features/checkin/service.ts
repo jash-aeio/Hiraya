@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Session } from "@/lib/auth/session";
 import { withTenant } from "@/lib/db/client";
-import { errors } from "@/lib/errors";
+import { HirayaError, errors } from "@/lib/errors";
 import { log } from "@/lib/log";
 
 import {
@@ -57,19 +57,54 @@ export const SCAN_WINDOW_BEFORE_MS = 60 * 60 * 1000;
 export const SCAN_WINDOW_AFTER_MS = 2 * 60 * 60 * 1000;
 
 /**
+ * How far a claimed scan time may sit either side of *server* time.
+ *
+ * These are the second half of the window check, and the half that was missing:
+ * comparing `scannedAt` only against the event's own start and end made the
+ * rule circular. A scan claimed inside the window of an event that finished
+ * last term passed, because it was inside that window — so an officer could
+ * backdate attendance into any past event of their own org, for a learner who
+ * was never there, and the points would land in whichever season the timestamp
+ * fell in.
+ *
+ * `AHEAD` is ordinary clock drift on a cheap device. `BEHIND` is the offline
+ * allowance, and it is generous on purpose: a queued scan is supposed to sync
+ * late (R6), so this cannot be tight without breaking the thing it protects. A
+ * week is long enough for a device left in a drawer over a weekend and short
+ * enough that last quarter's events are closed.
+ */
+export const SCAN_CLOCK_AHEAD_MS = 15 * 60 * 1000;
+export const SCAN_MAX_SYNC_DELAY_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
  * Whether the server will accept a scan claimed at this moment.
  *
  * Pure, exported and unit-tested at the boundaries, because this is the rule a
  * drifting device clock runs into and the one an officer will phone about. The
  * device checks it too, for instant feedback — but only this answer decides
  * whether a row is written.
+ *
+ * `now` is a parameter rather than a call to `Date.now()` inside, so the rule
+ * is testable at its edges and so it is obvious at every call site that server
+ * time is part of the decision.
  */
-export function isWithinScanWindow(scannedAt: Date, startsAt: Date, endsAt: Date): boolean {
+export function isWithinScanWindow(
+  scannedAt: Date,
+  startsAt: Date,
+  endsAt: Date,
+  now: Date,
+): boolean {
   const at = scannedAt.getTime();
-  return (
+
+  const insideEvent =
     at >= startsAt.getTime() - SCAN_WINDOW_BEFORE_MS &&
-    at <= endsAt.getTime() + SCAN_WINDOW_AFTER_MS
-  );
+    at <= endsAt.getTime() + SCAN_WINDOW_AFTER_MS;
+
+  const plausibleNow =
+    at <= now.getTime() + SCAN_CLOCK_AHEAD_MS &&
+    at >= now.getTime() - SCAN_MAX_SYNC_DELAY_MS;
+
+  return insideEvent && plausibleNow;
 }
 
 /** The roles that may open a gate. RLS is still the guarantee; this names it. */
@@ -91,11 +126,29 @@ export async function recordCheckin(
     const event = await selectScanTarget(tx, body.eventId);
     if (!event) throw errors.notFound("event");
 
+    /*
+     * Attendance only exists for an event an adviser approved.
+     *
+     * Nothing else on this path checks it: `checkins_insert_hosts` asks for an
+     * org grant, not a status, and the picker's `status = 'approved'` filter is
+     * a listing decision. Without this an org officer — a learner — could scan
+     * against their own org's draft or *rejected* proposal and mint points for
+     * an event no adviser ever allowed, which is the approval gate itself
+     * rather than the colluding-officer risk the threat model already accepts
+     * (T2). `award_checkin_xp` refuses the award as well; this one is the good
+     * error message, that one is the guarantee.
+     */
+    if (event.status !== "approved") {
+      throw new HirayaError("EVENT_NOT_APPROVED", "This event has not been approved");
+    }
+
     if (!(await profileIsInTenant(tx, body.profileId))) {
       throw errors.notFound("profile");
     }
 
-    if (!isWithinScanWindow(new Date(body.scannedAt), event.startsAt, event.endsAt)) {
+    if (
+      !isWithinScanWindow(new Date(body.scannedAt), event.startsAt, event.endsAt, new Date())
+    ) {
       /*
        * Refused, and said out loud. The officer sees which event and why, so a
        * device with a wrong clock is discovered at the gate rather than

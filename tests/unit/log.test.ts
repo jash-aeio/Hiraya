@@ -34,3 +34,23 @@ describe("log scrubbing (CLAUDE.md R8)", () => {
     expect(scrubbed).toEqual({ profile: { id: "abc", displayName: "[redacted]" } });
   });
 });
+
+describe("scrubbing inside arrays", () => {
+  it("redacts a denied key one level inside an array of objects", () => {
+    // The guard used to recurse into plain objects only, so a list of people
+    // walked straight past it. Nothing logs this shape today; the point is that
+    // the day something does, the denylist still holds.
+    const out = __testing.scrub({
+      people: [{ display_name: "Fixture Name", profile_id: "p1" }],
+    });
+
+    const people = (out.people as { display_name: string; profile_id: string }[])[0];
+    expect(people?.display_name).toBe("[redacted]");
+    expect(people?.profile_id).toBe("p1");
+  });
+
+  it("leaves an array of plain values alone", () => {
+    const out = __testing.scrub({ roles: ["learner", "org_officer"] });
+    expect(out.roles).toEqual(["learner", "org_officer"]);
+  });
+});
