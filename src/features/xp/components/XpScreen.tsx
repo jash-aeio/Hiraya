@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { Badge, Card, EmptyState, LevelBadge, ProgressBar, Skeleton, XpCoin } from "@/design";
-import { fixturesEnabled } from "@/lib/fixtures";
 
 import { entryLabel, isVerifiable, levelProgress, levelTier } from "./xpView";
 import type { ListXpResponse, XpEntry } from "../schema";
@@ -47,15 +46,6 @@ export function XpScreen() {
 
     async function load(): Promise<void> {
       try {
-        if (fixturesEnabled) {
-          const { fixtureXp, isXpPreview } = await import("./fixtures");
-          const requested = new URLSearchParams(window.location.search).get("preview");
-          if (cancelled) return;
-          setData(fixtureXp(isXpPreview(requested) ? requested : "earning"));
-          setStatus("ready");
-          return;
-        }
-
         const response = await fetch("/api/v1/me/xp", { headers: { accept: "application/json" } });
         if (!response.ok) throw new Error(String(response.status));
 

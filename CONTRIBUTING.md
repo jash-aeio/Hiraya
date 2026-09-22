@@ -96,19 +96,15 @@ problem.
 
 ### Seeing a screen whose endpoint does not exist yet
 
-Lane P builds a screen upward from a merged contract while Lane D builds the endpoint downward from the
-same file (`docs/WORKSTREAMS.md` §2), so for a few days the screen exists and the route does not. Set
+There is no fixture flag. Between a merged contract and a shipped endpoint (`docs/WORKSTREAMS.md` §2)
+a screen renders its failure state, which is the truth until the other lane lands its half. Phase 0 had
+`NEXT_PUBLIC_HIRAYA_FIXTURES` for that gap and **P-07 deleted it**: a fixture path that outlives the
+endpoint it stood in for is a second source of truth for what the API returns, and it outlives it by
+default because nothing fails when it is left behind.
 
-```bash
-NEXT_PUBLIC_HIRAYA_FIXTURES=on
-```
-
-in `.env.local` and those screens render from a local fixture instead of failing. Unset — the default,
-and what CI and every deployment use — they show their failure state, which is the truth until the other
-lane lands its half. Several take a `?preview=` parameter to choose which state to show; each
-`components/fixtures.ts` header lists its own. **The whole mechanism is deleted by task P-07**: a
-fixture path that outlives the endpoint it stood in for is a second source of truth for what the API
-returns.
+Run `npm run db:seed:demo` and work against the real endpoints instead. A state the seed cannot produce
+on demand — a full event, an ineligible learner — belongs in a seeded row or an integration test, not in
+a second copy of the API's answers.
 
 ### If the tests refuse to run
 

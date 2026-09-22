@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Avatar, Card, Chip, EmptyState, Skeleton } from "@/design";
-import { fixturesEnabled } from "@/lib/fixtures";
 
 import { isTopThree, scopeHeading, shouldExplainHidden, viewerPlacement } from "./boardView";
 import type { LeaderboardResponse, LeaderboardRow, LeaderboardScope } from "../schema";
@@ -59,15 +58,6 @@ export function LeaderboardScreen() {
 
     async function load(): Promise<void> {
       try {
-        if (fixturesEnabled) {
-          const { fixtureBoard, isBoardPreview } = await import("./fixtures");
-          const requested = new URLSearchParams(window.location.search).get("preview");
-          if (cancelled) return;
-          setBoard(fixtureBoard(scope, isBoardPreview(requested) ? requested : "in-rows"));
-          setStatus("ready");
-          return;
-        }
-
         const response = await fetch(`/api/v1/leaderboard?scope=${scope}`, {
           headers: { accept: "application/json" },
         });

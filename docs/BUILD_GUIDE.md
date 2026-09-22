@@ -245,7 +245,6 @@ In order. Stop at the first one that explains it.
 | Tests refuse to run at all | `TEST_DATABASE_URL` equals `DATABASE_URL`. The suite disables RLS mid-test and will not do that to a database that could hold something real. Use two databases |
 | A query returns nothing and you expected rows | Almost always a missing **policy** or a missing **claim** — not a permissions problem to solve with the admin client. Reaching for `src/lib/db/admin.ts` here is the wrong instinct, and lint will stop you |
 | `npm run db:verify-rls` fails | Read the failure text; it names the invariant that did not land. Do not proceed to seed or deploy |
-| A screen shows fake data | `NEXT_PUBLIC_HIRAYA_FIXTURES=on` is set in `.env.local`. Unset it to see the truth |
 | Supabase is unreachable before a pitch | **R13** — the free project pauses when idle. Wake it the morning of, every time |
 | A migration went in wrong | Write a **new** migration correcting it. Never edit or delete an applied one |
 
