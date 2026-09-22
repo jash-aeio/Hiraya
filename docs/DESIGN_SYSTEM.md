@@ -46,10 +46,10 @@ learners reading it on a cheap screen in daylight.
   --border:        #E4E7EE;
 
   /* Brand */
-  --primary:       #0D7F7C;   /* nav pill, primary CTA  — 4.8:1 on white */
+  --primary:       #0D7F7C;   /* nav pill, primary CTA  — 4.8:1 on white ONLY */
   --primary-hover: #0A6A67;
   --primary-soft:  #E3F2F1;   /* tinted backgrounds */
-  --primary-ink:   #06504E;   /* text on primary-soft  — 8.2:1 */
+  --primary-ink:   #06504E;   /* text on canvas or primary-soft — 8.5:1 / 8.2:1 */
 
   /* Points and progress */
   --xp:            #F5A524;   /* XP coin, progress fill — decorative only */
@@ -243,6 +243,9 @@ anywhere in the officer role.
 Verified with the Playwright a11y tree, not by eye. See `hiraya-mobile-audit`.
 
 - Body contrast ≥4.5:1; large text ≥3:1. `--ink-subtle` is 16px-and-above only.
+- **`--primary` as *text* is for `--surface` (white) only.** It is 4.8:1 on white but **4.44:1 on
+  `--canvas`** — a fail, not a near miss. Teal text on the canvas uses `--primary-ink` (8.5:1).
+  Found by the P-06 audit on two back links that had been reviewed by eye and looked fine.
 - Every interactive element ≥44×44px.
 - Full keyboard operability; visible focus ring (2px `--primary`, 2px offset).
 - Semantic landmarks; one `h1` per screen; correct heading order.

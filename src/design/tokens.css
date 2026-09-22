@@ -21,10 +21,13 @@
   --color-border: #e4e7ee;
 
   /* ---- Brand ------------------------------------------------------------- */
+  /* As TEXT, --color-primary is for --color-surface (white) only: 4.8:1 there,
+     but 4.44:1 on --color-canvas, which fails AA. Teal text on the canvas uses
+     --color-primary-ink. As a FILL (buttons, the nav pill) it is unrestricted. */
   --color-primary: #0d7f7c; /* 4.8:1 on white */
-  --color-primary-hover: #0a6a67;
+  --color-primary-hover: #0a6a67; /* 6.0:1 on canvas */
   --color-primary-soft: #e3f2f1;
-  --color-primary-ink: #06504e; /* 8.2:1 on primary-soft */
+  --color-primary-ink: #06504e; /* 8.5:1 on canvas, 8.2:1 on primary-soft */
 
   /* ---- Points and progress ---------------------------------------------- */
   /* --color-xp is decorative only. Amber-toned TEXT uses --color-xp-ink. */
