@@ -28,6 +28,27 @@ import type { ListRosterQuery, RosterEntry } from "./schema";
  * function's shape should fail here — at the boundary, loudly — rather than
  * three layers up as an undefined field on a screen.
  */
+/**
+ * `timestamptz`, as this driver actually hands it over.
+ *
+ * `tx.execute` runs the statement through postgres-js in a raw mode that
+ * returns each column as its wire text instead of applying the type parsers an
+ * ordinary tagged-template query would. So this arrives as
+ * `2026-09-22 17:07:32.461931+00` — a string — while the same function called
+ * through plain postgres-js yields a `Date`. Both are accepted, and callers
+ * still get a `Date`: pinning this to whichever one today's driver happens to
+ * produce is how the register button shipped broken once already.
+ *
+ * An unparseable value is still a failure, loudly and here, which is what the
+ * comment below asks of the rest of this row.
+ */
+const driverTimestamp = z
+  .union([z.date(), z.string()])
+  .transform((value) => (value instanceof Date ? value : new Date(value)))
+  .refine((value) => !Number.isNaN(value.getTime()), {
+    message: "not a timestamptz this driver returns",
+  });
+
 const registrationOutcomeRow = z.object({
   r_outcome: z.enum([
     "registered",
@@ -39,7 +60,7 @@ const registrationOutcomeRow = z.object({
   ]),
   r_status: z.enum(["registered", "waitlisted", "cancelled"]).nullable(),
   r_waitlist_position: z.number().int().positive().nullable(),
-  r_registered_at: z.date().nullable(),
+  r_registered_at: driverTimestamp.nullable(),
   r_detail: z.record(z.string(), z.unknown()).default({}),
 });
 
