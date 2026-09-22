@@ -13,28 +13,29 @@ New here? Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first.
 
 > **Updated by `/hiraya-checkpoint`. If this block and the tables below disagree, the tables win.**
 
-**Phase 0 — Foundation, design system, demo tenant.** Effectively built; two pull requests are waiting
-to land, then one cleanup task, then the deploy.
+**Phase 0 — Foundation, design system, demo tenant.** Everything buildable is built and on `main`.
+What remains is one cleanup task and the first public deploy.
 
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last landed on `main`** | `7dc124b` — the four Phase 0 contracts and all four Lane P screens |
-| **In flight** | **PR #11** Lane D, D-01…D-05 · **PR #10** P-06 mobile audit |
+| **Last landed on `main`** | `1e6bd1f` — Lane D, Phase 0: registration, check-in, XP and the leaderboard (D-01…D-05) |
+| **In flight** | This document's own PR (#12) |
 | **Blocked on the maintainer** | **M-01** — apply the schema to Supabase, deploy to Vercel → `SETUP_GUIDE.md` §4–§5 |
-| **Open tasks, whole project** | 4 in Phase 0 · 14 queued behind Gate A in Phase 1 |
+| **Open tasks, whole project** | 3 in Phase 0 · 15 queued behind Gate A in Phase 1 |
 
 **▶ Next, in order:**
 
 | | Task | Who | Say |
 |---|---|---|---|
-| 1 | Merge **PR #10** then **PR #11** — CI green on both first | Claude, on your word | `merge the open PRs` |
-| 2 | **P-07** — delete the fixture seam | Lane P | `build P-07` |
-| 3 | **M-01** — Supabase + Vercel | **you** (`SETUP_GUIDE.md` §4–§5) | `walk me through M-01` |
-| 4 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
+| 1 | **P-07** — delete the fixture seam | Lane P | `build P-07` |
+| 2 | **M-01** — Supabase + Vercel | **you** (`SETUP_GUIDE.md` §4–§5) | `walk me through M-01` |
+| 3 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
 
-Phase 0's remaining acceptance criteria are the walkable loop, the 500 KB budget on the deployed URL,
-and WCAG AA on every demo screen. Nothing else in Phase 0 is open.
+Phase 0's remaining acceptance criteria are **the walkable loop and a public URL** — both close with
+M-01. The 500 KB budget closed with P-06 at 200–209 KB per route across 14 routes, measured in the
+browser. WCAG AA is one finding from done: **P-14**, the missing navigation landmark, which is booked
+into Phase 1 on purpose (§6).
 
 ---
 
@@ -145,8 +146,8 @@ This is the grant to revisit at Gate B, once real rosters exist.
 
 ## 5. Phase 0 — remaining work
 
-Open acceptance criteria: the walkable loop, the 500 KB budget, WCAG AA on every demo screen, and a
-public URL.
+Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets closed with P-05; the
+500 KB budget closed with P-06 at 200–209 KB per route across 14 routes, measured in the browser.
 
 | # | Task | Lane | Owner | Depends on | Status |
 |---|---|---|---|---|---|
@@ -164,13 +165,12 @@ public URL.
 | ~~P-04~~ | ~~Leaderboard screen~~ | P | jash-aeio | J-04 | **Done 2026-09-22.** Three scopes; the org board waits for P-12 |
 | ~~D-05~~ | ~~Extend `db:seed:demo`~~ | D | jash-aeio | D-01…D-04 | **Done 2026-09-22** (PR #11). Also fixed a real defect: `eligibility_json` was double-encoded, so the Senior-High-only event silently admitted the whole school |
 | ~~P-05~~ | ~~Tier 1 assets~~ | P | jash-aeio | — | **Done 2026-09-21.** Reviewable at `/design`. One caveat open: the OG card's typeface |
-| ~~P-06~~ | ~~`hiraya-mobile-audit` on every demo screen~~ | P | jash-aeio | P-01…P-05 | **Done 2026-09-22** (PR #10). Budget ticked; nav gap booked as P-14 |
-| **P-07** | **Delete the fixture seam** — `src/lib/fixtures.ts` and the four `components/fixtures.ts` | P | — | PR #10, PR #11 merged | **Open.** A sweep, not a rewrite: the screens already fetch the real endpoints and these are guarded fallbacks. Also closes a P-06 finding by itself — `/events/<id>` currently ignores its own id |
-| **P-14** | Navigation gap found by P-06 | P | — | P-07 | **Open.** Booked during the mobile audit; not a Phase 0 blocker |
+| ~~P-06~~ | ~~`hiraya-mobile-audit` on every demo screen~~ | P | jash-aeio | P-01…P-05 | **Done 2026-09-22** (`904f6d0`). 14 routes walked at 360×800 on a production build, P-04's deferred walk included. **Budget passes**: 200–209 KB per route. **Two a11y failures found and fixed**: `text-primary` at 4.44:1 on the canvas, and no `h1` on `/checkin/[eventId]` — which also never named the event it was scanning. **One left open**: no `nav` landmark anywhere, booked as P-14 |
+| **P-07** | **Delete the fixture seam** — `src/lib/fixtures.ts` and the four `components/fixtures.ts` | P | — | — | **Open, unblocked.** A sweep, not a rewrite: the screens already fetch the real endpoints and these are guarded fallbacks. Also closes a P-06 finding by itself — `/events/<id>` currently ignores its own id |
 | **M-01** | Apply the schema to Supabase; deploy to Vercel | **M** | jash-aeio | D-05, P-06 | **Open, blocking.** `SETUP_GUIDE.md` §4–§5. R13: the free project sleeps — wake it before a pitch. R21 is answered here and nowhere else: locally the owner is a superuser, so only Supabase proves whether three SECURITY DEFINER functions read correctly |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
-**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05~~ → merge → P-07 → M-01 → M-02 → **Gate A**.
+**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06~~ → P-07 → M-01 → M-02 → **Gate A**.
 
 ---
 
@@ -197,6 +197,14 @@ phase with the most genuinely parallel work in the plan — good for onboarding 
 | **Q-10** | `hiraya-privacy-auditor` — LRN absent from every response below School Admin | Q | — | D-12, D-15 |
 | **Q-11** | `hiraya-tenancy-auditor` and `/security-review` on the auth diff | Q | — | D-10, D-14 |
 | **Q-12** | Integration tests for import idempotency — 1,000 rows twice is 1,000 profiles | Q | — | D-12 |
+| **P-14** | **Bottom tab bar** (`DESIGN_SYSTEM.md` §7) — learner Home · Events · Orgs · Leaderboard · Me; officer adds the centre Scan; adviser Approvals · Events · Analytics · Me | P | — | P-11, P-12 |
+
+**P-14 is a P-06 finding, deferred here on purpose.** The 2026-09-22 audit found **no `nav` landmark on
+any screen and no navigation between screens at all** — a learner on `/xp` reaches `/events` only by
+typing a URL. It is a real WCAG 2.1 AA gap against `DESIGN_SYSTEM.md` §8, and Phase 0 closes with it
+open rather than with half a tab bar: two of the five learner tabs (Orgs, Me) are Phase 1 screens that
+do not exist, and the Phase 0 demo is a scripted click-path that does not walk through a tab bar.
+Building it to the spec's shape minus two items would be building it twice.
 
 **D-11 is easy to postpone and is the highest-value deletion in the project so far.** Two session
 sources is one more than this system can afford, and the second exists only because Phase 1 had not
@@ -230,8 +238,7 @@ duplicate XP ships. Pair on `/checkins/sync` and the queue, or give one person b
 
 ```mermaid
 flowchart TD
-  PR["PR #10 + PR #11<br/>merge to main"] --> P07["P-07 delete fixtures"]
-  P07 --> M01["M-01 Supabase + Vercel"]
+  P07["P-07 delete fixtures"] --> M01["M-01 Supabase + Vercel"]
   M01 --> M02["M-02 pitch kit"]
   M02 --> GA{"GATE A"}
   GA --> J10["J-10 identity contract"]
@@ -242,6 +249,8 @@ flowchart TD
   D12 --> D13["D-13 activation + consent"]
   D12 --> D16["D-16 export"]
   D12 --> Q12["Q-12 import tests"]
+  P11 --> P14["P-14 tab bar"]
+  P12 --> P14
   J10 --> P10["P-10 activation screens"]
   J11["J-11 orgs contract"] --> D15["D-15 org profiles"]
   J11 --> P11["P-11 discover orgs"]
