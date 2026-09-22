@@ -19,8 +19,8 @@ What remains is one cleanup task and the first public deploy.
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last landed on `main`** | `1e6bd1f` — Lane D, Phase 0: registration, check-in, XP and the leaderboard (D-01…D-05) |
-| **In flight** | This document's own PR (#12) |
+| **Last work to land** | Lane D's whole Phase 0 critical path, D-01…D-05 (`1e6bd1f`), and the P-06 mobile audit (`904f6d0`) |
+| **In flight** | Nothing. Every open PR is merged |
 | **Blocked on the maintainer** | **M-01** — apply the schema to Supabase, deploy to Vercel → `SETUP_GUIDE.md` §4–§5 |
 | **Open tasks, whole project** | 3 in Phase 0 · 15 queued behind Gate A in Phase 1 |
 
