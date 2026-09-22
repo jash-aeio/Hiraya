@@ -172,9 +172,6 @@
       "cancelled": "Cancelled",
       "attended": "Attended"
     },
-    "register": {
-      "soon": "Registration opens soon"
-    },
     "empty": {
       "upcoming": {
         "title": "Nothing coming up",
@@ -189,6 +186,65 @@
       "title": "Could not load events",
       "description": "Check your connection and try again.",
       "retry": "Try again"
+    },
+    "detail": {
+      "back": "All events",
+      "loading": "Loading this event",
+      "about": "About this event",
+      "who": "Who can join",
+      "openToAll": "Open to everyone in the school.",
+      "openToGrades": "Open to {grades}.",
+      "openToSections": "Open to {sections}.",
+      "openToMembers": "Open to members of the hosting organization.",
+      "checkinNote": "Register to hold your place. Your points come from checking in at the gate, not from registering.",
+      "missing": {
+        "title": "We could not find that event",
+        "description": "It may have been cancelled, or the link may be out of date."
+      }
+    },
+    "view": "View event",
+    "viewNamed": "View {title}"
+  },
+  "registration": {
+    "grade": "Grade {grade}",
+    "register": "Register",
+    "registered": "Registered",
+    "waitlisted": "Waitlisted · no. {position}",
+    "waitlistedNoPosition": "On the waitlist",
+    "cancel": "Cancel registration",
+    "leaveWaitlist": "Leave the waitlist",
+    "closed": "Registration closed",
+    "closedHint": "This event has already finished.",
+    "full": {
+      "title": "This event is full",
+      "description": "Join the waitlist and you take the next place that opens up. You will be told if you get in.",
+      "unavailable": "The waitlist is closed too. Check with the organizers if you still want to come.",
+      "join": "Join the waitlist"
+    },
+    "ineligible": {
+      "title": "This one is not open to you",
+      "grade_level": "It is open to {grades} only.",
+      "section": "It is open to {sections} only.",
+      "org_membership": "It is open to members of the hosting organization only.",
+      "registration_closed": "Registration for this event has closed.",
+      "event_not_open": "This event is not open for registration yet.",
+      "generic": "It is open to some grade levels and sections only."
+    },
+    "confirm": {
+      "cancelTitle": "Give up your place?",
+      "cancelBody": "Someone on the waitlist may take it within seconds, so you may not get it back.",
+      "cancel": "Yes, cancel",
+      "leaveTitle": "Leave the waitlist?",
+      "leaveBody": "You will lose your position and start at the back if you join again.",
+      "leave": "Yes, leave",
+      "keep": "Keep my place"
+    },
+    "toast": {
+      "registered": "You are registered. Check in at the gate to earn XP.",
+      "waitlisted": "You are number {position} on the waitlist.",
+      "waitlistedNoPosition": "You are on the waitlist.",
+      "cancelled": "Your place has been given up.",
+      "failed": "That did not go through. Check your connection and try again."
     }
   }
 }
