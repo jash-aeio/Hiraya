@@ -18,7 +18,7 @@ import {
   sendFailedFeedback,
 } from "./scanFeedback";
 import type { ScanFeedback } from "./scanFeedback";
-import type { CheckinResult } from "../schema";
+import type { CheckinResult, ScannableEvent } from "../schema";
 
 /**
  * The gate (P-02, D24, FR-4.2, FR-4.9).
@@ -71,6 +71,21 @@ function isRosterResponse(value: unknown): value is { entries: RosterEntry[]; ca
   );
 }
 
+function isScannableEvents(value: unknown): value is { events: ScannableEvent[] } {
+  if (typeof value !== "object" || value === null) return false;
+  const { events } = value as { events?: unknown };
+  return (
+    Array.isArray(events) &&
+    events.every(
+      (event) =>
+        typeof event === "object" &&
+        event !== null &&
+        typeof (event as ScannableEvent).id === "string" &&
+        typeof (event as ScannableEvent).title === "string",
+    )
+  );
+}
+
 function isCheckinResult(value: unknown): value is CheckinResult {
   if (typeof value !== "object" || value === null) return false;
   const result = value as Partial<CheckinResult>;
@@ -80,6 +95,7 @@ function isCheckinResult(value: unknown): value is CheckinResult {
 export function ScannerScreen({ eventId }: { eventId: string }) {
   const t = useTranslations("checkin");
   const [entries, setEntries] = useState<RosterEntry[]>([]);
+  const [eventTitle, setEventTitle] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [query, setQuery] = useState("");
   const [busyProfileId, setBusyProfileId] = useState<string | null>(null);
@@ -95,6 +111,40 @@ export function ScannerScreen({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     let cancelled = false;
+
+    /**
+     * The gate's own name, read from `GET /checkin/events` rather than added to
+     * the roster response: `scannableEventSchema` already carries `title`, and
+     * J-01's `listRosterResponseSchema` is merged and being built against
+     * (docs/WORKSTREAMS.md, D-01). Two requests on a screen that opens once per
+     * event is the cheaper side of that trade.
+     *
+     * It never fails the screen. A gate with a roster and no title still runs;
+     * a gate with a title and no roster does not.
+     */
+    async function loadTitle(): Promise<void> {
+      try {
+        let events: ScannableEvent[];
+
+        if (fixturesEnabled) {
+          const { fixtureScannableEvents } = await import("./fixtures");
+          events = fixtureScannableEvents();
+        } else {
+          const response = await fetch("/api/v1/checkin/events", {
+            headers: { accept: "application/json" },
+          });
+          if (!response.ok) throw new Error(String(response.status));
+          const body: unknown = await response.json();
+          if (!isScannableEvents(body)) throw new Error("shape");
+          events = body.events;
+        }
+
+        const match = events.find((event) => event.id === eventId);
+        if (!cancelled && match) setEventTitle(match.title);
+      } catch {
+        // The heading falls back to the generic one. Nothing else depends on it.
+      }
+    }
 
     async function load(): Promise<void> {
       try {
@@ -123,6 +173,7 @@ export function ScannerScreen({ eventId }: { eventId: string }) {
     }
 
     void load();
+    void loadTitle();
     return () => {
       cancelled = true;
     };
@@ -195,6 +246,14 @@ export function ScannerScreen({ eventId }: { eventId: string }) {
         <ArrowLeft className="size-4" aria-hidden="true" />
         {t("back")}
       </Link>
+
+      {/* An officer at a gate has to know which gate. The title is also the
+          screen's `h1` — without it the heading order started at the roster's
+          `h2` (DESIGN_SYSTEM.md §8), found by the P-06 audit. */}
+      <header className="flex flex-col gap-1">
+        <p className="type-label text-ink-muted">{t("label")}</p>
+        <h1 className="type-h1 text-ink">{eventTitle ?? t("title")}</h1>
+      </header>
 
       {status === "loading" ? (
         <Skeleton variant="block" className="h-64" label={t("roster.loading")} />
