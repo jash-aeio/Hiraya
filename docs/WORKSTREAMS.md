@@ -1,6 +1,6 @@
 # Hiraya — Workstreams
 
-**Status:** Active · **Version:** 1.0 · **Last updated:** 2026-09-21
+**Status:** Active · **Version:** 1.1 · **Last updated:** 2026-09-22
 
 How two developers work on Hiraya at the same time without stepping on each other, and what depends on
 what. `docs/MILESTONE_ROADMAP.md` says *what* and *when*; this document says *who*, *in what order*, and
@@ -104,16 +104,16 @@ every demo screen, and a public URL. Browse (`GET /events` plus the learner even
 
 | # | Task | Lane | Depends on | Notes |
 |---|---|---|---|---|
-| **J-01** | `features/registration/schema.ts` — register, cancel, capacity and waitlist responses | Joint | — | First handshake. Include the *ineligibility reason* shape: the PRD requires telling a learner which criterion excluded them |
-| **D-01** | Registration slice — `event_registrations` policy review, queries, service, `POST`/`DELETE /events/:id/register`, capacity and waitlist promotion, tests | D | J-01 | Capacity is a race. Settle it in SQL, not in the service |
+| ~~**J-01**~~ | ~~`features/registration/schema.ts`~~ — register, cancel, capacity, waitlist, roster | Joint | — | **Done 2026-09-22.** Also `eventDetailSchema` in `features/events/schema.ts`: a register control needs a detail read, and §5 of `SYSTEM_DESIGN.md` listed only the collection |
+| **D-01** | Registration slice — `event_registrations` policy review, queries, service, **`GET /events/:id`**, `POST`/`DELETE /events/:id/register`, `GET /events/:id/roster`, capacity and waitlist promotion, tests | D | J-01 | Capacity is a race. Settle it in SQL, not in the service. No fill count is published (see the note in `features/events/schema.ts`) — `EVENT_FULL` carries the news and offers the waitlist |
 | **P-01** | Event detail screen and register control, with the full → waitlist and ineligible states | P | J-01 | Runs on fixtures until D-01 merges |
-| **J-02** | `features/checkin/schema.ts` — the Phase 0 subset only (D24 simulate-scan) | Joint | — | Shape it so the Phase 3 real scanner extends it rather than replaces it |
+| ~~**J-02**~~ | ~~`features/checkin/schema.ts`~~ — the Phase 0 subset only (D24 simulate-scan) | Joint | — | **Done 2026-09-22.** `jti` is already the idempotency key; `checkinResultSchema` is per-item so Phase 3's `/checkins/sync` is an array of it. No `token` field |
 | **D-02** | Check-in write path — `POST /checkins` under officer claims, plus the **D18 `SECURITY DEFINER` XP function** | D | J-02, D-01 | The check-in row and the ledger row commit together or not at all. `hiraya-checkin-integrity` applies to every commit here |
 | **P-02** | Officer check-in screen — the simulate-scan button, narrated as the camera (D24) | P | J-02 | No `src/lib/qr` until Phase 3. Do not invent an unsigned token path to fill the gap |
-| **J-03** | `features/xp/schema.ts` — ledger entries with their sources, level, progress | Joint | — | |
+| ~~**J-03**~~ | ~~`features/xp/schema.ts`~~ — ledger entries with their sources, level, progress | Joint | — | **Done 2026-09-22.** `delta` is signed, so a reversal renders as a reversal |
 | **D-03** | `GET /me/xp` over `xp_balances` and the ledger, with the four Filipino level titles | D | J-03, D-02 | Reads the `security_invoker` view (D19) |
 | **P-03** | Learner XP screen — level, progress, and "this point came from this check-in" | P | J-03 | The screen that makes the load-bearing claim visible |
-| **J-04** | `features/leaderboard/schema.ts` — four scopes, season | Joint | — | |
+| ~~**J-04**~~ | ~~`features/leaderboard/schema.ts`~~ — four scopes, season | Joint | — | **Done 2026-09-22.** `viewer` is separate from `rows` and always returned, so FR-5.8 is a shape rather than a rendering decision |
 | **D-04** | `GET /leaderboard` at section, grade, org and school scope | D | J-04, D-03 | The demo may compute; Phase 4 moves it to `leaderboard_snapshots` |
 | **P-04** | Leaderboard screen, including the hidden-learner case | P | J-04 | |
 | **D-05** | Extend `db:seed:demo` with registrations, check-ins and ledger rows | D | D-01…D-04 | Boards must be non-empty *before* the demo walks the loop |
@@ -122,9 +122,10 @@ every demo screen, and a public URL. Browse (`GET /events` plus the learner even
 | **M-01** | Apply the schema to Supabase, deploy to Vercel | maintainer | D-05, P-06 | R13: the free project sleeps. Wake it the morning of a pitch. ~~Confirm the repository is private~~ — confirmed 2026-09-21 |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | maintainer | M-01 | Gate A input |
 
-**Critical path to a walkable demo:** J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → M-01. Lane P runs
-alongside the whole of it. With P-05 closed, **Lane P's remaining Phase 0 work is all downstream of a
-Lane D contract** — which makes J-01 the single most valuable thing anyone can merge right now.
+**Critical path to a walkable demo:** ~~J-01~~ → D-01 → D-02 → D-03 → D-04 → D-05 → M-01. Lane P runs
+alongside the whole of it. **All four contracts merged on 2026-09-22**, so every Lane D task in this
+table is now unblocked, and Lane P is building P-01…P-04 against fixtures typed off the same
+`z.infer`. The critical path is Lane D's from here.
 
 ---
 

@@ -353,6 +353,7 @@ not extended, when real auth lands.
 | Method | Path | Role | Purpose |
 |---|---|---|---|
 | GET | `/events` | any | Approved and upcoming; filters |
+| GET | `/events/:id` | any | One event, with its eligibility rule and the caller's own registration |
 | POST | `/events` | org_officer+ | Create draft |
 | PATCH | `/events/:id` | org_officer+ | Edit while draft or pending |
 | POST | `/events/:id/submit` | org_officer+ | Submit for approval; returns conflicts |
@@ -370,6 +371,7 @@ not extended, when real auth lands.
 |---|---|---|---|
 | GET | `/checkin/grant` | learner | Short-lived signing grant for the rotating ID QR |
 | GET | `/checkin/public-key` | any | Ed25519 public key for offline verification (cacheable) |
+| GET | `/checkin/events` | org_officer+ | Events this officer may scan for now — the scanner's picker |
 | POST | `/checkins` | org_officer+ | Single online scan |
 | POST | `/checkins/sync` | org_officer+ | **Batch queue sync. Idempotent** |
 | POST | `/checkins/manual` | org_adviser+ | Manual override — always audited |
