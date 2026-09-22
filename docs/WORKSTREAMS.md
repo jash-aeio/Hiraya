@@ -99,8 +99,11 @@ These tasks cannot be delegated, and nothing should be planned as though they co
 
 ## 5. Phase 0 — remaining work
 
-Phase 0's open acceptance criteria are the walkable loop, Tier 1 assets, the 500 KB budget, WCAG AA on
-every demo screen, and a public URL. Browse (`GET /events` plus the learner events screen) has landed.
+Phase 0's open acceptance criteria are **the walkable loop, WCAG AA on every demo screen, and a public
+URL**. Browse (`GET /events` plus the learner events screen) has landed; **Tier 1 assets** closed with
+P-05 and **the 500 KB budget** with P-06, measured in the browser at 200–209 KB across 14 routes. WCAG
+AA is one finding from done — P-14, the bottom tab bar, is the only thing standing between the audit
+and that box.
 
 | # | Task | Lane | Depends on | Notes |
 |---|---|---|---|---|

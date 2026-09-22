@@ -12,6 +12,101 @@ other lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-22 — P-06: the audit the last session could not run
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped**
+
+- **`hiraya-mobile-audit` actually ran**, on a production build at 360×800, across **14 routes**: the
+  four Lane P screens and every `?preview=` state they carry, the events list in both scopes, the gate
+  picker, the persona picker, home and `/design`. This is the browser walk P-04 merged without, and the
+  last session's blocker — no MCP browser — is retired
+- **The 500 KB budget is ticked, from the browser rather than from the build.** **200–209 KB per route**
+  encoded, heaviest `/demo` and `/design` at 208.8 KB. The last checkpoint could only infer this from
+  `next build` output and left the box unticked on purpose; the criterion names
+  `browser_network_requests`, and that is now what measured it
+- **Two WCAG AA failures found and fixed.** `text-primary` (#0d7f7c) at 13px on `--color-canvas` is
+  **4.44:1**, under the 4.5:1 floor — two back links sat there, "All events" across all five event-detail
+  states and "All gates" on the gate. Both now use `--color-primary-ink` (8.5:1). And the officer gate
+  had **no `h1`**: its heading order began at `h2 "Roster"`
+- **The gate now names itself.** Fixing that `h1` surfaced something worse than the a11y failure: the
+  scanner screen **never showed which event it was scanning for**. `listRosterResponseSchema` returns
+  `eventId` and no title, so an officer running one of two concurrent events had nothing on screen to
+  check against — and scanning into the wrong gate is the exact correction the XP screen already
+  renders. The title comes from `GET /checkin/events`, whose `scannableEventSchema` already carries it
+- **Everything else in sections 2–5 passed**, and was measured rather than eyeballed: no horizontal
+  scroll at 345px on any route, no element wider than the viewport, every interactive target ≥44×44
+  (the `/design` checkboxes read as 20px but their `<label>` wrapper is the 44px target), a visible
+  focus ring on all 41 focusable elements across five screens, every control named, no `img` without
+  `alt`, no unlabelled `svg`, live regions present on every screen
+- **Both locales walked.** The Filipino catalogue is **full — 299 keys, matching English exactly** — and
+  every Phase 0 screen renders in it with no overflow and no truncation at 360×800
+
+**Decisions**
+
+- No new D-number. Three calls were taken and recorded where they were made: the scanner reads its
+  title from `/checkin/events` **rather than adding `eventTitle` to `listRosterResponseSchema`**,
+  because J-01 is merged and D-01 is being built against that file right now — two requests on a screen
+  that opens once per event is the cheaper half of that trade; the `--color-primary` restriction is
+  written into `tokens.css` and `DESIGN_SYSTEM.md` §2 and §8 rather than fixed only at the two call
+  sites; and **P-14 is booked rather than built** (below)
+- **D6 is overtaken and now says so.** It reads "Filipino locale in Phase 2"; both catalogues are
+  already full and the audit walked every screen in Filipino. What is actually missing is the
+  *switcher* — nothing but `src/i18n/request.ts` reads `HIRAYA_LOCALE`, so Filipino is reachable only
+  by setting a cookie by hand
+
+**Docs updated**
+
+- `docs/MILESTONE_ROADMAP.md` — the 500 KB criterion ticked with its measurement; the WCAG AA criterion
+  left **unticked** and annotated with what was fixed and what is open
+- `docs/WORKSTREAMS.md` — P-06 struck with its findings; **P-14 added to Phase 1** (the bottom tab bar)
+  with a note on why it was deferred; §5's open-criteria line updated
+- `docs/DESIGN_SYSTEM.md` §2 and §8 — `--primary` as text is white-surface-only; `--primary-ink` is the
+  canvas one
+- `docs/TECHNICAL_ARCHITECTURE.md` — D6 marked overtaken
+- `src/design/tokens.css`, `src/i18n/request.ts` — the same two corrections at the point of use
+
+**Risks**
+
+- Materialized: none new
+- Retired: **"no MCP browser was reachable"**, the risk the last entry logged. Playwright connected and
+  the full sweep ran
+- Still open, unchanged: the test suite that failed once in five local runs. It passed here (170/170),
+  which the last entry already warned is not proof
+
+**Next**
+
+- **D-01**, still the head of the critical path and still owing three endpoints. Every Lane D task in
+  the Phase 0 table is unblocked
+- **M-01** — P-06 was one of its two dependencies; the other is D-05
+- The **fixture seam deletion** with D-01…D-04
+
+**Flagged**
+
+- **WCAG AA is deliberately still unticked**, on one finding: **no `nav` landmark on any screen, because
+  there is no navigation between screens at all**. A learner on `/xp` reaches `/events` only by typing a
+  URL. `DESIGN_SYSTEM.md` §7 specifies a five-item bottom tab bar, but **two of those five (Orgs, Me)
+  are Phase 1 screens that do not exist**, so a Phase 0 tab bar would be built twice. Booked as **P-14**.
+  A future session must not read the two green fixes as the criterion being met
+- **The `?preview=` states are fixture data, and the event-detail route ignores its own id** —
+  `/events/<any real id>` renders the fixture event. That is the seam working as designed, but it means
+  this audit measured the *screens*, not the screens-on-real-data. The walk is worth repeating once
+  D-01…D-04 land and the fixtures are deleted
+- **The scanner's title lookup costs a second request** that Phase 3 may want to fold into the roster
+  read anyway. If D-01 has not shipped `GET /events/:id/roster` yet, adding `eventTitle` there is still
+  the cheaper long-run shape — it was avoided now for lane reasons, not design ones
+- **No locale switcher exists.** Full Filipino catalogue, no way for a learner to choose it
+- **`next-env.d.ts` flips** between `.next/dev/types/` and `.next/types/` depending on whether the last
+  command was `next dev` or `next build`. Kept on the dev paths; a session that runs a build will see it
+  dirty again
+- Unchanged: the OG card's typeface; no Supabase apply or Vercel deploy yet (M-01); `QueueBanner` is
+  still a plan in `DESIGN_SYSTEM.md` §6 rather than an omission; **the art has still never been seen on a
+  real phone over mobile data** — this audit was a desktop browser at a phone viewport, which is not the
+  same test
+
+---
+
 ## 2026-09-22 — Lane P's half of the walkable loop, on contracts that merged first
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
