@@ -5,10 +5,109 @@ reason the XP ledger is: a record you can rewrite is a record nobody trusts.
 
 Maintained by the `hiraya-checkpoint` skill. See `CLAUDE.md` §7 for the six triggers.
 
-**With two developers** (D26): every entry names its author on the `Phase:` line, and both may append.
+**With more than one contributor** (D26, D31): every entry names its author on the `Phase:` line, and anyone may append.
 A merge conflict here is always resolved by **keeping both entries, newest first** — never by choosing
-one. An entry that describes only one lane's work is fine and expected; an entry that quietly drops the
-other lane's is the failure this file exists to prevent.
+one. An entry that describes only one lane's work is fine and expected; an entry that quietly drops
+another lane's is the failure this file exists to prevent.
+
+---
+
+## 2026-09-22 — The plan, rewritten for a maintainer who is learning and for contributors who are not here yet
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+No product code changed. This entry is about the documentation and the working agreement, both of
+which had drifted from how the project is actually being built.
+
+**Shipped**
+
+- **`docs/BUILD_GUIDE.md` — new, and the centre of this change.** The process document the repo did
+  not have: the loop (prompt → slice → agents → PR → CI → merge → checkpoint), a vocabulary table
+  defining every term the other documents use without explaining, the three ways to start work and
+  which is right when, the seven-step slice order with the reason each step sits where it does, six
+  concrete PR checks for a reviewer who cannot read every line, a debugging ladder, and a per-phase
+  learning path. It keeps the technical vocabulary rather than routing around it — the maintainer will
+  be the one answering a DPO's questions, and "explain this to me" is part of the build, not a detour
+- **`docs/SETUP_GUIDE.md` — new.** Every maintainer-only task in one place, marked blocking / phased /
+  done, with what each is for and what breaks if it is skipped: the machine, the four secrets and how
+  to generate them, Supabase (including the setting that must never be re-enabled), Vercel with the
+  exact environment variables, rotation, inviting contributors, Gate A, Gate B, store accounts, and
+  backup-restore. `WORKSTREAMS.md` §4 and the `hiraya-next` report both cite it by section
+- **`docs/WORKSTREAMS.md` §0 — "You are here".** Current phase, last commit on `main`, what is in
+  flight, what is blocked on the maintainer, and the next four actions each with the literal line to
+  type. Owned solely by `/hiraya-checkpoint`; when it disagrees with the tables, the tables win
+- **`/hiraya-next` — a sixth project skill.** Reads `git log main`, open PRs, the board and the phase's
+  unticked criteria, reconciles them against §0, sorts every open task into WAITING / BLOCKED ON YOU /
+  NEXT / QUEUED, and ends with one literal `→ Type:` line. At most three tasks under NEXT, because
+  more than three is the menu this skill exists to replace
+- **Three lanes instead of two (D31).** Lane D and Lane P become *kinds of work* any contributor can
+  claim, plus a new **Lane Q** (tests, docs, accessibility, tooling). Every task table gained an Owner
+  column, empty until claimed. `CONTRIBUTING.md`, `README.md` and `CLAUDE.md` §7 follow
+- **Standing permissions written into `CLAUDE.md` §11 (D32)**, so they are inherited rather than
+  re-negotiated each session: commit/push/PR, local database commands, Supabase writes via MCP, and
+  self-merge on green CI. `.mcp.json` drops `--read-only` accordingly
+- **Dependency audit** — see Flagged. Nothing upgraded
+
+**Decisions**
+
+- **D31** — the two fixed lanes of D26 become three claimable ones. D26 hard-coded two people into
+  every task table, which made a third contributor a document rewrite rather than an invitation. The
+  lane *mechanism* was never about headcount. Lane Q exists because the previous split had no safe
+  entry point: a newcomer's first task was either a screen or an RLS policy, and one of those can
+  produce a cross-tenant read
+- **D32** — four standing permissions. Three are cheap and reversible. **The fourth, self-merge on
+  green CI, removes the only human review step the project had** and was taken knowingly after being
+  flagged: CI catches typecheck, lint (the R2 import ban), cross-tenant denial and migration
+  consistency, and catches nothing about product judgement. `BUILD_GUIDE.md` §6 is what now stands in
+  that gap. The Supabase write grant is scoped to a pre-Gate-B project holding only synthetic data
+
+**Docs updated**
+
+- `docs/TECHNICAL_ARCHITECTURE.md` — D31 and D32 added; D3, D26 and §11 amended to match
+- `docs/MILESTONE_ROADMAP.md` — a "how to use this document" preamble naming the four documents and
+  how to prompt a phase; R22 and R23 added; Gate B gained the D32 re-decision item; two-developer
+  language generalized
+- `docs/WORKSTREAMS.md` — rewritten to v2.0: §0, three lanes, Owner columns, a claiming procedure,
+  Phase 1 gained three Lane Q tasks and a "good first task" note, the dependency graph redrawn
+- `CLAUDE.md` — §2 structure, §7 three lanes, §9 the new skill, §10.2 start with `/hiraya-next`,
+  §11 the standing-permission block
+- `CONTRIBUTING.md` — opens to any contributor; lane-choosing table with Lane Q as the entry point;
+  review section states who reviews what now
+- `README.md`, `SKILLS.md` — new documents linked, counts and status corrected
+- `.claude/skills/hiraya-checkpoint/SKILL.md` — now owns §0 and checks it against `git log` and
+  `gh pr list`; `BUILD_GUIDE.md` and `SETUP_GUIDE.md` added to its mapping table
+
+**Risks**
+
+- Newly identified: **R22** — a moderate `esbuild` advisory reaches the repo through
+  `drizzle-kit → @esbuild-kit/*`. Dev-dependency only, and the advisory concerns an esbuild dev server
+  this project never runs. The only offered fix downgrades `drizzle-kit` to 0.18.1, a breaking change
+  to the tool that generates every migration — strictly worse than the exposure. Accepted, re-checked
+  each `drizzle-kit` minor
+- Newly identified: **R23** — a standing permission outlives the conditions that made it safe. D32 was
+  reasoned against a project holding only synthetic data. Mitigated by writing the expiry condition
+  into `CLAUDE.md` §11 and onto the Gate B checklist rather than holding it in memory
+- Materialized: none. Retired: none
+
+**Next**
+
+- Merge **PR #10** then **PR #11** — both carry Phase 0's remaining built work
+- **P-07** — delete the fixture seam (newly booked; it was previously an unnumbered note)
+- **M-01** — Supabase and Vercel. Now partly unblocked: with `--read-only` dropped, the schema can be
+  applied without hand-running SQL, once the maintainer sets `SUPABASE_ACCESS_TOKEN` and restarts
+
+**Flagged**
+
+- **`.mcp.json` will not take effect until Claude Code restarts**, and needs `SUPABASE_ACCESS_TOKEN`
+  in the maintainer's shell. Until both are done, M-01 is still a manual dashboard task
+- **Dependency audit, reported not applied.** Five safe patch bumps available: `@supabase/supabase-js`
+  2.116→2.117, `drizzle-orm` 0.45.2→0.45.3, `drizzle-kit` 0.31.10→0.31.11, `next-intl` 4.14.5→4.14.6,
+  `dotenv` 18.0.1→18.0.3. **`eslint` 10 and `typescript` 7 are deliberately pinned by D20 and must not
+  be bumped** — either would silently disable `npm run lint`, and with it the import ban that is the
+  only thing enforcing R2. Deferred on purpose: upgrading while two PRs are open produces a red CI
+  nobody caused
+- **`WORKSTREAMS.md` §0 is accurate as of this commit and will be wrong the moment a PR merges.** That
+  is the cost of the block and the reason `/hiraya-next` reports reality over it when they disagree
 
 ---
 

@@ -1,8 +1,11 @@
 # Contributing to Hiraya
 
-For the second developer, and for whoever inherits this next. If you have just been given access, work
-through this page in order — the setup at the bottom takes about twenty minutes, and the reading above
-it is what stops a well-meaning PR from breaking something that cannot be seen in a diff.
+For anyone joining the project, and for whoever inherits it next. Work through this page in order — the
+setup at the bottom takes about twenty minutes, and the reading above it is what stops a well-meaning PR
+from breaking something that cannot be seen in a diff.
+
+**You do not need a Supabase account, a deployment, or any of the project's keys.** Everything runs
+locally against synthetic data. That is deliberate, and §5 explains why.
 
 ---
 
@@ -14,12 +17,13 @@ Read these, in this order. Nothing else is required before your first PR.
 |---|---|---|
 | 1 | [`README.md`](README.md) | What the product is, in five minutes |
 | 2 | [`CLAUDE.md`](CLAUDE.md) §1, §3, §6 | The loop, the eight architecture rules, and the privacy rules. **§3 and §6 are the ones a PR gets rejected over** |
-| 3 | [`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) | Which lane is yours, what is open, and what it depends on |
-| 4 | [`src/db/README.md`](src/db/README.md) | The schema, migration and RLS workflow. Required before your first migration |
-| 5 | [`docs/PROGRESS.md`](docs/PROGRESS.md), newest two entries | What the last sessions actually did, and what they flagged as unresolved |
+| 3 | [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) §2, §4 | The vocabulary, and the seven-step order every slice is built in |
+| 4 | [`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) | The lanes, the board, what is open and what it depends on |
+| 5 | [`src/db/README.md`](src/db/README.md) | The schema, migration and RLS workflow. Required before your first migration |
+| 6 | [`docs/PROGRESS.md`](docs/PROGRESS.md), newest two entries | What the last sessions actually did, and what they flagged as unresolved |
 
 Then skim `docs/SYSTEM_DESIGN.md` §5 (the API contracts you will be implementing) and
-`docs/TECHNICAL_ARCHITECTURE.md` §2 (the decision register — D18 through D25 are the live ones).
+`docs/TECHNICAL_ARCHITECTURE.md` §2 (the decision register — D18 through D32 are the live ones).
 
 **The one sentence that explains the rest of the rules:** *a point in Hiraya means a teacher confirmed
 you were there.* Leaderboards, badges and the Co-curricular Record are worthless the moment that claim
@@ -83,7 +87,7 @@ Bring the database up and confirm the invariants landed:
 npm run db:migrate      # migrations AND RLS policies, in that order — never one without the other
 npm run db:verify-rls   # asserts RLS is on and FORCEd, school_id indexed, no ledger UPDATE/DELETE grant
 npm run db:seed:demo    # the synthetic tenant: 44 people, 6 orgs, 12 events
-npm test                # 170 tests, including cross-tenant denial
+npm test                # the full suite, including cross-tenant denial
 npm run dev             # then open /demo and pick a persona
 ```
 
@@ -102,7 +106,7 @@ NEXT_PUBLIC_HIRAYA_FIXTURES=on
 in `.env.local` and those screens render from a local fixture instead of failing. Unset — the default,
 and what CI and every deployment use — they show their failure state, which is the truth until the other
 lane lands its half. Several take a `?preview=` parameter to choose which state to show; each
-`components/fixtures.ts` header lists its own. **The whole mechanism is deleted with D-01…D-04**: a
+`components/fixtures.ts` header lists its own. **The whole mechanism is deleted by task P-07**: a
 fixture path that outlives the endpoint it stood in for is a second source of truth for what the API
 returns.
 
@@ -116,9 +120,21 @@ Use two, as above. `ALLOW_DESTRUCTIVE_TESTS=1` exists for CI and is the wrong an
 
 ## 3. Finding work
 
-[`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) has the task board with dependencies. **Lane D — data and
-API — is yours**; Lane P (screens, design system, assets) is the maintainer's. Take the next task whose
-dependencies have merged, and say which one you are taking before you start it.
+[`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) has the task board. §0 — "You are here" — is the fastest
+way to see what is open right now.
+
+**Claim any task in any lane** whose dependencies have merged and whose Owner column is `—`. Say which
+one you are taking before you start, and put your handle in the Owner column in the same PR. The three
+lanes are:
+
+| Lane | Work | Start here if |
+|---|---|---|
+| **Q — quality and docs** | Tests, documentation, accessibility sweeps, tooling | **You are new.** A mistake here cannot reach the database, and you still walk the whole loop: branch, PR, CI, merge |
+| **P — product surface** | Screens, components, design system, i18n | You are comfortable in React and care about how things feel at 360px |
+| **D — data and API** | Schema, RLS policies, services, endpoints | You have read `CLAUDE.md` §3 and §6 and `src/db/README.md` end to end. Lane D holds four of the eight architecture rules, and a mistake here is a cross-tenant read rather than a visual bug |
+
+A lane is a default, not a fence — you may touch another lane's files, but say so in the PR description
+and not in the same PR as your own lane's work.
 
 Before writing a feature, load the `hiraya-feature-slice` procedure — it prescribes the order that makes
 tenancy and validation impossible to forget: Drizzle schema → RLS policy → Zod contract → `service.ts` →
@@ -172,9 +188,17 @@ against a finished diff is the whole point.
 
 ### Review
 
-The maintainer reviews Lane D PRs; Lane D reviews the maintainer's PRs where they touch a contract or an
-endpoint. A PR that changes a rule in `CLAUDE.md` §3 or §6 does not get merged on a review — it gets
-raised as a decision first, and if the decision goes the other way it is recorded in the
+**The maintainer reviews every contributor PR.** Claude Code's own PRs squash-merge themselves once CI
+is green (D32) — that grant applies to Claude working in the maintainer's session, not to contributors,
+and not to Claude working in yours.
+
+Review is not a formality here, because CI cannot see everything. What a human is looking for is in
+[`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) §6 — six checks, each catching a class of failure. The two
+that matter most: does the file list match the task, and does a new table carry its policy *and* its
+fixture in the same PR?
+
+A PR that changes a rule in `CLAUDE.md` §3 or §6 does not get merged on a review — it gets raised as a
+decision first, and if the decision goes the other way it is recorded in the
 `docs/TECHNICAL_ARCHITECTURE.md` D-table with its trade-off.
 
 ---
@@ -217,8 +241,8 @@ Documentation here is load-bearing: it is how this survives being handed to a sc
 `docs/PROGRESS.md`, and pushes. Run it when a feature slice merges, a migration lands, a decision
 changes, a risk materializes, or a phase or gate closes.
 
-With two developers, one addition: **each `docs/PROGRESS.md` entry names its author** on the `Phase:`
-line. Merge conflicts in that file are always resolved by keeping both entries, newest first.
+With more than one contributor, one addition: **each `docs/PROGRESS.md` entry names its author** on the
+`Phase:` line. Merge conflicts in that file are always resolved by keeping both entries, newest first.
 
 If the docs and the code disagree, say so in the PR rather than silently picking a side. A document set
 that quietly contradicts itself is worse than one that flags the conflict, because trust in it decays
@@ -228,10 +252,14 @@ invisibly.
 
 ## 7. Working with Claude Code in this repo
 
-Optional, but the repo is set up for it: five project skills in `.claude/skills/` and five agents in
+Optional, but the repo is set up for it: six project skills in `.claude/skills/` and five agents in
 `.claude/agents/`, catalogued in [`SKILLS.md`](SKILLS.md). `CLAUDE.md` is read automatically at the start
 of every session and holds the rules above in enforceable form.
+[`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) describes the whole loop.
 
-The three that matter most in Lane D: `hiraya-feature-slice` (before starting anything),
-`hiraya-checkin-integrity` (anything touching QR, check-in or XP), and the `hiraya-tenancy-auditor`
-agent (after any migration or new query path).
+Start any session with **`/hiraya-next`** — it reads the board and the repository state and tells you
+what is open, what is blocked, and the exact line to type next.
+
+Then, by lane: `hiraya-feature-slice` before starting anything, `hiraya-checkin-integrity` for anything
+touching QR, check-in or XP, `hiraya-design-system` and `hiraya-mobile-audit` for any screen, and the
+`hiraya-tenancy-auditor` agent after any migration or new query path.

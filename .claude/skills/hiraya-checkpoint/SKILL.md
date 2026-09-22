@@ -47,7 +47,10 @@ reports what happened.
 | Stack, dependency, or a new decision | `TECHNICAL_ARCHITECTURE.md` §2–3 |
 | UI components, tokens, assets | `DESIGN_SYSTEM.md`, `ASSET_CHECKLIST.md` |
 | Roles or permissions | `SYSTEM_DESIGN.md` §2, `PRD.md` §3 |
-| A task merged, added, or re-sequenced | `WORKSTREAMS.md` §5–7 — strike the closed task, naming its commit |
+| A task merged, added, or re-sequenced | `WORKSTREAMS.md` §5–7 — strike the closed task, naming its commit, **and rewrite §0** |
+| Anything at all | `WORKSTREAMS.md` §0 — the "You are here" block. This skill is the only writer of §0 |
+| The build loop, review practice, or a standing permission | `BUILD_GUIDE.md` |
+| A maintainer-only task, account, secret, or gate step | `SETUP_GUIDE.md` |
 | Onboarding, setup, branch or PR rules | `CONTRIBUTING.md` |
 | A new rule future sessions must follow | `CLAUDE.md` |
 
@@ -103,6 +106,10 @@ Then verify by reading:
 - [ ] Phase numbering consistent across roadmap, PRD, and SKILLS.md
 - [ ] Every task id in `WORKSTREAMS.md` is either open or struck with the commit that closed it, and
       no merged slice is still listed as open
+- [ ] **`WORKSTREAMS.md` §0 matches reality** — the "last landed" commit is what `git log main` reports,
+      the in-flight PRs are what `gh pr list` reports, and every task named under "Next" is genuinely
+      unblocked. §0 is the first thing anyone reads and the fastest thing to go stale
+- [ ] Every task id named in §0 or in `docs/SETUP_GUIDE.md` exists in a `WORKSTREAMS.md` table
 - [ ] Commands in `CONTRIBUTING.md` §2 still match `package.json` scripts and `.env.example`
 - [ ] Any Mermaid block added this checkpoint parses
 
