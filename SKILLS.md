@@ -2,7 +2,7 @@
 
 **Status:** Approved for Phase 0 · **Version:** 1.0 · **Last updated:** 2026-09-21
 
-The capabilities needed to build and maintain Hiraya: five project skills, five project agents, the
+The capabilities needed to build and maintain Hiraya: six project skills, five project agents, the
 platform skills and MCP servers worth reaching for, and how to combine them.
 
 ---
@@ -27,6 +27,27 @@ and expensive to discover late.
 ---
 
 ## 2. Project skills
+
+### `hiraya-next`
+
+**Purpose.** Answer one question — *what should I build next?* — and end with the literal line to type.
+
+**Trigger.** The start of any session; after a PR merges; "what's next", "where are we", "what's
+blocked". Invocable directly as `/hiraya-next`.
+
+**Inputs.** `git log main`, open PRs, `docs/WORKSTREAMS.md` §0 and its task tables, the current phase's
+unticked acceptance criteria, and the newest `docs/PROGRESS.md` entry.
+
+**Workflow.** Gather state → reconcile it against §0 → sort every open task into WAITING, BLOCKED ON
+YOU, NEXT or QUEUED → report at most three under NEXT, and finish with one `→ Type:` line.
+
+**Output.** A short status block and a single prompt to type. Read-only; it never edits or builds.
+
+**Why it exists.** A task board answers "what is open"; it does not answer "what do I do now", and the
+gap between those two is where a session stalls. It also reports *reality over the board* when the two
+disagree, which makes a stale checkpoint visible instead of quietly misleading.
+
+---
 
 ### `hiraya-feature-slice`
 

@@ -47,16 +47,18 @@ Hiraya/
 ├── CONTRIBUTING.md                 # onboarding, local setup, branch and PR rules
 ├── SKILLS.md                       # skills + agents catalogue and combined workflow
 ├── docs/
+│   ├── BUILD_GUIDE.md              # HOW it gets built: the loop, the vocabulary, reviewing
+│   ├── SETUP_GUIDE.md              # everything only the maintainer can do
 │   ├── PRD.md                      # what to build, for whom, with acceptance criteria
-│   ├── TECHNICAL_ARCHITECTURE.md   # stack, decisions D1-D26, trade-offs
+│   ├── TECHNICAL_ARCHITECTURE.md   # stack, decisions D1-D32, trade-offs
 │   ├── SYSTEM_DESIGN.md            # modules, roles, workflows, entities, API contracts
 │   ├── DATA_FLOW.md                # data lifecycle, auth flow, sensitive-data handling
 │   ├── MILESTONE_ROADMAP.md        # phases, gates, acceptance criteria
-│   ├── WORKSTREAMS.md              # the two lanes, task board, dependencies
+│   ├── WORKSTREAMS.md              # "you are here", three lanes, task board, dependencies
 │   ├── DESIGN_SYSTEM.md            # tokens, dual register, component inventory
 │   ├── ASSET_CHECKLIST.md          # every asset needed, tiered by what it blocks
 │   └── PROGRESS.md                 # append-only checkpoint log
-├── .claude/skills/                 # 5 project skills
+├── .claude/skills/                 # 6 project skills
 ├── .claude/agents/                 # 5 project agents
 ├── .githooks/                      # pre-push: refuses a direct push to main
 ├── src/                            # (from Phase 0)
@@ -247,17 +249,21 @@ Keeping docs, progress, and the remote current is part of the work, not an after
 **Git policy.** Commit freely as work completes — no need to ask. **Push at checkpoints**, and say so in
 one line. Never force-push. Conventional commit messages; tag `phase-N-complete` at phase boundaries.
 
-**`main` is protected (D26).** Since this repository has two developers, work lands through a pull
-request with green CI, never by a direct push to `main`. Branch as `feat/`, `fix/`, `docs/` or `chore/`;
-squash-merge so `main` reads as one commit per slice. A PR that spans two lanes, or two features, is
+**`main` is protected (D26).** Work lands through a pull request with green CI, never by a direct push
+to `main`. Claude may squash-merge its own PRs once CI is green (D32); contributor PRs are reviewed by
+the maintainer.
+
+Branch as `feat/`, `fix/`, `docs/` or `chore/`; squash-merge so `main` reads as one commit per slice. A PR that spans two lanes, or two features, is
 hard to review and harder to revert — split it.
 
-**Two lanes.** `docs/WORKSTREAMS.md` holds the task board, who owns which paths, and what depends on
-what. **Lane D** (schema, RLS, services, `/api/v1`, scripts, integration tests) belongs to the incoming
-developer; **Lane P** (screens, design system, i18n, assets, E2E) to the maintainer. Before editing a
-file outside the lane you are working in, say so; before starting a feature, check that its Zod contract
-in `features/<f>/schema.ts` has already merged — that contract is the handshake that lets both lanes
-work at once. Only one migration may be open repo-wide at a time.
+**Three lanes, claimable by anyone.** `docs/WORKSTREAMS.md` holds the task board, which paths each lane
+owns by default, and what depends on what. **Lane D** (schema, RLS, services, `/api/v1`, scripts,
+integration tests), **Lane P** (screens, design system, i18n, assets, E2E), **Lane Q** (tests, docs,
+accessibility, tooling). A lane is a kind of work, not a person — the project takes contributors, and a
+new one starts in Lane Q. Before editing a file outside the lane you are working in, say so; before
+starting a feature, check that its Zod contract in `features/<f>/schema.ts` has already merged — that
+contract is the handshake that lets the lanes work at once. Only one migration may be open repo-wide at
+a time.
 
 **Never commit:** real learner data, `.env` files, the Supabase service-role key, the QR Ed25519 private
 key, database dumps or exports, guardian-consent scans, Android keystores, iOS provisioning profiles.
@@ -297,6 +303,7 @@ any school in the database is not flagged `is_demo`.)*
 
 | Skill | Use when |
 |---|---|
+| `hiraya-next` | **The start of any session**, or when asked what to build next |
 | `hiraya-feature-slice` | Starting any module or feature |
 | `hiraya-checkin-integrity` | Writing QR, check-in, or XP code |
 | `hiraya-mobile-audit` | Any user-facing UI change |
@@ -338,9 +345,10 @@ and handle everything else inline.
    are in. Do not build Phase 2 features during Phase 1. There is no delivery deadline (D27), which
    removes the pressure to rush but not the reason to stay in sequence: a phase built out of order is
    a phase whose acceptance criteria nobody can honestly tick.
-2. **Check `docs/PROGRESS.md`** for what the last session actually did and what it flagged, and
-   **`docs/WORKSTREAMS.md`** for which lane you are in, what is open, and what it depends on. There are
-   two developers now: another branch may be mid-slice in the file you were about to change.
+2. **Run `/hiraya-next` first.** It reconciles `docs/WORKSTREAMS.md` §0 with the actual repository state
+   and names the next task. Then read `docs/PROGRESS.md` for what the last session did and flagged, and
+   `docs/BUILD_GUIDE.md` for the loop the work runs in. The project takes contributors: another branch
+   may be mid-slice in the file you were about to change.
 3. **Respect the phase gates.** Gate A (school buy-in) and Gate B (DPO + consent + repo transfer) are
    hard blockers, not checklists. Nothing touches real learner data before Gate B.
 4. **When the docs and the code disagree, say so.** Do not silently pick a side — a doc set that quietly
@@ -386,6 +394,25 @@ Stop and call `AskUserQuestion` — do not pick a default and continue — when 
    what you found, then ask how to proceed rather than routing around it.
 7. **Scope is about to grow.** Anything beyond what was asked — a refactor discovered en route, an
    extra module, a dependency added. Ask; do not fold it in silently.
+
+### Standing permissions — granted 2026-09-22 (D32)
+
+The maintainer has granted these once, for all future sessions. **Do these without asking**, and say in
+one line what you did:
+
+1. **Commit as work lands, push feature branches, open PRs** with the checklist filled in.
+2. **Run local database commands** — `db:migrate`, `db:rls`, `db:verify-rls`, `db:seed:demo`, `npm test`
+   — against the local Postgres.
+3. **Apply migrations and RLS to the Supabase project** through the Supabase MCP server.
+4. **Squash-merge your own PRs into `main` once CI is green.**
+
+None of this relaxes anything else on this page. Still forbidden under every permission: a force-push,
+a rewrite of `main`'s history, a direct push to `main`, an edit to an applied migration, a rewritten
+`docs/PROGRESS.md` entry, and anything in §6 touching real learner data before Gate B.
+
+Grant 4 means **CI is the only automated gate left** — treat a red CI as a full stop, never as noise,
+and never merge past a failing check. Grant 3 is scoped to a pre-Gate-B project holding only synthetic
+data; **it is the one to raise again at Gate B**, when real rosters make the calculation different.
 
 ### Do not ask
 

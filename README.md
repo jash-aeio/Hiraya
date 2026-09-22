@@ -10,8 +10,9 @@ Org proposes event → Adviser approves → Learners register → QR check-in ve
 
 The load-bearing claim is simple: **a point in Hiraya means a teacher confirmed you were there.**
 
-**Status:** Phase 0 — foundation. Schema, tenancy rules, and the `/api/v1` skeleton are in
-place and tested; learner-facing screens arrive with the identity and events slices.
+**Status:** Phase 0 — foundation, nearly closed. Schema, tenancy rules, the `/api/v1` endpoints and all
+four demo screens are built and tested. What remains is one cleanup task and the first public deploy.
+See [`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) §0 for exactly where things stand.
 
 ---
 
@@ -38,7 +39,8 @@ Storage) · Drizzle · Capacitor · Vercel.
 ## Development
 
 **New here? Read [`CONTRIBUTING.md`](CONTRIBUTING.md)** — it has the full local setup, the branch and PR
-rules, and the eight things that will get a PR rejected. The short version:
+rules, and the eight things that will get a PR rejected. **You need no Supabase account and none of the
+project's keys**; everything runs locally against synthetic data. The short version:
 
 ```bash
 npm install
@@ -55,23 +57,29 @@ The integration suite needs a real Postgres, because RLS policies and GRANTs are
 and it will use it; leave it unset and the suite downloads and boots its own. See
 [`src/db/README.md`](src/db/README.md) for the schema and policy workflow.
 
-Work is split into two lanes with an explicit dependency board:
-[`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md). `main` is protected — changes land by pull request with
+Work is split into three lanes — **D** (data and API), **P** (product surface), **Q** (quality and
+docs) — which are kinds of work anyone can claim, not job titles. The board with its dependencies is
+[`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md); §0 says what is open right now. **New contributors are
+welcome, and Lane Q is the place to start.** `main` is protected — changes land by pull request with
 green CI.
+
+[`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) describes how a task actually gets built, end to end.
 
 ## Documentation
 
 | Document | Contents |
 |---|---|
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | **Start here.** Onboarding, local setup, branch and PR rules |
+| [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) | How it gets built — the loop, the vocabulary, how to review a PR |
+| [`docs/SETUP_GUIDE.md`](docs/SETUP_GUIDE.md) | Everything only the maintainer can do — accounts, secrets, deploys, gates |
 | [`CLAUDE.md`](CLAUDE.md) | Architecture rules, coding standards, and how to work in this repo |
-| [`SKILLS.md`](SKILLS.md) | The five project skills and five project agents |
+| [`SKILLS.md`](SKILLS.md) | The six project skills and five project agents |
 | [`docs/PRD.md`](docs/PRD.md) | Problem, personas, requirements, user stories, KPIs |
-| [`docs/TECHNICAL_ARCHITECTURE.md`](docs/TECHNICAL_ARCHITECTURE.md) | Stack, decisions D1–D26, trade-offs |
+| [`docs/TECHNICAL_ARCHITECTURE.md`](docs/TECHNICAL_ARCHITECTURE.md) | Stack, decisions D1–D32, trade-offs |
 | [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md) | Modules, permissions, workflows, entities, API, threat model |
 | [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md) | Data lifecycle, auth flow, sensitive-data handling |
 | [`docs/MILESTONE_ROADMAP.md`](docs/MILESTONE_ROADMAP.md) | Seven phases, two gates, risk register |
-| [`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) | The two lanes, the task board, and what depends on what |
+| [`docs/WORKSTREAMS.md`](docs/WORKSTREAMS.md) | "You are here", the three lanes, the task board, dependencies |
 | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Tokens, dual register, components |
 | [`docs/ASSET_CHECKLIST.md`](docs/ASSET_CHECKLIST.md) | Every asset, tiered by what it blocks |
 | [`docs/PROGRESS.md`](docs/PROGRESS.md) | Append-only checkpoint log |

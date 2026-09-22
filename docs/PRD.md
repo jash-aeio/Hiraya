@@ -458,7 +458,7 @@ product health signal. It is not a research instrument and carries no thesis obl
 | A6 | The school has a DPO or focal person able to review | Gate B |
 | A7 | Advisers will adopt if approval is genuinely faster than paper | Pilot, and `hiraya-adviser-advocate` before it |
 
-**Constraints.** ~₱15,400 pilot budget; free hosting tiers; two developers, one of them accountable and
+**Constraints.** ~₱15,400 pilot budget; free hosting tiers; a small contributor set, one person accountable and
 alone holding production access (D26); **no fixed delivery deadline** — seven phases in sequence, gated
 on their own acceptance criteria rather than on dates (D27) — and a pilot that must fit one school
 semester; mobile-first on budget Android; ≤500 KB first load; WCAG 2.1 AA; RA 10173 and DepEd

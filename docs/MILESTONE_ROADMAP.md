@@ -1,10 +1,18 @@
 # Hiraya — Milestone Roadmap
 
-**Status:** Approved for Phase 0 · **Version:** 2.0 · **Last updated:** 2026-09-21
+**Status:** Approved for Phase 0 · **Version:** 2.1 · **Last updated:** 2026-09-22
 
-Seven phases and two gates, in order, then a one-semester pilot with a real school. Two developers from
-2026-09-21 (D26), split across the lanes in [`docs/WORKSTREAMS.md`](WORKSTREAMS.md) — this document says
-*what* and *in what order*, that one says *who* and *what depends on what*.
+Seven phases and two gates, in order, then a one-semester pilot with a real school.
+
+**How to use this document.** It says *what* and *in what order*, and nothing else.
+[`docs/WORKSTREAMS.md`](WORKSTREAMS.md) says *who* and *what is next* — start there, or run
+`/hiraya-next`. [`docs/BUILD_GUIDE.md`](BUILD_GUIDE.md) says *how* a task actually gets built.
+[`docs/SETUP_GUIDE.md`](SETUP_GUIDE.md) covers everything only the maintainer can do, including both
+gates. Work is claimed per task across three lanes (D31), by however many contributors there are.
+
+**To build a phase**, prompt it by name — `build Phase 1` — and it is broken into the board's tasks and
+worked in dependency order, stopping at each task boundary for review. **One task at a time**
+(`build D-10`) is the recommended default until Phase 4; `BUILD_GUIDE.md` §3 explains why.
 
 **There is no week-by-week schedule, and that is deliberate** (D27). The earlier plan put calendar weeks
 on every phase; they were estimates for one developer working alone, and they were wrong in both
@@ -51,7 +59,7 @@ which will not take long however fast the work goes.
 | 1 · Identity and orgs | Large | Import edge cases — duplicate LRNs, mid-year transfers, missing sections — take longer than the happy path, always |
 | 2 · Events | Medium | The state machine is small; the adviser flow is where the care goes |
 | 3 · Check-in and XP | **Largest** | The highest-risk phase, and the one that parallelizes worst. Offline sync is the hardest thing in the build |
-| 4 · Visibility | Medium | Parallelizes well across the two lanes |
+| 4 · Visibility | Medium | Parallelizes well across lanes — a good phase to have help on |
 | 5 · Native packaging | Small, but externally blocked | Store accounts, store review, and a policy question that has to be settled first |
 | 6 · Hardening | Medium | Hardening always finds something. Give it more room than feels necessary |
 
@@ -87,11 +95,8 @@ proposal document from an outside developer stalls.
 - [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds
 - [ ] The full loop is walkable in the demo: browse → register → check in → see XP → see leaderboard
 - [x] Cross-tenant denial test passes against seeded schools A and B — all 21 tenant tables, plus a case proving the test fails when RLS is disabled (2026-09-21)
-- [x] First load ≤ 500 KB, verified via `browser_network_requests` — **200–209 KB across 14 routes**
-      at 360×800 on a production build, the heaviest being `/demo` and `/design` at 208.8 KB (2026-09-22, P-06)
-- [ ] WCAG AA passes on every demo screen via the a11y tree — **two failures found and fixed** (teal on
-      the canvas at 4.44:1; no `h1` on the officer gate). **One open: no `nav` landmark on any screen**,
-      because there is no navigation between screens to mark up. Booked as P-14, Phase 1
+- [ ] First load ≤ 500 KB, verified via `browser_network_requests`
+- [ ] WCAG AA passes on every demo screen via the a11y tree
 - [ ] No real learner data exists anywhere
 
 **Testing checkpoint.** `hiraya-mobile-audit` on every demo screen; `hiraya-tenancy-auditor` on the
@@ -308,6 +313,8 @@ cheap.
 - [ ] Supabase, Vercel and domain accounts transferred to school ownership; custodian holds credentials
 - [ ] Custodian trained; admin manual handed over
 - [ ] Backup, restore, and export all demonstrated to the custodian
+- [ ] **D32's standing permissions re-decided** (R23) — Supabase write access and self-merge were
+      reasoned against a project holding only synthetic data. Real rosters change that calculation
 
 Gate B exists because, without a school research protocol behind it, nothing else establishes a lawful
 basis for one person to hold a thousand minors' records. The repository and infrastructure transfer sits
@@ -373,15 +380,18 @@ through with real people.
 | R15 | Offline sync proves harder than estimated | Med | High | Open Phase 3 with the queue and sync endpoint; the offline tester agent; degrade to online-only check-in rather than ship it unverified | 3 |
 | R16 | Apple's annual fee is unbudgeted | High | Low | Decide who pays before Phase 5; Android-only ships if unresolved | 5 |
 | R17 | Toolchain versions break the lint chain that enforces R2 | Med | High | TypeScript and ESLint pinned (D20); lint is a required CI step | ongoing |
-| R18 | **A second developer violates a rule that was never written down** | Med | High | Rules enforced by the database, lint and CI rather than by review; `CONTRIBUTING.md` §5 states the eight that cannot be inferred from the code; `main` protected with required CI (D26) | ongoing |
+| R18 | **A contributor violates a rule that was never written down** | Med | High | Rules enforced by the database, lint and CI rather than by review; `CONTRIBUTING.md` §5 states the eight that cannot be inferred from the code; `main` protected with required CI (D26) | ongoing |
 | R19 | Parallel work produces conflicting migrations, or a table without its policy or fixture | Med | Med | One open migration repo-wide; the PR template requires policy and fixture in the same PR; `db:verify-rls` in CI | ongoing |
 | R20 | Migration round-trip through the maintainer becomes the bottleneck, or a Supabase-only surprise surfaces late | Med | Med | Lane D's local Postgres is bootstrapped with Supabase's roles *and* default privileges, so most surprises reproduce locally; batch migrations rather than trickling them | ongoing |
 
 | R21 | **A `SECURITY DEFINER` function whose owner does not bypass RLS silently reads under the *caller's* policies** | Med | High | Every tenant table is FORCE ROW LEVEL SECURITY, so FORCE applies to the owner too. The failure under-reads rather than over-reads — a leaderboard ranks a learner against nobody, and a capacity count sees a full event as empty and overbooks it. `npm run db:verify-rls` fails CRITICAL on it (D28–D30 slice); **the local owner is a superuser, so only Supabase will actually answer this** — run it there at M-01 | open |
 
+| R22 | **A moderate `esbuild` advisory reaches the repo through `drizzle-kit` → `@esbuild-kit/*`** | Low | Low | Dev-dependency only; the advisory affects an esbuild *dev server* this project never runs, and nothing from that chain reaches a build output or a deployment. The only offered fix downgrades `drizzle-kit` to 0.18.1, which is a breaking change to the migration tool that generates every migration — strictly worse than the exposure. **Accepted, not ignored:** re-check on each `drizzle-kit` minor, and revisit immediately if it ever becomes a production dependency | ongoing |
+| R23 | **A standing permission outlives the conditions that made it safe** | Med | High | D32's grants — Supabase writes and self-merge — were reasoned against a project holding *only synthetic data* before Gate B. Gate B's checklist carries an explicit item to re-decide both once real rosters exist. The grant is written down in `CLAUDE.md` §11 with its expiry condition rather than held in memory, which is the whole point | Gate B |
+
 R13, R14 and R16 are new relative to the original proposal and follow directly from D7, D11 and D17.
 R17 follows from D20; R18–R20 from D26, and all three are about coordination rather than about the
-product — which is what a second developer actually costs. R21 is the first risk found by the code
+product — which is what any additional contributor actually costs. R21 is the first risk found by the code
 rather than by planning: it was invisible until three `SECURITY DEFINER` functions existed to be wrong.
 
 ---
