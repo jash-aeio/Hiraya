@@ -83,12 +83,28 @@ Bring the database up and confirm the invariants landed:
 npm run db:migrate      # migrations AND RLS policies, in that order — never one without the other
 npm run db:verify-rls   # asserts RLS is on and FORCEd, school_id indexed, no ledger UPDATE/DELETE grant
 npm run db:seed:demo    # the synthetic tenant: 44 people, 6 orgs, 12 events
-npm test                # 72 tests, including cross-tenant denial
+npm test                # 170 tests, including cross-tenant denial
 npm run dev             # then open /demo and pick a persona
 ```
 
 If `npm test` is not green on a clean clone, stop and say so — that is a `main` problem, not a you
 problem.
+
+### Seeing a screen whose endpoint does not exist yet
+
+Lane P builds a screen upward from a merged contract while Lane D builds the endpoint downward from the
+same file (`docs/WORKSTREAMS.md` §2), so for a few days the screen exists and the route does not. Set
+
+```bash
+NEXT_PUBLIC_HIRAYA_FIXTURES=on
+```
+
+in `.env.local` and those screens render from a local fixture instead of failing. Unset — the default,
+and what CI and every deployment use — they show their failure state, which is the truth until the other
+lane lands its half. Several take a `?preview=` parameter to choose which state to show; each
+`components/fixtures.ts` header lists its own. **The whole mechanism is deleted with D-01…D-04**: a
+fixture path that outlives the endpoint it stood in for is a second source of truth for what the API
+returns.
 
 ### If the tests refuse to run
 

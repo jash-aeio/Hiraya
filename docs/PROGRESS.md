@@ -12,6 +12,99 @@ other lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-22 — Lane P's half of the walkable loop, on contracts that merged first
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped**
+
+- **The four Phase 0 Zod contracts (J-01…J-04), in one PR before any screen was written.** This is the
+  first time the `WORKSTREAMS.md` §2 handshake was actually used, and it worked as advertised: four
+  screens were then built upward from `z.infer` with no guessing about response shapes and nothing to
+  renegotiate at the end. `GET /events/:id` and `GET /checkin/events` were **missing from
+  `SYSTEM_DESIGN.md` §5** and are now in that table — an omission rather than a decision, found only
+  because a register control needs a detail read
+- **All four Lane P screens (P-01…P-04), each its own PR, each squash-merged on green CI.** Event
+  detail with the register control; the officer gate; the learner XP screen; the leaderboard. Five PRs
+  in total (#4–#8), 37 files, ~4,400 lines
+- **The product's refusals are now product, not error handling.** A full event becomes a waitlist offer
+  in place (US-2); `NOT_ELIGIBLE` names the one criterion that excluded the learner rather than failing
+  generically; a duplicate scan reads as "already checked in" in a neutral tone with 0 XP; a learner
+  hidden from a board still sees their own rank *and* is told why they are missing from the public one
+  (FR-5.8)
+- **The load-bearing claim is visible on the screen that makes it.** Every XP row names the check-in
+  behind it, and a row that cannot be traced to one — a manual adjustment, feedback XP — does **not**
+  get the "verified at the gate" mark rather than borrowing the authority of one. A reversal renders as
+  a correction, because the ledger is append-only (R4)
+- **The gate already has the Phase 3 shape where it matters.** Each scan carries a client-generated
+  `jti`, and a send that fails **keeps** it, so the next tap replays that scan instead of creating a
+  second one — the server's idempotency key is `(event_id, profile_id, jti)` and the UI now respects
+  that rather than assuming it (R6). No `src/lib/qr`, no unsigned token path invented to fill the gap
+- **67 new unit tests** (103 unit, 170 with integration). All of them on rules rather than layout: which
+  refusal becomes an offer, where a cancellation lands, a learner at the top of the level ladder, a
+  `levels` threshold that moved under a ledger already past it, a viewer who must not appear on a board
+  twice
+- **The fixture seam** (`src/lib/fixtures.ts`, `NEXT_PUBLIC_HIRAYA_FIXTURES=on`). Lane P's screens run
+  against local fixtures while Lane D's endpoints do not exist, with `?preview=` choosing the state.
+  Off by default, each fixture module behind a dynamic `import()` so an unset deployment never fetches
+  the chunk, and **deleted with D-01…D-04** — recorded in the board, in `CONTRIBUTING.md` §2 and in
+  every file's header
+
+**Decisions**
+
+- None new in the D-table. Three UI-level calls were taken as defaults and are recorded where they were
+  made rather than as decisions: **no fill count** is published on an event (a "spots left" would have
+  to outrank the registrations policy; `EVENT_FULL` carries the news instead); the leaderboard ships
+  **three scopes, not four** (the org board needs an org id and a default-org rule nobody has written —
+  it belongs on the org profile in Phase 1, P-12, and the contract still carries all four); and the
+  scanner has **no queue indicator**, because Phase 0 is online only and "Queued: 0" would be a promise
+  the code has not made
+
+**Docs updated**
+
+- `docs/WORKSTREAMS.md` → v1.1 — J-01…J-04 and P-01…P-04 struck with what closed them; D-01's row now
+  names the three endpoints it owes; P-06 marked unblocked
+- `docs/SYSTEM_DESIGN.md` §5 — `GET /events/:id` and `GET /checkin/events` added to the contract table
+- `CONTRIBUTING.md` §2 — the fixtures flag and how to delete it; the test count, 72 → 170
+- `.env.example` — `NEXT_PUBLIC_HIRAYA_FIXTURES`, with what it does when unset
+
+**Risks**
+
+- Materialized: **no MCP browser was reachable for the last part of the session** — Playwright and
+  Chrome both failed to connect — so P-04 merged without the 360×800 a11y-tree walk that P-01, P-02 and
+  P-03 each had before merge. Folded into P-06 and said so in the PR rather than quietly skipped
+- Newly identified: **the test suite failed once in five consecutive local runs** and passed the other
+  four. The failing file was not captured. The last session fixed a per-file isolation bug in this same
+  harness, so the honest reading is that something in database setup still races. A future session
+  should not treat a single green run as proof
+- Retired: none
+
+**Next**
+
+- **P-06** — the one Lane P task left in Phase 0. Needs a working MCP browser: the WCAG AA sweep and the
+  `browser_network_requests` check across all four screens, plus P-04's deferred walk
+- **D-01**, which now owes three endpoints and is the head of the critical path. Every Lane D task in
+  the Phase 0 table is unblocked
+- The **fixture seam deletion** rides along with D-01…D-04 and should not be allowed to drift past them
+
+**Flagged**
+
+- **The 500 KB budget was measured from the build, not from the browser**, because the browser was not
+  available: the whole client JS surface is **216 KB gzipped across 22 chunks**, fonts 58 KB, CSS 6 KB,
+  and `public/` art 6 KB fetched lazily — so no single route can approach 500 KB. The roadmap's
+  criterion names `browser_network_requests` specifically, so **it stays unticked**: this is a strong
+  indication, not the check the acceptance criterion asks for
+- **No Phase 0 acceptance criterion was ticked this checkpoint.** The loop is not walkable yet — four
+  screens exist and run on fixtures, and the endpoints behind them are D-01…D-04. Screens without a
+  data layer are half a loop, and ticking the box early is exactly the failure D27 warns about
+- `DESIGN_SYSTEM.md` §6 lists `QueueBanner` among the officer components; the gate screen deliberately
+  omits it until Phase 3. The inventory is a plan rather than a record, so it was left alone — but a
+  future session should not read its absence as an oversight
+- Unchanged: the OG card's typeface; no Supabase apply or Vercel deploy yet (M-01); the art has still
+  never been seen on a real phone over mobile data
+
+---
+
 ## 2026-09-21 — Green, and the first two pull requests
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
