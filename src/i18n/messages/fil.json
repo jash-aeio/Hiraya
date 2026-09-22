@@ -246,5 +246,64 @@
       "cancelled": "Naibigay na ang puwesto mo.",
       "failed": "Hindi natuloy. Tingnan ang koneksyon at subukan muli."
     }
+  },
+  "checkin": {
+    "label": "Check-in",
+    "title": "Sa gate",
+    "intro": "Piliin ang event na ise-scan mo. Dito ibinibigay ang puntos, sa pagdating — hindi sa pagpaparehistro.",
+    "back": "Lahat ng gate",
+    "picker": {
+      "loading": "Naglo-load ng mga event mo",
+      "open": "Buksan ang gate",
+      "openNamed": "Buksan ang gate para sa {title}",
+      "notYet": "Bubukas kapag malapit na ang simula",
+      "empty": {
+        "title": "Walang gate na patatakbuhin ngayon",
+        "description": "Lilitaw dito ang mga event na puwede mong i-scan bago magsimula ang mga ito."
+      },
+      "failed": {
+        "title": "Hindi ma-load ang mga event mo",
+        "description": "Tingnan ang koneksyon at subukan muli."
+      }
+    },
+    "scanner": {
+      "title": "Scanner",
+      "standsIn": "Ang button na ito ang pansamantalang kapalit ng camera. Sa Phase 3 na ang totoong pag-scan ng ID; totoo na ang naitatala nito.",
+      "count": "{counted} sa {expected} ang naka-check in",
+      "simulate": "I-scan ang susunod na dumating",
+      "allIn": "Nasa loob na ang lahat ng rehistrado",
+      "idle": "Lilitaw dito ang resulta ng scan."
+    },
+    "result": {
+      "accepted": "Naka-check in",
+      "duplicate": "Naka-check in na",
+      "notSent": "Hindi naipadala — i-tap muli",
+      "withXp": "{name} · {xp} XP",
+      "rejected": {
+        "SCAN_OUTSIDE_EVENT_WINDOW": "Labas sa oras ng event — kailangan ng rebyu ng adviser",
+        "TOKEN_EXPIRED": "Expired na ang ID. Ipa-refresh ito",
+        "TOKEN_INVALID": "Hindi mabasa ang code",
+        "NOT_FOUND": "Wala sa roster na ito",
+        "FORBIDDEN": "Hindi ka puwedeng mag-scan para sa event na ito",
+        "INTERNAL": "Hindi natuloy"
+      }
+    },
+    "roster": {
+      "title": "Roster",
+      "loading": "Naglo-load ng roster",
+      "search": "Maghanap ng pangalan",
+      "noMatch": "Walang tugma sa roster na ito.",
+      "gradeSection": "Baitang {grade} · {section}",
+      "checkIn": "I-check in",
+      "checkInNamed": "I-check in si {name}",
+      "in": "Nasa loob",
+      "waitlisted": "Waitlist",
+      "failed": {
+        "title": "Hindi ma-load ang roster",
+        "description": "Tingnan ang koneksyon at subukan muli."
+      },
+      "scanAgain": "I-scan muli",
+      "scanAgainNamed": "I-scan muli si {name}"
+    }
   }
 }

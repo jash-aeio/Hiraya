@@ -246,5 +246,64 @@
       "cancelled": "Your place has been given up.",
       "failed": "That did not go through. Check your connection and try again."
     }
+  },
+  "checkin": {
+    "label": "Check-in",
+    "title": "At the gate",
+    "intro": "Pick the event you are scanning for. Points are awarded here, on arrival — never on registration.",
+    "back": "All gates",
+    "picker": {
+      "loading": "Loading your events",
+      "open": "Open the gate",
+      "openNamed": "Open the gate for {title}",
+      "notYet": "Opens closer to the start",
+      "empty": {
+        "title": "No gate to run right now",
+        "description": "Events you can scan for appear here shortly before they start."
+      },
+      "failed": {
+        "title": "Could not load your events",
+        "description": "Check your connection and try again."
+      }
+    },
+    "scanner": {
+      "title": "Scanner",
+      "standsIn": "This button stands where the camera will be. Scanning a learner's ID arrives with Phase 3; what it records is already real.",
+      "count": "{counted} of {expected} checked in",
+      "simulate": "Scan the next arrival",
+      "allIn": "Everyone registered is in",
+      "idle": "Scan results appear here."
+    },
+    "result": {
+      "accepted": "Checked in",
+      "duplicate": "Already checked in",
+      "notSent": "Not sent — tap again",
+      "withXp": "{name} · {xp} XP",
+      "rejected": {
+        "SCAN_OUTSIDE_EVENT_WINDOW": "Outside the event window — needs adviser review",
+        "TOKEN_EXPIRED": "That ID has expired. Ask them to refresh it",
+        "TOKEN_INVALID": "That code could not be read",
+        "NOT_FOUND": "Not on this roster",
+        "FORBIDDEN": "You cannot scan for this event",
+        "INTERNAL": "That did not go through"
+      }
+    },
+    "roster": {
+      "title": "Roster",
+      "loading": "Loading the roster",
+      "search": "Find a name",
+      "noMatch": "Nobody on this roster matches.",
+      "gradeSection": "Grade {grade} · {section}",
+      "checkIn": "Check in",
+      "checkInNamed": "Check in {name}",
+      "in": "In",
+      "waitlisted": "Waitlist",
+      "failed": {
+        "title": "Could not load the roster",
+        "description": "Check your connection and try again."
+      },
+      "scanAgain": "Scan again",
+      "scanAgainNamed": "Scan {name} again"
+    }
   }
 }
