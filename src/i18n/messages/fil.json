@@ -172,9 +172,6 @@
       "cancelled": "Kanselado",
       "attended": "Dumalo"
     },
-    "register": {
-      "soon": "Malapit nang magbukas ang rehistro"
-    },
     "empty": {
       "upcoming": {
         "title": "Wala pang paparating",
@@ -189,6 +186,65 @@
       "title": "Hindi ma-load ang mga aktibidad",
       "description": "Tingnan ang inyong koneksyon at subukan muli.",
       "retry": "Subukan muli"
+    },
+    "detail": {
+      "back": "Lahat ng event",
+      "loading": "Naglo-load ng event",
+      "about": "Tungkol sa event",
+      "who": "Sino ang puwedeng sumali",
+      "openToAll": "Bukas sa lahat sa paaralan.",
+      "openToGrades": "Bukas sa {grades}.",
+      "openToSections": "Bukas sa {sections}.",
+      "openToMembers": "Bukas sa mga miyembro ng organisasyong nagdaraos.",
+      "checkinNote": "Mag-register para may puwesto ka. Galing sa pag-check in sa gate ang puntos mo, hindi sa pagpaparehistro.",
+      "missing": {
+        "title": "Hindi namin natagpuan ang event",
+        "description": "Maaaring kinansela ito, o luma na ang link."
+      }
+    },
+    "view": "Tingnan ang event",
+    "viewNamed": "Tingnan ang {title}"
+  },
+  "registration": {
+    "grade": "Baitang {grade}",
+    "register": "Mag-register",
+    "registered": "Rehistrado",
+    "waitlisted": "Nasa waitlist · blg. {position}",
+    "waitlistedNoPosition": "Nasa waitlist",
+    "cancel": "Kanselahin ang rehistro",
+    "leaveWaitlist": "Umalis sa waitlist",
+    "closed": "Sarado na ang rehistro",
+    "closedHint": "Tapos na ang event na ito.",
+    "full": {
+      "title": "Puno na ang event",
+      "description": "Sumali sa waitlist at ikaw ang susunod kapag may bumakante. Sasabihan ka kapag nakapasok ka.",
+      "unavailable": "Sarado na rin ang waitlist. Kausapin ang mga organizer kung gusto mo pa ring sumama.",
+      "join": "Sumali sa waitlist"
+    },
+    "ineligible": {
+      "title": "Hindi ito bukas sa iyo",
+      "grade_level": "Bukas lang ito sa {grades}.",
+      "section": "Bukas lang ito sa {sections}.",
+      "org_membership": "Bukas lang ito sa mga miyembro ng organisasyong nagdaraos.",
+      "registration_closed": "Sarado na ang rehistro para sa event na ito.",
+      "event_not_open": "Hindi pa bukas sa rehistro ang event na ito.",
+      "generic": "Bukas lang ito sa ilang baitang at seksyon."
+    },
+    "confirm": {
+      "cancelTitle": "Ibibigay mo na ang puwesto mo?",
+      "cancelBody": "Maaaring makuha ito ng nasa waitlist sa loob ng ilang segundo, kaya baka hindi mo na ito mabawi.",
+      "cancel": "Oo, kanselahin",
+      "leaveTitle": "Aalis ka sa waitlist?",
+      "leaveBody": "Mawawala ang puwesto mo at sa dulo ka na muli kapag sumali ulit.",
+      "leave": "Oo, umalis",
+      "keep": "Panatilihin ang puwesto ko"
+    },
+    "toast": {
+      "registered": "Rehistrado ka na. Mag-check in sa gate para kumita ng XP.",
+      "waitlisted": "Ikaw ang numero {position} sa waitlist.",
+      "waitlistedNoPosition": "Nasa waitlist ka na.",
+      "cancelled": "Naibigay na ang puwesto mo.",
+      "failed": "Hindi natuloy. Tingnan ang koneksyon at subukan muli."
     }
   }
 }

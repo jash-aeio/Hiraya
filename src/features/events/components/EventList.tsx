@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 
@@ -238,27 +240,34 @@ function EventCard({ event }: { event: EventSummary }) {
           {event.venue ? <p className="type-small text-ink-muted">{event.venue}</p> : null}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {event.capacity === null ? null : (
-            <span className="type-small text-ink-muted">
-              {t("capacity", { count: event.capacity })}
-            </span>
-          )}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {event.capacity === null ? null : (
+              <span className="type-small text-ink-muted">
+                {t("capacity", { count: event.capacity })}
+              </span>
+            )}
 
-          {event.viewerRegistrationStatus ? (
-            <Badge tone={event.viewerRegistrationStatus === "registered" ? "success" : "neutral"}>
-              {t(`registration.${event.viewerRegistrationStatus}`)}
-            </Badge>
-          ) : (
-            // Phase 0 shows the path without walking it. Registration is a
-            // Phase 2 slice with capacity, eligibility and a waitlist behind
-            // it, and a button that wrote a row now would be the thin end of
-            // building Phase 2 early. Disabled rather than hidden, so the demo
-            // can point at where it will be.
-            <Button variant="secondary" disabled>
-              {t("register.soon")}
-            </Button>
-          )}
+            {event.viewerRegistrationStatus ? (
+              <Badge tone={event.viewerRegistrationStatus === "registered" ? "success" : "neutral"}>
+                {t(`registration.${event.viewerRegistrationStatus}`)}
+              </Badge>
+            ) : null}
+          </div>
+
+          {/* The whole card is not the link. A card-sized tap target sounds
+              generous until a learner means to scroll and lands on an event;
+              a named control also gives the screen reader something to read
+              other than the title twice. The accessible name carries the
+              title, so a list of them is not five identical "View event"s. */}
+          <Link
+            href={`/events/${event.id}`}
+            aria-label={t("viewNamed", { title: event.title })}
+            className="type-small inline-flex min-h-11 items-center gap-1 px-1 font-semibold text-primary hover:text-primary-hover"
+          >
+            {t("view")}
+            <ChevronRight className="size-4" aria-hidden="true" />
+          </Link>
         </div>
       </div>
     </Card>
