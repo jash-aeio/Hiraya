@@ -118,7 +118,7 @@ every demo screen, and a public URL. Browse (`GET /events` plus the learner even
 | ~~**P-04**~~ | ~~Leaderboard screen~~, including the hidden-learner case | P | J-04 | **Done 2026-09-22.** Three scopes, not four: the org board needs an org id and a default-org rule nobody has written, so it is reached from the org profile in Phase 1 (P-12). The contract still carries all four. **Browser walk deferred to P-06** — no MCP browser was reachable in the session that built it |
 | **D-05** | Extend `db:seed:demo` with registrations, check-ins and ledger rows | D | D-01…D-04 | Boards must be non-empty *before* the demo walks the loop |
 | ~~**P-05**~~ | ~~**Tier 1 assets**~~ — wordmark, logomark, PWA/Apple/OG images, 4 level badges + frames, 6 category marks, 14 avatars, 5 empty states, hero, demo crest | P | — | **Done 2026-09-21.** Reviewable at `/design`. One caveat open: the OG card's typeface (`ASSET_CHECKLIST.md` §1.1) |
-| **P-06** | `hiraya-mobile-audit` on every demo screen — 360×800, a11y tree, ≤500 KB first load | P | ~~P-01…P-04~~ | **Unblocked on 2026-09-22** — all four screens exist. Also carries P-04's deferred browser walk. The floor is already ≈183 KB gzipped on an almost empty page. The art adds nothing to it: static SVG is fetched lazily and the component art is a few hundred bytes of markup |
+| ~~**P-06**~~ | ~~`hiraya-mobile-audit` on every demo screen~~ — 360×800, a11y tree, ≤500 KB first load | P | ~~P-01…P-04~~ | **Done 2026-09-22.** 14 routes walked at 360×800 on a production build, P-04's deferred walk included. **Budget passes**: 200–209 KB per route, measured in the browser. **Two a11y failures found and fixed**: `text-primary` at 4.44:1 on the canvas (two back links), and no `h1` on `/checkin/[eventId]` — which also never named the event it was scanning. **One left open**: no `nav` landmark anywhere, booked as P-14 |
 | **M-01** | Apply the schema to Supabase, deploy to Vercel | maintainer | D-05, P-06 | R13: the free project sleeps. Wake it the morning of a pitch. ~~Confirm the repository is private~~ — confirmed 2026-09-21 |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | maintainer | M-01 | Gate A input |
 
@@ -149,8 +149,16 @@ phase with the most genuinely parallel work in the plan.
 | **P-11** | Discover Orgs with the six category filters, usable at 360×800 | P | J-11 |
 | **P-12** | Org profile screen and the application flow | P | J-11 |
 | **P-13** | School Admin console — import, codes, export | P | J-10, J-11 |
+| **P-14** | **Bottom tab bar** (`DESIGN_SYSTEM.md` §7) — learner Home · Events · Orgs · Leaderboard · Me; officer adds the centre Scan; adviser Approvals · Events · Analytics · Me | P | P-11, P-12 |
 | **A-10** | `hiraya-privacy-auditor` — LRN absent from every response below School Admin | both | D-12, D-15 |
 | **A-11** | `hiraya-tenancy-auditor` and `/security-review` on the auth diff | both | D-10, D-14 |
+
+**P-14 is a P-06 finding, deferred here on purpose.** The 2026-09-22 audit found **no `nav` landmark
+on any screen and no navigation between screens at all** — a learner on `/xp` reaches `/events` only
+by typing a URL. It is a real WCAG 2.1 AA gap against `DESIGN_SYSTEM.md` §8, and Phase 0 closes with
+it open rather than with half a tab bar: two of the five learner tabs (Orgs, Me) are Phase 1 screens
+that do not exist, and the Phase 0 demo is a scripted click-path that does not walk through a tab
+bar. Building it to the spec's shape minus two items would be built twice.
 
 D-11 is easy to postpone and is the highest-value deletion in the project so far: two session sources is
 one more than this system can afford, and the second one exists only because Phase 1 had not happened.
