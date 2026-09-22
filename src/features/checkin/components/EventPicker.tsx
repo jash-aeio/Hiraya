@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { Badge, Card, EmptyState, Skeleton } from "@/design";
-import { fixturesEnabled } from "@/lib/fixtures";
 
 import type { ScannableEvent } from "../schema";
 
@@ -52,14 +51,6 @@ export function EventPicker() {
 
     async function load(): Promise<void> {
       try {
-        if (fixturesEnabled) {
-          const { fixtureScannableEvents } = await import("./fixtures");
-          if (cancelled) return;
-          setEvents(fixtureScannableEvents());
-          setStatus("ready");
-          return;
-        }
-
         const response = await fetch("/api/v1/checkin/events", {
           headers: { accept: "application/json" },
         });

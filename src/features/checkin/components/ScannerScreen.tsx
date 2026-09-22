@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Avatar, Badge, Button, Card, EmptyState, Input, Skeleton } from "@/design";
-import { fixturesEnabled } from "@/lib/fixtures";
 import type { RosterEntry } from "@/features/registration/schema";
 
 import {
@@ -115,8 +114,8 @@ export function ScannerScreen({ eventId }: { eventId: string }) {
     /**
      * The gate's own name, read from `GET /checkin/events` rather than added to
      * the roster response: `scannableEventSchema` already carries `title`, and
-     * J-01's `listRosterResponseSchema` is merged and being built against
-     * (docs/WORKSTREAMS.md, D-01). Two requests on a screen that opens once per
+     * widening a merged contract costs every lane a renegotiation
+     * (docs/WORKSTREAMS.md §2). Two requests on a screen that opens once per
      * event is the cheaper side of that trade.
      *
      * It never fails the screen. A gate with a roster and no title still runs;
@@ -124,22 +123,14 @@ export function ScannerScreen({ eventId }: { eventId: string }) {
      */
     async function loadTitle(): Promise<void> {
       try {
-        let events: ScannableEvent[];
+        const response = await fetch("/api/v1/checkin/events", {
+          headers: { accept: "application/json" },
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        const body: unknown = await response.json();
+        if (!isScannableEvents(body)) throw new Error("shape");
 
-        if (fixturesEnabled) {
-          const { fixtureScannableEvents } = await import("./fixtures");
-          events = fixtureScannableEvents();
-        } else {
-          const response = await fetch("/api/v1/checkin/events", {
-            headers: { accept: "application/json" },
-          });
-          if (!response.ok) throw new Error(String(response.status));
-          const body: unknown = await response.json();
-          if (!isScannableEvents(body)) throw new Error("shape");
-          events = body.events;
-        }
-
-        const match = events.find((event) => event.id === eventId);
+        const match = body.events.find((event) => event.id === eventId);
         if (!cancelled && match) setEventTitle(match.title);
       } catch {
         // The heading falls back to the generic one. Nothing else depends on it.
@@ -148,14 +139,6 @@ export function ScannerScreen({ eventId }: { eventId: string }) {
 
     async function load(): Promise<void> {
       try {
-        if (fixturesEnabled) {
-          const { fixtureRoster } = await import("./fixtures");
-          if (cancelled) return;
-          setEntries(fixtureRoster());
-          setStatus("ready");
-          return;
-        }
-
         const response = await fetch(`/api/v1/events/${eventId}/roster`, {
           headers: { accept: "application/json" },
         });
@@ -188,30 +171,23 @@ export function ScannerScreen({ eventId }: { eventId: string }) {
       const scannedAt = new Date().toISOString();
 
       try {
-        let result: CheckinResult;
+        const response = await fetch("/api/v1/checkins", {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({
+            eventId,
+            profileId: entry.profileId,
+            jti,
+            scannedAt,
+            direction: "in",
+            method: "officer_scan",
+          }),
+        });
 
-        if (fixturesEnabled) {
-          const { fixtureCheckinResult } = await import("./fixtures");
-          result = fixtureCheckinResult(entry.profileId, jti, entry.checkedInAt !== null);
-        } else {
-          const response = await fetch("/api/v1/checkins", {
-            method: "POST",
-            headers: { "content-type": "application/json", accept: "application/json" },
-            body: JSON.stringify({
-              eventId,
-              profileId: entry.profileId,
-              jti,
-              scannedAt,
-              direction: "in",
-              method: "officer_scan",
-            }),
-          });
-
-          const body: unknown = await response.json();
-          const payload = (body as { result?: unknown }).result;
-          if (!response.ok || !isCheckinResult(payload)) throw new Error("send");
-          result = payload;
-        }
+        const body: unknown = await response.json();
+        const payload = (body as { result?: unknown }).result;
+        if (!response.ok || !isCheckinResult(payload)) throw new Error("send");
+        const result: CheckinResult = payload;
 
         const feedback = feedbackFor(result);
         setLast({ feedback, displayName: entry.displayName });

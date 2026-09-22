@@ -183,8 +183,7 @@ Needed for **M-01**, the last open Phase 0 task.
    | `LRN_HMAC_PEPPER` | from §3 |
    | `HIRAYA_DEMO_SCHOOLS` | `halimbawa-demo` |
 
-   Leave `QR_SIGNING_*` empty until Phase 3. **Do not set `NEXT_PUBLIC_HIRAYA_FIXTURES`** — a deployment
-   rendering fixtures is a deployment lying about what its API returns.
+   Leave `QR_SIGNING_*` empty until Phase 3.
 
    `HIRAYA_DEMO_SCHOOLS` fails closed: unset means no demo personas at all, which is the safe default.
    It is the second half of the D25 gate — a demo tenant is `schools.is_demo` **and** the slug being

@@ -7,7 +7,6 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { Card, Chip, EmptyState, Skeleton, useToast } from "@/design";
 import type { OrgCategory } from "@/design";
-import { fixturesEnabled } from "@/lib/fixtures";
 import { RegisterControl } from "@/features/registration/components/RegisterControl";
 import { registerStateForEvent, transitionFor } from "@/features/registration/components/registerState";
 import type {
@@ -103,22 +102,6 @@ export function EventDetailScreen({ eventId }: { eventId: string }) {
 
     async function load(): Promise<void> {
       try {
-        if (fixturesEnabled) {
-          // Dynamic, so the fixture chunk is never fetched by a deployment that
-          // leaves NEXT_PUBLIC_HIRAYA_FIXTURES unset (src/lib/fixtures.ts).
-          const { fixtureEventDetail, isPreviewVariant } = await import("./fixtures");
-          const requested = new URLSearchParams(window.location.search).get("preview");
-          const fixture = fixtureEventDetail(
-            eventId,
-            isPreviewVariant(requested) ? requested : "open",
-          );
-          if (cancelled) return;
-          setEvent(fixture);
-          setRegisterState(registerStateForEvent(fixture));
-          setStatus("ready");
-          return;
-        }
-
         const response = await fetch(`/api/v1/events/${eventId}`, {
           headers: { accept: "application/json" },
         });
@@ -173,15 +156,6 @@ export function EventDetailScreen({ eventId }: { eventId: string }) {
       setBusy(true);
 
       try {
-        if (fixturesEnabled) {
-          const { fixtureOutcome } = await import("./registrationFixtures");
-          applyOutcome(
-            fixtureOutcome(action, new URLSearchParams(window.location.search).get("preview")),
-            openAfterCancel,
-          );
-          return;
-        }
-
         const response = await fetch(`/api/v1/events/${eventId}/register`, {
           method: action === "cancel" ? "DELETE" : "POST",
           headers: { "content-type": "application/json", accept: "application/json" },
