@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { seedDemo } from "../../scripts/seed-demo";
-import { startTestDatabase } from "./helpers/db";
+import { asUser, startTestDatabase } from "./helpers/db";
 import type { TestDatabase } from "./helpers/db";
 
 /**
@@ -151,6 +151,102 @@ describe("the demo seed", () => {
       SELECT count(*)::int AS n FROM events WHERE now() BETWEEN starts_at AND ends_at
     `;
     expect(row?.n).toBe(1);
+  });
+
+  it("leaves one event full, with a contiguous waitlist behind it (D-05)", async () => {
+    // The demo has to be able to tap Register and be refused with the offer
+    // (US-2). That needs a capped event whose seats are actually gone.
+    const [full] = await db.sql<{ id: string; capacity: number; seats: number }[]>`
+      SELECT e.id, e.capacity,
+             (SELECT count(*)::int FROM event_registrations r
+               WHERE r.event_id = e.id AND r.status = 'registered') AS seats
+      FROM events e
+      WHERE e.capacity IS NOT NULL
+        AND e.status = 'approved'
+        AND (SELECT count(*) FROM event_registrations r
+              WHERE r.event_id = e.id AND r.status = 'registered') >= e.capacity
+      LIMIT 1
+    `;
+
+    expect(full).toBeDefined();
+    expect(full!.seats).toBe(full!.capacity);
+
+    const waiting = await db.sql<{ waitlist_position: number }[]>`
+      SELECT waitlist_position FROM event_registrations
+      WHERE event_id = ${full!.id} AND status = 'waitlisted'
+      ORDER BY waitlist_position
+    `;
+    // 1-based and contiguous, which is the shape cancel_event_registration
+    // maintains — the seed must not hold a state the real path cannot produce.
+    expect(waiting.length).toBeGreaterThan(0);
+    expect(waiting.map((r) => r.waitlist_position)).toEqual(
+      waiting.map((_, index) => index + 1),
+    );
+  });
+
+  it("produces a demo tenant the real register path agrees with", async () => {
+    /*
+     * The seed and `public.register_for_event` have to describe the same world.
+     * A seeded event that looks full but registers a learner anyway would be
+     * discovered in front of a teacher, which is the one place it must not be.
+     */
+    const [full] = await db.sql<{ id: string }[]>`
+      SELECT e.id FROM events e
+      WHERE e.capacity IS NOT NULL
+        AND e.status = 'approved'
+        AND (SELECT count(*) FROM event_registrations r
+              WHERE r.event_id = e.id AND r.status = 'registered') >= e.capacity
+      LIMIT 1
+    `;
+
+    // A learner of the demo school who holds no place on that event.
+    const [learner] = await db.sql<{ id: string; school_id: string }[]>`
+      SELECT p.id, p.school_id FROM profiles p
+      WHERE p.status = 'active'
+        AND NOT EXISTS (
+          SELECT 1 FROM event_registrations r
+          WHERE r.event_id = ${full!.id} AND r.profile_id = p.id
+        )
+      LIMIT 1
+    `;
+
+    const outcome = await asUser(
+      db.sql,
+      { schoolId: learner!.school_id, profileId: learner!.id, roles: ["learner"] },
+      async (tx) =>
+        tx<{ r_outcome: string; r_detail: Record<string, unknown> }[]>`
+          SELECT r_outcome, r_detail FROM public.register_for_event(${full!.id}::uuid, false)
+        `,
+    );
+
+    expect(outcome[0]!.r_outcome).toBe("event_full");
+    expect(outcome[0]!.r_detail).toMatchObject({ waitlistAvailable: true });
+  });
+
+  it("stores every eligibility rule as an object, not as a string of one", async () => {
+    /*
+     * A regression guard on a bug that hid in plain sight: the seed passed
+     * `JSON.stringify(...)` to a jsonb column, postgres.js stringified it again
+     * as part of serializing the parameter, and the row ended up holding a jsonb
+     * *string*. Every `->` read it as absent, so the Senior-High-only event
+     * silently admitted the whole school — and nothing failed, which is what
+     * made it worth a test rather than a fix.
+     */
+    const rows = await db.sql<{ kind: string; n: number }[]>`
+      SELECT jsonb_typeof(eligibility_json) AS kind, count(*)::int AS n
+      FROM events GROUP BY 1
+    `;
+    expect(rows.map((r) => r.kind)).toEqual(["object"]);
+
+    const [restricted] = await db.sql<{ grades: number[] }[]>`
+      SELECT ARRAY(SELECT jsonb_array_elements_text(eligibility_json -> 'gradeLevels')::int) AS grades
+      FROM events
+      WHERE jsonb_array_length(COALESCE(eligibility_json -> 'gradeLevels', '[]'::jsonb)) > 0
+      LIMIT 1
+    `;
+    // The demo needs at least one event that refuses somebody, or the
+    // NOT_ELIGIBLE screen has nothing to show.
+    expect(restricted?.grades.length).toBeGreaterThan(0);
   });
 
   it("refuses to run beside a school that is not flagged demo", async () => {

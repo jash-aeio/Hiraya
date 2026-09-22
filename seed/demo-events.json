@@ -1,6 +1,7 @@
 {
   "$comment": "Twelve events across the six categories and every status the demo needs to show: six finished (attendance, check-ins and XP), one happening right now (the scan target), three upcoming and approved (the register target), one awaiting an adviser, one rejected with a reason.",
   "$dates": "startsInDays is relative to the moment the seed runs; startsAtHour is the hour of the school day. The one event carrying happeningNow started an hour ago, so the scanner always has something live to point at.",
+  "$registrations": "Three states, because the register path can leave behind three: a seat, a waitlist place on a full event (positions are 1-based and contiguous), and a cancellation. The seed refuses to write a waitlist on an event that is not full - that is a state public.register_for_event cannot produce, and a demo holding one teaches the wrong thing.",
   "$publish": "publish_at is derived as one week before the event for anything approved, completed or cancelled, and stays null otherwise. An unapproved event has no publish date and is invisible to learners by policy, not by query.",
 
   "events": [
@@ -128,7 +129,9 @@
       "status": "approved",
       "createdByKey": "l07",
       "approval": { "role": "org_adviser", "decision": "approved", "approverKey": "advC" },
-      "registrations": ["l01", "l07", "l11", "l15", "l21", "l25", "l30", "l34", "l36", "l13", "l20", "l27"],
+      "$full": "Twenty seats, twenty taken. This is the event the demo taps Register on to show the EVENT_FULL refusal and the waitlist it offers in the same breath (US-2) - the refusal is the interesting screen, so the seed has to make it reachable.",
+      "registrations": ["l01", "l07", "l11", "l15", "l21", "l25", "l30", "l34", "l36", "l13", "l20", "l27", "l02", "l05", "l09", "l14", "l18", "l22", "l28", "l33"],
+      "waitlisted": ["l03", "l19", "l31"],
       "attendance": []
     },
     {
@@ -143,7 +146,9 @@
       "status": "approved",
       "createdByKey": "l05",
       "approval": { "role": "org_adviser", "decision": "approved", "approverKey": "advC" },
+      "$cancelled": "One learner gave up their place. An uncapped event has no waitlist to promote from, so this shows the cancel path on its own - the row stays, with a status, because event_registrations holds no DELETE grant.",
       "registrations": ["l05", "l13", "l22", "l23", "l26", "l32", "l02", "l19", "l37"],
+      "cancelled": ["l11"],
       "attendance": []
     },
     {
