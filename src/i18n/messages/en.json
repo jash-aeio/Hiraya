@@ -305,5 +305,43 @@
       "scanAgain": "Scan again",
       "scanAgainNamed": "Scan {name} again"
     }
+  },
+  "xp": {
+    "label": "Your points",
+    "title": "XP",
+    "intro": "Every point below came from something a teacher confirmed.",
+    "loading": "Loading your points",
+    "levelLabel": "Level",
+    "noLevel": "Not yet ranked",
+    "lifetime": "{xp, number} XP",
+    "season": "{xp, number} XP this {name}",
+    "history": "Where your points came from",
+    "historyNote": "Newest first. Corrections appear here too — points are never quietly edited.",
+    "verified": "Verified at the gate",
+    "correction": "Correction",
+    "deltaPositive": "+{xp, number}",
+    "deltaNegative": "−{xp, number}",
+    "progress": {
+      "label": "Progress to the next level",
+      "remaining": "{xp, number} XP to go",
+      "top": "Top level reached"
+    },
+    "entry": {
+      "checkin": "Checked in at {event}",
+      "checkinUnnamed": "Checked in at an event",
+      "feedback": "Feedback on {event}",
+      "feedbackUnnamed": "Event feedback",
+      "reversal": "Points taken back",
+      "dispute": "Dispute resolved",
+      "manual": "Adjusted by an adviser"
+    },
+    "empty": {
+      "title": "No points yet",
+      "description": "Register for something, then check in at the gate. Points arrive when a teacher confirms you were there."
+    },
+    "failed": {
+      "title": "Could not load your points",
+      "description": "Check your connection and try again."
+    }
   }
 }

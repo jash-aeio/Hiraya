@@ -305,5 +305,43 @@
       "scanAgain": "I-scan muli",
       "scanAgainNamed": "I-scan muli si {name}"
     }
+  },
+  "xp": {
+    "label": "Ang puntos mo",
+    "title": "XP",
+    "intro": "Bawat puntos sa ibaba ay galing sa isang bagay na kinumpirma ng guro.",
+    "loading": "Naglo-load ng puntos mo",
+    "levelLabel": "Antas",
+    "noLevel": "Wala pang antas",
+    "lifetime": "{xp, number} XP",
+    "season": "{xp, number} XP ngayong {name}",
+    "history": "Saan galing ang puntos mo",
+    "historyNote": "Pinakabago muna. Nandito rin ang mga pagwawasto — hindi tahimik na binabago ang puntos.",
+    "verified": "Beripikado sa gate",
+    "correction": "Pagwawasto",
+    "deltaPositive": "+{xp, number}",
+    "deltaNegative": "−{xp, number}",
+    "progress": {
+      "label": "Patungo sa susunod na antas",
+      "remaining": "{xp, number} XP na lang",
+      "top": "Nasa pinakamataas na antas"
+    },
+    "entry": {
+      "checkin": "Nag-check in sa {event}",
+      "checkinUnnamed": "Nag-check in sa isang event",
+      "feedback": "Feedback sa {event}",
+      "feedbackUnnamed": "Feedback sa event",
+      "reversal": "Binawing puntos",
+      "dispute": "Naresolba ang reklamo",
+      "manual": "Inayos ng tagapayo"
+    },
+    "empty": {
+      "title": "Wala pang puntos",
+      "description": "Mag-register sa isang event, pagkatapos mag-check in sa gate. Darating ang puntos kapag kinumpirma ng guro na naroon ka."
+    },
+    "failed": {
+      "title": "Hindi ma-load ang puntos mo",
+      "description": "Tingnan ang koneksyon at subukan muli."
+    }
   }
 }
