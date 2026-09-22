@@ -205,14 +205,26 @@ export async function verifyRls(connectionString: string): Promise<Finding[]> {
     //    is an RLS bypass reachable by anyone who reaches the database — and
     //    unlike a missing policy, nothing else in this script would notice.
     const definers = await sql<
-      { name: string; args: string; anon: boolean; pins_search_path: boolean }[]
+      {
+        name: string;
+        args: string;
+        anon: boolean;
+        service_role: boolean;
+        pins_search_path: boolean;
+        owner: string;
+        owner_bypasses_rls: boolean;
+      }[]
     >`
       SELECT p.proname AS name,
              pg_get_function_identity_arguments(p.oid) AS args,
              has_function_privilege('anon', p.oid, 'EXECUTE') AS anon,
-             COALESCE(p.proconfig::text LIKE '%search_path=%', false) AS pins_search_path
+             has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_role,
+             COALESCE(p.proconfig::text LIKE '%search_path=%', false) AS pins_search_path,
+             o.rolname AS owner,
+             (o.rolsuper OR o.rolbypassrls) AS owner_bypasses_rls
       FROM pg_proc p
       JOIN pg_namespace n ON n.oid = p.pronamespace
+      JOIN pg_roles o ON o.oid = p.proowner
       WHERE n.nspname = 'public' AND p.prosecdef
       ORDER BY p.proname
     `;
@@ -224,10 +236,49 @@ export async function verifyRls(connectionString: string): Promise<Finding[]> {
           detail: `${signature}: SECURITY DEFINER and anon holds EXECUTE — an RLS bypass callable without a session`,
         });
       }
+      if (fn.service_role) {
+        /*
+         * service_role already sees past RLS on every table, so EXECUTE here
+         * grants it nothing new — but it does put a second, undeclared caller
+         * on a function whose whole safety argument is the short list of things
+         * it can be asked to do. R2 confines the privileged path to
+         * src/lib/db/admin.ts and a named reason; a definer function callable
+         * as service_role is a way around that list which nothing would
+         * otherwise notice. Every file in src/db/rls/ revokes it explicitly,
+         * and this is what keeps the next one honest.
+         */
+        findings.push({
+          severity: "HIGH",
+          detail: `${signature}: SECURITY DEFINER and service_role holds EXECUTE — revoke it; the privileged path is src/lib/db/admin.ts, not this`,
+        });
+      }
       if (!fn.pins_search_path) {
         findings.push({
           severity: "HIGH",
           detail: `${signature}: SECURITY DEFINER without SET search_path — a caller can shadow the tables it reads`,
+        });
+      }
+      if (!fn.owner_bypasses_rls) {
+        /*
+         * Every tenant table here is FORCE ROW LEVEL SECURITY, and FORCE means
+         * the policies apply to the table's OWNER too. A SECURITY DEFINER
+         * function runs as its owner, so unless that role is a superuser or
+         * holds BYPASSRLS, the function reads under the *caller's* policies
+         * while believing it reads above them.
+         *
+         * That failure is silent and it is not a leak — it is the opposite. It
+         * under-reads: public.leaderboard would rank a learner against nobody
+         * but themselves, and public.register_for_event would count a full
+         * event as empty and overbook it. Locally the owner is a superuser and
+         * nothing notices, which is exactly why this is checked here rather
+         * than trusted to a test.
+         *
+         * If this fires on Supabase at M-01, the fix is to own these functions
+         * with a role that holds BYPASSRLS — never to drop FORCE.
+         */
+        findings.push({
+          severity: "CRITICAL",
+          detail: `${signature}: SECURITY DEFINER owned by '${fn.owner}', which neither is a superuser nor holds BYPASSRLS — under FORCE ROW LEVEL SECURITY this function reads under the caller's policies, so capacity counts and leaderboards will be silently wrong`,
         });
       }
     }

@@ -85,12 +85,33 @@ function idFor(key: string): string {
  * transaction.
  */
 
+/**
+ * The two jsonb columns the seed writes are validated as JSON rather than as
+ * "some object", because they are handed to postgres.js as jsonb parameters and
+ * it serializes them by type. `z.unknown()` would let a Date or a function
+ * through to a serializer that has no answer for either.
+ */
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+type JsonObject = { [key: string]: JsonValue };
+
+const jsonValue: z.ZodType<JsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(jsonValue),
+    z.record(z.string(), jsonValue),
+  ]),
+);
+const jsonObject = z.record(z.string(), jsonValue);
+
 const schoolFile = z.object({
   school: z.object({
     slug: z.string(),
     name: z.string(),
     abbreviation: z.string(),
-    settings: z.record(z.string(), z.unknown()),
+    settings: jsonObject,
   }),
   seasons: z.array(
     z.object({
@@ -179,7 +200,7 @@ const eventFile = z.object({
       capacity: z.number().optional(),
       status: z.enum(["draft", "pending", "approved", "rejected", "cancelled", "completed"]),
       requiresSslgApproval: z.boolean().optional(),
-      eligibility: z.record(z.string(), z.unknown()).optional(),
+      eligibility: jsonObject.optional(),
       createdByKey: z.string(),
       approval: z.object({
         role: z.enum(approvalRole.enumValues),
@@ -188,6 +209,16 @@ const eventFile = z.object({
         reason: z.string().optional(),
       }),
       registrations: z.array(z.string()),
+      /**
+       * Learners holding a waitlist place, in order. Only meaningful on a
+       * capped event that `registrations` already fills — the demo has to be
+       * able to show the EVENT_FULL refusal and its offer (US-2), and a
+       * waitlist on an event with seats left would be a state the real
+       * register path cannot produce.
+       */
+      waitlisted: z.array(z.string()).optional(),
+      /** Learners who gave up a place. Keeps the cancel path visible. */
+      cancelled: z.array(z.string()).optional(),
       attendance: z.array(z.string()),
       doubleScanned: z.array(z.string()).optional(),
     }),
@@ -223,10 +254,25 @@ async function readSeed<T>(name: string, schema: z.ZodType<T>): Promise<T> {
 // Row helpers
 // ---------------------------------------------------------------------------
 
-type SqlValue = string | number | boolean | Date | null;
+/*
+ * A jsonb column takes the OBJECT, never a pre-stringified string.
+ *
+ * postgres.js asks Postgres for the parameter types during Parse and then
+ * serializes each value with that type's serializer — and jsonb's serializer is
+ * JSON.stringify. Handing it a string it has already stringified stores a jsonb
+ * *string* rather than an object, which every `->` and `jsonb_typeof` then reads
+ * as absent. That is how the Senior-High-only demo event quietly lost its
+ * eligibility rule; `public.register_for_event` now raises on a malformed rule
+ * rather than admitting the whole school, which is what caught it.
+ */
+type SqlValue = string | number | boolean | Date | null | JsonObject;
 type Row = Record<string, SqlValue>;
 
 const IDENTIFIER = /^[a-z][a-z0-9_]*$/;
+
+function isJsonObject(value: SqlValue): value is JsonObject {
+  return typeof value === "object" && value !== null && !(value instanceof Date);
+}
 
 /**
  * Bulk upsert on the primary key.
@@ -255,7 +301,15 @@ async function upsert(
   const placeholders = rows
     .map((_, r) => `(${columns.map((_, c) => `$${r * columns.length + c + 1}`).join(", ")})`)
     .join(", ");
-  const values = rows.flatMap((row) => columns.map((column) => row[column] ?? null));
+  const values = rows.flatMap((row) =>
+    columns.map((column) => {
+      const value = row[column] ?? null;
+      // `tx.json` tags the value so postgres.js serializes it once, as jsonb.
+      // Passing a bare object is a type error and passing a pre-stringified one
+      // is worse — it type-checks and stores a jsonb string (see SqlValue).
+      return isJsonObject(value) ? tx.json(value) : value;
+    }),
+  );
 
   const assignments = columns.filter((c) => c !== "id").map((c) => `${c} = excluded.${c}`);
   const action =
@@ -347,7 +401,7 @@ export async function seedDemo(connectionString: string): Promise<SeedSummary> {
             slug: school.school.slug,
             name: school.school.name,
             abbreviation: school.school.abbreviation,
-            settings_json: JSON.stringify(school.school.settings),
+            settings_json: school.school.settings,
             is_demo: true,
           },
         ],
@@ -654,7 +708,7 @@ export async function seedDemo(connectionString: string): Promise<SeedSummary> {
           ends_at: ends,
           venue: event.venue,
           capacity: event.capacity ?? null,
-          eligibility_json: JSON.stringify(event.eligibility ?? {}),
+          eligibility_json: event.eligibility ?? {},
           status: event.status,
           requires_sslg_approval: event.requiresSslgApproval ?? false,
           publish_at: published ? new Date(starts.getTime() - 7 * DAY_MS) : null,
@@ -683,22 +737,73 @@ export async function seedDemo(connectionString: string): Promise<SeedSummary> {
         tx,
       );
 
-      await count(
-        "event_registrations",
-        events.events.flatMap((event) =>
-          event.registrations.map((key) => ({
-            id: idFor(`registration:${event.key}:${key}`),
-            school_id: schoolId,
-            event_id: eventId(event.key),
-            profile_id: profileId(key),
-            status: "registered",
-            waitlist_position: null,
-            registered_at: new Date((startOf.get(event.key) ?? now).getTime() - 5 * DAY_MS),
-            cancelled_at: null,
-          })),
-        ),
-        tx,
-      );
+      /*
+       * Registrations, in the three states the register path can leave behind.
+       *
+       * The seed is checked against the rules public.register_for_event
+       * enforces rather than merely being plausible: a demo tenant that holds a
+       * state the real endpoint cannot produce is a demo that teaches the wrong
+       * thing, and it is the kind of error that surfaces in front of a teacher.
+       */
+      for (const event of events.events) {
+        const waitlisted = event.waitlisted ?? [];
+        if (event.capacity !== undefined && event.registrations.length > event.capacity) {
+          throw new Error(
+            `seed/demo-events.json: ${event.key} registers ${String(event.registrations.length)} into ${String(event.capacity)} seats.`,
+          );
+        }
+        if (waitlisted.length > 0 && event.registrations.length !== event.capacity) {
+          throw new Error(
+            `seed/demo-events.json: ${event.key} has a waitlist but is not full. A waitlist place is only reachable once capacity is taken.`,
+          );
+        }
+      }
+
+      const registrationRows: Row[] = events.events.flatMap((event) => {
+        const startsAt = startOf.get(event.key) ?? now;
+        const registeredAt = new Date(startsAt.getTime() - 5 * DAY_MS);
+
+        const seated = event.registrations.map((key) => ({
+          id: idFor(`registration:${event.key}:${key}`),
+          school_id: schoolId,
+          event_id: eventId(event.key),
+          profile_id: profileId(key),
+          status: "registered",
+          waitlist_position: null,
+          registered_at: registeredAt,
+          cancelled_at: null,
+        }));
+
+        // 1-based and contiguous, which is what cancel_event_registration
+        // maintains: a gap would read to a learner as a queue that has stopped
+        // moving.
+        const waiting = (event.waitlisted ?? []).map((key, index) => ({
+          id: idFor(`registration:${event.key}:${key}`),
+          school_id: schoolId,
+          event_id: eventId(event.key),
+          profile_id: profileId(key),
+          status: "waitlisted",
+          waitlist_position: index + 1,
+          // Later than everyone seated — that is why they are waiting.
+          registered_at: new Date(startsAt.getTime() - 2 * DAY_MS),
+          cancelled_at: null,
+        }));
+
+        const gone = (event.cancelled ?? []).map((key) => ({
+          id: idFor(`registration:${event.key}:${key}`),
+          school_id: schoolId,
+          event_id: eventId(event.key),
+          profile_id: profileId(key),
+          status: "cancelled",
+          waitlist_position: null,
+          registered_at: registeredAt,
+          cancelled_at: new Date(startsAt.getTime() - 3 * DAY_MS),
+        }));
+
+        return [...seated, ...waiting, ...gone];
+      });
+
+      await count("event_registrations", registrationRows, tx);
 
       // -- check-ins ------------------------------------------------------
       // The jti is what makes a replayed queue a no-op (R6). It is synthetic

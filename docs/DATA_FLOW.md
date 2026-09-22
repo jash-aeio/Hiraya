@@ -27,7 +27,7 @@ definitions live in `docs/SYSTEM_DESIGN.md` §4.
 | Destination | Data | Trigger | Control |
 |---|---|---|---|
 | Learner | Own profile, XP ledger, rank, record | In-app | Own records only |
-| Leaderboards | Display name, avatar, XP, rank | Published | Opt-out honoured; **no LRN, no section-level identifiers for hidden learners** |
+| Leaderboards | Display name, avatar, **grade level, section**, XP, rank, level title | Published | Opt-out honoured — a hidden learner is absent from the rows entirely and still sees their own rank; **no LRN**. Org boards are readable school-wide, like the org directory itself (FR-2.5) |
 | Org Officer | Event roster, attendance, report | Own org events | Org-scoped |
 | Adviser / guidance | Participation analytics, non-participant list | In-app | Role-restricted, **every access audited** |
 | School Admin | All school data, full export | On demand | School-scoped |

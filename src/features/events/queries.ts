@@ -5,7 +5,8 @@ import { and, asc, desc, eq, gte, lt } from "drizzle-orm";
 import { eventRegistrations, events, organizations } from "@/db/schema";
 import type { TenantTransaction } from "@/lib/db/client";
 
-import type { EventSummary, ListEventsQuery } from "./schema";
+import { eventEligibilitySchema } from "./schema";
+import type { EventDetail, EventSummary, ListEventsQuery } from "./schema";
 
 /**
  * Reads for the events feature.
@@ -84,4 +85,92 @@ export async function selectEvents(
     },
     viewerRegistrationStatus: row.viewerRegistrationStatus,
   }));
+}
+
+/**
+ * One event, with the caller's own registration and the event's published
+ * eligibility rule (D-01, P-01).
+ *
+ * A detail read exists rather than being a filtered view of the list because a
+ * screen that can be deep-linked, shared (FR-6.3) or opened from a notification
+ * cannot depend on a collection the client happens to hold
+ * (features/events/schema.ts).
+ *
+ * `eligibility_json` is a jsonb column with no shape guarantee at the database
+ * level, so it is parsed rather than cast — an event seeded with a stray key
+ * should not reach a component as an undefined array.
+ */
+export async function selectEventDetail(
+  tx: TenantTransaction,
+  viewerProfileId: string,
+  eventId: string,
+): Promise<EventDetail | null> {
+  const [row] = await tx
+    .select({
+      id: events.id,
+      title: events.title,
+      description: events.description,
+      startsAt: events.startsAt,
+      endsAt: events.endsAt,
+      venue: events.venue,
+      capacity: events.capacity,
+      status: events.status,
+      eligibilityJson: events.eligibilityJson,
+      orgId: organizations.id,
+      orgName: organizations.name,
+      orgCategory: organizations.category,
+      orgLogoKey: organizations.logoKey,
+      registrationStatus: eventRegistrations.status,
+      registrationWaitlistPosition: eventRegistrations.waitlistPosition,
+      registrationRegisteredAt: eventRegistrations.registeredAt,
+    })
+    .from(events)
+    .innerJoin(organizations, eq(organizations.id, events.orgId))
+    .leftJoin(
+      eventRegistrations,
+      and(
+        eq(eventRegistrations.eventId, events.id),
+        eq(eventRegistrations.profileId, viewerProfileId),
+      ),
+    )
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  // No row means the events policy did not admit this caller to it, which is
+  // the same answer as "no such event" on purpose (src/lib/errors.ts).
+  if (!row) return null;
+
+  const eligibility = eventEligibilitySchema.parse(row.eligibilityJson ?? {});
+
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    startsAt: row.startsAt.toISOString(),
+    endsAt: row.endsAt.toISOString(),
+    venue: row.venue,
+    capacity: row.capacity,
+    status: row.status,
+    org: {
+      id: row.orgId,
+      name: row.orgName,
+      category: row.orgCategory,
+      logoKey: row.orgLogoKey,
+    },
+    viewerRegistrationStatus: row.registrationStatus,
+    eligibility,
+    // The same two conditions register_for_event checks before it counts
+    // anything. They are duplicated knowingly: here the answer renders a
+    // disabled control, there it refuses a write, and only the second one is
+    // load-bearing. If they ever disagree, the function is right.
+    registrationOpen: row.status === "approved" && row.endsAt > new Date(),
+    viewerRegistration:
+      row.registrationStatus && row.registrationRegisteredAt
+        ? {
+            status: row.registrationStatus,
+            waitlistPosition: row.registrationWaitlistPosition,
+            registeredAt: row.registrationRegisteredAt.toISOString(),
+          }
+        : null,
+  };
 }

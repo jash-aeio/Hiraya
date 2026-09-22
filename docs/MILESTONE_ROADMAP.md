@@ -377,9 +377,12 @@ through with real people.
 | R19 | Parallel work produces conflicting migrations, or a table without its policy or fixture | Med | Med | One open migration repo-wide; the PR template requires policy and fixture in the same PR; `db:verify-rls` in CI | ongoing |
 | R20 | Migration round-trip through the maintainer becomes the bottleneck, or a Supabase-only surprise surfaces late | Med | Med | Lane D's local Postgres is bootstrapped with Supabase's roles *and* default privileges, so most surprises reproduce locally; batch migrations rather than trickling them | ongoing |
 
+| R21 | **A `SECURITY DEFINER` function whose owner does not bypass RLS silently reads under the *caller's* policies** | Med | High | Every tenant table is FORCE ROW LEVEL SECURITY, so FORCE applies to the owner too. The failure under-reads rather than over-reads — a leaderboard ranks a learner against nobody, and a capacity count sees a full event as empty and overbooks it. `npm run db:verify-rls` fails CRITICAL on it (D28–D30 slice); **the local owner is a superuser, so only Supabase will actually answer this** — run it there at M-01 | open |
+
 R13, R14 and R16 are new relative to the original proposal and follow directly from D7, D11 and D17.
 R17 follows from D20; R18–R20 from D26, and all three are about coordination rather than about the
-product — which is what a second developer actually costs.
+product — which is what a second developer actually costs. R21 is the first risk found by the code
+rather than by planning: it was invisible until three `SECURITY DEFINER` functions existed to be wrong.
 
 ---
 

@@ -12,6 +12,107 @@ other lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-22 — Lane D's half of Phase 0, and two holes on the scan path
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**Shipped**
+
+- **D-01 through D-05 — the whole Lane D critical path.** Seven endpoints: `GET /events/:id`,
+  `POST`/`DELETE /events/:id/register`, `GET /events/:id/roster`, `POST /checkins`,
+  `GET /checkin/events`, `GET /me/xp`, `GET /leaderboard`. Every screen's fetch URL already matched
+  one, which is the two-lane handshake (`WORKSTREAMS.md` §2) working exactly as designed — neither
+  lane had anything to renegotiate at the end
+- **Capacity is settled in SQL, not in a service.** `public.register_for_event` counts and writes
+  behind `SELECT ... FOR UPDATE` on the event row; `public.cancel_event_registration` promotes the
+  head of the waitlist and renumbers the rest in the same transaction. Proven rather than asserted:
+  two learners race one seat and exactly one gets it, ten race four and the cap holds with the
+  waitlist coming out 1..6
+- **`public.award_checkin_xp` is the D18 bridge `xp_ledger.sql` promised.** It takes a check-in id
+  rather than a profile and an amount, re-states the check-in INSERT policy, and awards at most once
+  per learner per event under the event lock. An officer's session still has no other INSERT path
+  into the ledger
+- **Non-negotiable test 2 passes.** A 40-scan queue replayed twice, in both orders, produces zero
+  duplicate XP (`tests/integration/checkin-xp.test.ts`)
+- **The board's two FR-5.8 rules are SQL, not rendering.** A hidden learner is absent from the rows
+  and still sees their own rank, and ranks are computed over the *visible* population — ranking over
+  everyone and dropping the hidden rows would leave a gap that announces both that somebody is
+  hidden and roughly what they scored
+- **235 tests green**, up from 170. `npm run build` compiles all seven routes
+
+**Decisions**
+
+- **D28** — a leaderboard row publishes display name, avatar, **grade level, section**, XP, rank and
+  level title, school-wide; org boards are readable by anyone in the school. Raised by
+  `hiraya-privacy-auditor` against `DATA_FLOW.md` §1 and confirmed by the maintainer. This is the
+  widest publication of learner attributes in the product and is the one to re-examine with the
+  school's DPO before Gate B
+- **D29** — a check-in against an event that is not `approved` writes attendance and awards nothing
+- **D30** — a scan's claimed time is bounded by *server* time as well as by the event window
+
+**Docs updated**
+
+- `docs/TECHNICAL_ARCHITECTURE.md` — D28, D29, D30 added
+- `docs/DATA_FLOW.md` §1 — the leaderboard Outputs row now states what a board actually publishes
+- `docs/SYSTEM_DESIGN.md` §8 — `EVENT_NOT_APPROVED` added; `SCAN_OUTSIDE_EVENT_WINDOW` now says
+  which half of its behaviour exists in Phase 0 and which waits for Phase 3
+- `docs/WORKSTREAMS.md` §5 — D-01…D-05 struck with what each landed; the critical path closed; the
+  fixture seam named as the one task between here and the walkable loop
+
+**Risks**
+
+- Materialized: **two authorization holes on the scan path, both found by `/security-review`, both
+  fixed in `ca0ab9d`.** (1) Nothing required an event to be *approved* before a scan could mint
+  points — and an Org Officer **is a learner**, who can file a proposal, have an adviser reject it,
+  and still hold the grant that writes attendance for their own org. That gap was the approval
+  control itself, not the colluding-officer risk T2 already accepts. (2) The scan window compared
+  `scanned_at` only against the event's own start and end, which made the rule circular: a time
+  inside the window of an event that finished last term passed *because* it was inside that window,
+  so attendance could be backdated into any past event
+- Newly identified: **R21 — a SECURITY DEFINER function whose owner does not bypass RLS reads under
+  the *caller's* policies while believing it reads above them.** Every tenant table is FORCE ROW
+  LEVEL SECURITY, and FORCE applies to the owner too. The failure is silent and it under-reads:
+  `public.leaderboard` would rank a learner against nobody, and `register_for_event` would count a
+  full event as empty and overbook it. Locally the owner is a superuser, so nothing notices.
+  `db:verify-rls` now fails CRITICAL on it, which is what M-01 will actually test
+- Retired: none
+
+**Next**
+
+- **The fixture seam** — `src/lib/fixtures.ts` and the four `components/fixtures.ts` beside it.
+  Lane P, and it must land after P-06 merges because it touches the same files
+- **M-01** — apply to Supabase and deploy. Both of its dependencies (D-05, P-06) are now done
+- Phase 0's walkable-loop criterion closes with those two, in that order
+
+**Flagged**
+
+- **`hiraya-tenancy-auditor` returned CLEAN twice** (once on D-01, once on D-02…D-05) and
+  `hiraya-privacy-auditor` found nothing critical — but `/security-review` still found two real
+  authorization holes that both agents had read past. Three passes over the same diff found three
+  different things. Worth remembering before treating any single clean audit as sufficient
+- **The seed had a silent bug and nothing failed.** `eligibility_json` was double-encoded
+  (`JSON.stringify` into a jsonb parameter that postgres.js then serialized again), so the
+  Senior-High-only demo event admitted the whole school. It was caught only because
+  `register_for_event` now *raises* on a malformed rule rather than reading it as "no rule". The
+  fail-open version would have shipped
+- **R21 is untested against the database where it matters.** Everything in this entry ran against a
+  local Postgres whose owner is a superuser. Supabase's `postgres` is not one, and whether it holds
+  BYPASSRLS decides whether three functions work correctly there. **Run `npm run db:verify-rls`
+  against Supabase at M-01 before anything else** — if it fires, the fix is to own these functions
+  with a role that holds BYPASSRLS, never to drop FORCE
+- **XP is not granted retroactively** when an event is approved after a scan. Nothing re-runs the
+  award. Phase 2 has to decide whether anything should
+- **The flaky test file persists**, and now has a shape: it fails at *file* level (suite setup),
+  never on an assertion, and passed on every re-run. Consistent with the embedded-Postgres startup
+  rather than with anything under test
+- **`GET /events/:id/roster` inherits its safety entirely from a policy this work did not touch**
+  (`event_registrations_select_self_or_hosts`). Noted by the privacy audit: the roster is safe, but
+  nothing in this slice re-proves the thing it rests on
+- **This branch will conflict with PR #10 in `docs/PROGRESS.md`.** That is expected and the
+  resolution is the documented one: **keep both entries, newest first** — never choose one
+
+---
+
 ## 2026-09-22 — P-06: the audit the last session could not run
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio

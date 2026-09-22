@@ -461,10 +461,11 @@ Services throw domain errors; one mapper converts them to HTTP. Services never k
 | `VALIDATION_FAILED` | 422 | Zod rejection | Field-level messages, localized |
 | `EVENT_FULL` | 409 | At capacity | Offer the waitlist |
 | `NOT_ELIGIBLE` | 403 | Grade, section, or membership filter | State which criterion, not a generic refusal |
+| `EVENT_NOT_APPROVED` | 403 | Scanning for an event no adviser approved | Name the event and say it needs approval — the officer can see it, they just may not turn it into attendance |
 | `DUPLICATE_CHECKIN` | 200 | Already checked in | **Success, not an error** — the officer did nothing wrong |
 | `TOKEN_EXPIRED` | 422 | QR past expiry + skew | "Ask them to refresh their ID" |
 | `TOKEN_INVALID` | 422 | Bad signature or wrong school | Generic reason; log the detail |
-| `SCAN_OUTSIDE_EVENT_WINDOW` | 422 | `scanned_at` outside the event | Flag for adviser review rather than discarding |
+| `SCAN_OUTSIDE_EVENT_WINDOW` | 422 | `scanned_at` outside the event window, **or implausible against server time** (D30) | Flag for adviser review rather than discarding. **Phase 0 refuses it at the gate with the reason shown**; the review queue needs a column on `checkins` that Phase 3 adds |
 | `IMPORT_ROW_INVALID` | 207 | Some rows failed | Per-row report; valid rows still import |
 | `RATE_LIMITED` | 429 | Abuse guard | Retry-after |
 

@@ -27,21 +27,28 @@ import { log } from "@/lib/log";
  *     request body: bodies contain names.
  */
 
-export interface RouteContext<TInput> {
+export interface RouteContext<TInput, TParams> {
   session: Session;
   input: TInput;
   request: Request;
-  params: Record<string, string>;
+  params: TParams;
 }
 
-export interface RouteDefinition<TInput, TOutput> {
+export interface RouteDefinition<TInput, TOutput, TParams> {
   /** Roles permitted to call this route. Empty means any authenticated user. */
   roles?: string[];
   /** Zod schema for the request body or search params. Omit for no input. */
   input?: ZodType<TInput>;
+  /**
+   * Zod schema for the dynamic route segments. A path parameter is client input
+   * like any other — `/events/<anything>/register` reaches this handler — so R7
+   * applies to it, and parsing it here means no route re-implements the check
+   * and none of them forgets. Omit on a route with no dynamic segment.
+   */
+  params?: ZodType<TParams>;
   /** Set true only for genuinely public endpoints (activation, login, health). */
   public?: boolean;
-  handler: (ctx: RouteContext<TInput>) => Promise<TOutput>;
+  handler: (ctx: RouteContext<TInput, TParams>) => Promise<TOutput>;
 }
 
 type NextRouteHandler = (
@@ -49,8 +56,8 @@ type NextRouteHandler = (
   context: { params: Promise<Record<string, string>> },
 ) => Promise<NextResponse>;
 
-export function defineRoute<TInput, TOutput>(
-  definition: RouteDefinition<TInput, TOutput>,
+export function defineRoute<TInput, TOutput, TParams = Record<string, string>>(
+  definition: RouteDefinition<TInput, TOutput, TParams>,
 ): NextRouteHandler {
   return async function route(request, context) {
     let session: Session | null = null;
@@ -67,7 +74,11 @@ export function defineRoute<TInput, TOutput>(
         ? definition.input.parse(await readInput(request))
         : (undefined as TInput);
 
-      const params = (await context.params) ?? {};
+      const rawParams = (await context.params) ?? {};
+      const params = definition.params
+        ? definition.params.parse(rawParams)
+        : (rawParams as TParams);
+
       const result = await definition.handler({
         // A public route has no session; the type is honest about the cast being
         // the route author's responsibility, not a silent `any`.
