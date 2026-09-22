@@ -343,5 +343,47 @@
       "title": "Hindi ma-load ang puntos mo",
       "description": "Tingnan ang koneksyon at subukan muli."
     }
+  },
+  "leaderboard": {
+    "label": "Ranggo",
+    "title": "Leaderboard",
+    "intro": "Nakaayos ayon sa puntos na kinita sa gate. Inilalapit ka ng board ng seksyon at baitang sa mga kaklaseng nakikita mo araw-araw.",
+    "scopeLabel": "Board",
+    "loading": "Naglo-load ng board",
+    "season": "{name}",
+    "yours": "Ang puwesto mo",
+    "you": "Ikaw",
+    "grade": "Baitang {grade}",
+    "xp": "{xp, number} XP",
+    "hiddenNote": "Nakatago ka sa board na ito, kaya ikaw lang ang nakakakita ng puwesto mo. Mababago mo ito sa settings.",
+    "scope": {
+      "section": "Seksyon ko",
+      "grade": "Baitang ko",
+      "school": "Paaralan"
+    },
+    "heading": {
+      "section": "Ang seksyon mo",
+      "grade": "Ang baitang mo",
+      "school": "Buong paaralan",
+      "org": "Ang organisasyon mo"
+    },
+    "headingOf": {
+      "section": "Seksyon {ref}",
+      "grade": "Baitang {ref}",
+      "org": "{ref}",
+      "school": "Buong paaralan"
+    },
+    "unranked": {
+      "title": "Wala ka pang ranggo",
+      "description": "Mag-check in sa isang event at lilitaw ka rito. Galing sa pagdating ang puntos, hindi sa pagpaparehistro."
+    },
+    "empty": {
+      "title": "Wala pang nasa board",
+      "description": "Mapupuno ang board habang nagche-check in ang mga mag-aaral sa mga event ngayong season."
+    },
+    "failed": {
+      "title": "Hindi ma-load ang board",
+      "description": "Tingnan ang koneksyon at subukan muli."
+    }
   }
 }
