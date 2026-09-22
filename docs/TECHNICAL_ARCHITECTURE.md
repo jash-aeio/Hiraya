@@ -30,7 +30,7 @@ one of these.
 | **D3** | Solo developer + Claude Code. **Amended by D26:** a second developer joins from 2026-09-21 | — | Automation and agents substitute for a QA role |
 | **D4** | LRN-derived username + password; one-time activation code at homeroom | Public-HS learners have no reliable email | **No self-service password reset for learners** (§6) |
 | **D5** | Both QR paths, officer-scan primary | Officer scanning puts the offline queue on 1–5 known devices instead of hundreds of unknown ones | Two scan paths to build and test |
-| **D6** | i18n scaffolding in MVP, Filipino locale in Phase 2 | Retrofitting i18n across a finished UI is the refactor that never happens | Launch is English-first |
+| **D6** | i18n scaffolding in MVP, Filipino locale in Phase 2 | Retrofitting i18n across a finished UI is the refactor that never happens | Launch is English-first. **Overtaken 2026-09-22**: both catalogues are full (299 keys) and P-06 walked every Phase 0 screen in Filipino. No switcher yet — only the `HIRAYA_LOCALE` cookie selects it, and the control lands with the Phase 1 settings screen |
 | **D7** | Demo tenant first, then pitch | Teachers approve what they can touch on a phone | Builds before any commitment exists |
 | **D8** | School is controller, developer is processor; infra in a school-owned account | Puts learner data under the school's existing consent channel rather than a private individual | Slower setup; needs a written agreement |
 | **D9** | Free `*.vercel.app` until the school commits | Do not defend a name before there is a partner | Less polished pitch URL |
