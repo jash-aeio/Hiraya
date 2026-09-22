@@ -87,8 +87,11 @@ proposal document from an outside developer stalls.
 - [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds
 - [ ] The full loop is walkable in the demo: browse → register → check in → see XP → see leaderboard
 - [x] Cross-tenant denial test passes against seeded schools A and B — all 21 tenant tables, plus a case proving the test fails when RLS is disabled (2026-09-21)
-- [ ] First load ≤ 500 KB, verified via `browser_network_requests`
-- [ ] WCAG AA passes on every demo screen via the a11y tree
+- [x] First load ≤ 500 KB, verified via `browser_network_requests` — **200–209 KB across 14 routes**
+      at 360×800 on a production build, the heaviest being `/demo` and `/design` at 208.8 KB (2026-09-22, P-06)
+- [ ] WCAG AA passes on every demo screen via the a11y tree — **two failures found and fixed** (teal on
+      the canvas at 4.44:1; no `h1` on the officer gate). **One open: no `nav` landmark on any screen**,
+      because there is no navigation between screens to mark up. Booked as P-14, Phase 1
 - [ ] No real learner data exists anywhere
 
 **Testing checkpoint.** `hiraya-mobile-audit` on every demo screen; `hiraya-tenancy-auditor` on the

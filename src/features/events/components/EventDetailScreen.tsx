@@ -217,7 +217,7 @@ export function EventDetailScreen({ eventId }: { eventId: string }) {
     <div className="flex flex-col gap-5">
       <Link
         href="/events"
-        className="type-small -ml-1 inline-flex min-h-11 w-fit items-center gap-1.5 px-1 text-primary hover:text-primary-hover"
+        className="type-small -ml-1 inline-flex min-h-11 w-fit items-center gap-1.5 px-1 text-primary-ink hover:text-primary-hover"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
         {t("detail.back")}
