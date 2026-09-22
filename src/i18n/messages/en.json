@@ -343,5 +343,47 @@
       "title": "Could not load your points",
       "description": "Check your connection and try again."
     }
+  },
+  "leaderboard": {
+    "label": "Standings",
+    "title": "Leaderboard",
+    "intro": "Ranked by points earned at the gate. Section and grade boards put you beside the people you actually see.",
+    "scopeLabel": "Board",
+    "loading": "Loading the board",
+    "season": "{name}",
+    "yours": "Your place",
+    "you": "You",
+    "grade": "Grade {grade}",
+    "xp": "{xp, number} XP",
+    "hiddenNote": "You are hidden from this board, so only you can see your place on it. You can change that in your settings.",
+    "scope": {
+      "section": "My section",
+      "grade": "My grade",
+      "school": "School"
+    },
+    "heading": {
+      "section": "Your section",
+      "grade": "Your grade level",
+      "school": "The whole school",
+      "org": "Your organization"
+    },
+    "headingOf": {
+      "section": "Section {ref}",
+      "grade": "Grade {ref}",
+      "org": "{ref}",
+      "school": "The whole school"
+    },
+    "unranked": {
+      "title": "You are not ranked yet",
+      "description": "Check in at one event and you appear here. Points come from arriving, not from registering."
+    },
+    "empty": {
+      "title": "Nobody is on the board yet",
+      "description": "This board fills up as learners check in at events this season."
+    },
+    "failed": {
+      "title": "Could not load the board",
+      "description": "Check your connection and try again."
+    }
   }
 }
