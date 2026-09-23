@@ -385,5 +385,13 @@
       "title": "Hindi ma-load ang board",
       "description": "Tingnan ang koneksyon at subukan muli."
     }
+  },
+  "navigation": {
+    "label": "Pangunahin",
+    "home": "Home",
+    "events": "Mga Kaganapan",
+    "leaderboard": "Leaderboard",
+    "xp": "XP",
+    "scan": "I-scan"
   }
 }

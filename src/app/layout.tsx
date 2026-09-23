@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { ToastProvider } from "@/design";
 import { fontSans } from "@/design/font";
 import { DemoBar } from "@/features/demo/components/DemoBar";
+import { AppNav } from "@/features/navigation/components/AppNav";
 
 import "./globals.css";
 
@@ -42,6 +43,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 renders nothing at all when there is no demo session. */}
             <DemoBar />
             {children}
+            {/* The app's only `nav` landmark, mounted once here for the same
+                reason DemoBar is: navigation each screen has to remember is
+                navigation one screen will forget. It renders nothing when
+                there is no session, and hides itself on /demo and /design. */}
+            <AppNav />
           </ToastProvider>
         </NextIntlClientProvider>
       </body>

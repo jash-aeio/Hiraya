@@ -182,6 +182,13 @@ on the thing that matters — that the label, the hint and the error are all tie
 `hiraya-mobile-audit` runs against, and the place to look before building a component that may already
 exist. See `src/design/README.md` for the working rules.
 
+**Chrome**
+
+| Component | Notes |
+|---|---|
+| `NavBar` | The bottom tab bar (§7) and the app's only `nav` landmark. Presentational: it is handed its items and knows nothing about roles or routes. `features/navigation/AppNav` decides the item list; `navView.ts` holds both rules as pure functions. Mounted once in the root layout, hidden on `/demo` and `/design` |
+| `NavIcon` | The five tab marks, authored on Lucide's grid like `CategoryIcon` (D14). `aria-hidden` — the label beside each one is the accessible name |
+
 **Learner components**
 
 | Component | Notes |

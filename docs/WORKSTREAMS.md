@@ -20,7 +20,7 @@ reachable**. What remains is two demo defects and the pitch kit.
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last work to land** | **M-01 — the deploy is live** at `https://hiraya-eosin.vercel.app` (2026-09-23, no commit: infrastructure, not code). Before it, D34 (`00965b3`) |
+| **Last work to land** | **P-15**, the Phase 0 bottom navigation — WCAG AA closed. Before it, **D35** (native deferred out of MVP) and **M-01**, the live deploy at `https://hiraya-eosin.vercel.app` |
 | **In flight** | Nothing. No open PRs |
 | **Blocked on the maintainer** | Nothing blocking. **M-02** (pitch kit) is yours whenever you want it; Claude drafts all three pieces |
 | **Open tasks, whole project** | 3 in Phase 0 · 17 queued behind Gate A in Phase 1 |
@@ -31,18 +31,22 @@ reachable**. What remains is two demo defects and the pitch kit.
 |---|---|---|---|
 | 1 | **D-07** — the demo's live event goes stale hours after seeding | Lane D | `build D-07` |
 | 2 | **P-08** — avatar keys outrun the assets; 404s on the *public* demo | Lane P | `build P-08` |
-| 3 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
+| 3 | **The phone test** — the last Phase 0 criterion | **you**, on a phone off wifi | `walk me through the phone test` |
+| 4 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
 
-**Four of Phase 0's six acceptance criteria are ticked** — unchanged by the deploy. The walkable loop
-and the 500 KB budget closed on 2026-09-23; cross-tenant denial closed on 2026-09-21. Two remain:
-**WCAG AA** is one finding short — **P-14**, the missing navigation landmark, deliberately booked into
-Phase 1 (§6) — and **the phone-over-mobile-data load** is now *unblocked but untested*. The URL exists;
-what it still needs is a real phone on real mobile data, which is a maintainer action and not a task
-anyone can prompt.
+**Five of Phase 0's six acceptance criteria are ticked.** **WCAG AA closed on 2026-09-23** with
+P-15, the Phase 0 bottom navigation — the last P-06 finding. The walkable loop and the 500 KB budget
+closed on 2026-09-23; cross-tenant denial on 2026-09-21; no-real-learner-data on 2026-09-23.
 
-**D-07 and P-08 are now public defects, not private ones.** Both were booked when the demo lived only
-on `localhost`. A tenant seeded yesterday has no live event, so the check-in half of the pitch cannot
-be shown at all — and check-in is the half the whole product argument rests on. P-08's missing avatars
+**One criterion remains, and it is not a task anyone can prompt.** *"Demo tenant loads on a real phone
+over mobile data in under 3 seconds"* needs a real phone on real mobile data. M-01 removed the blocker
+by publishing the URL; what is left is two minutes of the maintainer's time and a phone off wifi. It is
+the only Phase 0 criterion that cannot be closed from this machine — and with native deferred (D35),
+the web PWA is the only delivery path, so it matters more than it did when it was written.
+
+**D-07 and P-08 are public defects, not private ones.** Both were booked when the demo lived only on
+`localhost`. A tenant seeded yesterday has no live event, so the check-in half of the pitch cannot be
+shown at all — and check-in is the half the whole product argument rests on. P-08's missing avatars
 404 on the roster, the board and the persona picker. Anyone given the URL today sees both.
 
 ## 1. Lanes
@@ -176,6 +180,7 @@ Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets 
 | **P-08** | **Avatar keys outrun the assets** — `scripts/seed-demo.ts` assigns `avatar-01`…`avatar-16`; `public/avatars/` holds 14 | P | — | — | **Open, unblocked.** Found by the P-07 browser walk (2026-09-23): every 15th and 16th person in the cast 404s on the gate roster, the leaderboard and the persona picker. **Since 2026-09-23 those 404s are public** — M-01 deployed the screens they appear on. Two ways to close it and they are not equivalent: take the seed script to `% 14` (one character, Lane D file), or author `avatar-15.svg` and `avatar-16.svg`. `ASSET_CHECKLIST.md` asks for 12–16, so 14 already satisfies it |
 | ~~D-06~~ | ~~Registration answered VALIDATION_FAILED against every real database~~ | D | jash-aeio | — | **Done 2026-09-23** (PR #15). `tx.execute` returns postgres-js rows unparsed, so `r_registered_at` arrived as wire text where the row parser demanded a `Date`. The SQL was never wrong. Found by walking the loop, not by reading the diff, because `registration.test.ts` drove the SQL through raw postgres-js and the TypeScript wrapper had never run (D33). `asUserThroughDrizzle` is the seam that was missing |
 | **D-07** | **The demo's live event goes stale hours after seeding** | D | — | — | **Open.** `db:seed:demo` gives Club Fair a five-hour window from seed time, so a tenant seeded yesterday has no event an officer can open a gate for and the check-in half of the demo cannot be walked at all. Confirmed 2026-09-23: `live_events_now = 0`. It makes the demo a same-day artefact, which is the wrong property for something now publicly deployed and about to be pitched (M-02). Either seed the window relative to each request, or give the demo a standing always-live event |
+| ~~P-15~~ | ~~Phase 0 bottom navigation~~ | P | jash-aeio | — | **Done 2026-09-23.** Closes the last P-06 finding and with it Phase 0's **WCAG AA** criterion. A real `nav` landmark (`aria-label`, `aria-current="page"`) over the four screens that exist, plus **Scan** for the two officer roles. **Deliberately not P-14**: two of §7's five learner tabs (Orgs, Me) are Phase 1 screens, and a tab pointing at a 404 is worse than a tab that is not there yet — P-14 widens the item list and changes nothing else. Verified at 360×800: one landmark per screen, absent on `/demo` and `/design`, targets 83×54px, contrast 4.83:1 active and 6.0:1 inactive on `--surface`, focus ring on every tab, no horizontal scroll, 198 KB first load. 18 unit tests |
 | ~~M-01~~ | ~~Apply the schema to Supabase; deploy to Vercel~~ | **M** | jash-aeio | D-05, P-06 | **Done 2026-09-23.** Live at `https://hiraya-eosin.vercel.app`; `/api/v1/health` answers `{"status":"ok","database":true}` and `/api/v1/demo/personas` offers 42. No commit — infrastructure, not code. **Two defects found and fixed in the deploying, both invisible locally**: the runtime had no `DATABASE_URL` (the variable existed but postdated the live build, and Vercel binds env at deploy time — the fix was a redeploy, not a new variable), and `HIRAYA_DEMO_SCHOOLS` did not match `halimbawa-demo`, so D25's allowlist discarded every persona and the public demo offered nobody. The second was hidden behind the first. R21 is answered: the SECURITY DEFINER functions read correctly where the caller is not a superuser |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
@@ -208,7 +213,9 @@ phase with the most genuinely parallel work in the plan — good for onboarding 
 | **Q-12** | Integration tests for import idempotency — 1,000 rows twice is 1,000 profiles | Q | — | D-12 |
 | **P-14** | **Bottom tab bar** (`DESIGN_SYSTEM.md` §7) — learner Home · Events · Orgs · Leaderboard · Me; officer adds the centre Scan; adviser Approvals · Events · Analytics · Me | P | — | P-11, P-12 |
 
-**P-14 is a P-06 finding, deferred here on purpose.** The 2026-09-22 audit found **no `nav` landmark on
+**P-14 is now a widening, not a gap.** **P-15** (2026-09-23) shipped the Phase 0 bar and closed the WCAG criterion; P-14 adds the Orgs and Me tabs once those screens exist, and the adviser set. The component and its tests do not change — only the item list in `navView.ts` does.
+
+**The original reasoning, kept because it is why P-15 is scoped the way it is.** The 2026-09-22 audit found **no `nav` landmark on
 any screen and no navigation between screens at all** — a learner on `/xp` reaches `/events` only by
 typing a URL. It is a real WCAG 2.1 AA gap against `DESIGN_SYSTEM.md` §8, and Phase 0 closes with it
 open rather than with half a tab bar: two of the five learner tabs (Orgs, Me) are Phase 1 screens that

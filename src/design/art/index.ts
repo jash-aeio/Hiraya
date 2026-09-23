@@ -7,3 +7,5 @@ export type { CategoryIconProps } from "./CategoryIcon";
 export { LevelBadge, UnlockFrame, LEVEL_TITLES } from "./LevelBadge";
 export type { LevelBadgeProps, LevelTier } from "./LevelBadge";
 export { XpCoin, Podium } from "./XpCoin";
+export { NavIcon } from "./NavIcon";
+export type { NavIconProps, NavIconName } from "./NavIcon";
