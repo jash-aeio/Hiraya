@@ -147,8 +147,8 @@ You granted this. It needs two things you must do once:
    configuration is read at startup, so the running session still holds the old one.
 
 After restarting, ask Claude to `check the Supabase project state` — if it can list tables, it is
-connected. **This is what unblocks M-01** (applying the schema to Supabase), which is currently the last
-thing between you and a walkable public demo.
+connected. **This is what unblocked M-01** (applying the schema to Supabase); the schema landed on
+2026-09-21 and the deploy followed on 2026-09-23.
 
 > **Why this was read-only until now, and what changed.** Read-only meant every migration round-tripped
 > through you hand-running SQL in the dashboard — the exact bottleneck R20 predicted. Write access
@@ -165,35 +165,78 @@ A paused database during a Gate A conversation is the most avoidable way to lose
 
 ---
 
-## 5. 🔴🤝 Vercel — the public demo
+## 5. ⚪🤝 Vercel — the public demo
 
-Needed for **M-01**, the last open Phase 0 task.
+**Done 2026-09-23 (M-01).** Live at `https://hiraya-eosin.vercel.app`, project `sibol-hiraya/hiraya`.
+This section is kept as the procedure for rebuilding the deployment, and because the school will repeat
+it at Gate B.
 
 1. Sign in to Vercel with GitHub and import `jash-aeio/Hiraya`.
 2. Framework preset: Next.js. Nothing else needs changing.
-3. **Environment variables** — add every one of these before the first deploy. The build imports modules
-   that read them, and a missing one fails in a way that looks unrelated:
+3. **Environment variables** — add every one of these before the first deploy:
 
-   | Variable | Value |
-   |---|---|
-   | `NEXT_PUBLIC_SUPABASE_URL` | from §4 |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | from §4 |
-   | `SUPABASE_SERVICE_ROLE_KEY` | from §4 |
-   | `DATABASE_URL` | Supabase connection string |
-   | `LRN_HMAC_PEPPER` | from §3 |
-   | `HIRAYA_DEMO_SCHOOLS` | `halimbawa-demo` |
+   | Variable | Value | Type |
+   |---|---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL` | from §4 | Secret |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | from §4 | Secret |
+   | `SUPABASE_SERVICE_ROLE_KEY` | from §4 | Secret |
+   | `DATABASE_URL` | the pooler in **transaction mode, port 6543** — see below | Secret |
+   | `DATABASE_POOL_MAX` | `1` | **Config** |
+   | `LRN_HMAC_PEPPER` | from §3 | Secret |
+   | `HIRAYA_DEMO_SCHOOLS` | `halimbawa-demo` | **Config** |
 
-   Leave `QR_SIGNING_*` empty until Phase 3.
+   Leave `QR_SIGNING_*` empty until Phase 3. Do **not** set `TEST_DATABASE_URL` — the deployed runtime
+   never reads it, and the suite it belongs to disables RLS mid-test.
+
+   Set them all, but know that they are not all load-bearing yet: as of Phase 0 nothing in `src/` reads
+   `LRN_HMAC_PEPPER` (Phase 1, roster import) or `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Supabase Auth is not
+   wired). A missing one will not fail the build today — it will fail a request later, which is a
+   harder thing to notice.
+
+   **`DATABASE_URL` is not the one in your `.env.local`** (D34). A deployed runtime uses the pooler in
+   transaction mode — port **6543**, with `DATABASE_POOL_MAX=1`, because every serverless instance opens
+   its own pool. Migrations stay on session mode (5432). Same host, same user, same password; only the
+   port differs:
+
+   ```
+   postgres://postgres.<ref>:<password>@<region>.pooler.supabase.com:6543/postgres
+   ```
+
+   **Secret vs Config.** Vercel stores a variable as *Secret* by default: unreadable afterwards, and
+   `vercel env pull` will not return it. That is right for credentials and wrong for `DATABASE_POOL_MAX`
+   and `HIRAYA_DEMO_SCHOOLS`, which are not secrets — store those with `--type config` so a later
+   session can verify their values instead of destroying and re-adding them to find out. A write-only
+   `1` cannot be audited.
 
    `HIRAYA_DEMO_SCHOOLS` fails closed: unset means no demo personas at all, which is the safe default.
    It is the second half of the D25 gate — a demo tenant is `schools.is_demo` **and** the slug being
    named here, so a database mistake and a configuration mistake have to happen together before an
-   unauthenticated endpoint could list a real school's learners.
+   unauthenticated endpoint could list a real school's learners. **The failure is silent by design:**
+   a mismatched slug returns `{"schools":[]}`, not an error. If the demo offers nobody, check this first.
 
 4. Deploy. Keep the free `*.vercel.app` URL — D9: do not defend a domain name before there is a partner.
 
-🤝 Claude can check a deployed build's bundle budget and accessibility against that URL once it exists
-(`hiraya-mobile-audit`); it cannot create the Vercel project or enter the variables.
+5. **Verify, because a green build proves nothing about the runtime:**
+
+   ```bash
+   curl https://<your-url>/api/v1/health         # expect {"status":"ok","database":true}
+   curl https://<your-url>/api/v1/demo/personas  # expect a non-empty schools array
+   ```
+
+**Changing an environment variable does not change a running deployment.** Vercel binds variables at
+deploy time, so a variable added after the last build is invisible to the functions serving traffic
+until you redeploy (`vercel deploy --prod`). This cost the first deploy ten hours of looking like a
+connection problem.
+
+**`/api/v1/health` will not tell you why.** It reports `degraded` for every failure alike — an unset
+variable, a wrong port, a sleeping project — because it is public and deliberately leaks nothing
+(`pingDatabase().catch(() => false)`). The reason is in the function logs as `api.unhandled`:
+`vercel logs <deployment-url>`.
+
+🤝 Claude can read logs, list variables, and check the deployed build's bundle budget and accessibility
+(`hiraya-mobile-audit`) once the URL exists. It **cannot write to the secret store** — `vercel env
+add`/`rm` are blocked for it, so run those yourself with the `!` prefix and Claude will verify the
+result.
 
 ---
 
