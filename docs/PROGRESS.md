@@ -12,6 +12,85 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-23 — The loop walked, and the two things that only a walk finds
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+Two slices merged, and between them the Phase 0 loop was walked end to end against the Supabase
+project for the first time. It did not survive the walk intact, which is the point of walking it.
+
+**Shipped**
+
+- **P-07 — the fixture seam is gone** (`f588b91`, PR #14). `src/lib/fixtures.ts`, the four
+  `components/fixtures.ts`, `registrationFixtures.ts`, the `fixturesEnabled` branch in five screens
+  and the `NEXT_PUBLIC_HIRAYA_FIXTURES` flag: 677 lines deleted. It closed the P-06 finding it was
+  expected to — `/events/<id>` rendered one hard-coded event whatever id it was given, because
+  `fixtureEventDetail` ignored its own argument. `.env.example`, `CONTRIBUTING.md`, `BUILD_GUIDE.md`
+  and `SETUP_GUIDE.md` lost the flag with it
+- **D-06 — registration answered `VALIDATION_FAILED` against every real database** (`f07ead4`, PR #15).
+  Drizzle's `tx.execute` returns postgres-js rows unparsed, so `r_registered_at` arrived as
+  `2026-09-22 17:07:32.461931+00` where the row parser demanded a `Date`. Cancellation shared the row
+  and failed with it. The SQL was never wrong
+- **The Supabase project now holds the whole schema.** `db:rls` applied 30 policy files that were not
+  there; `xp_balances` did not exist, which is why `/xp` had been returning 500. SECURITY DEFINER
+  functions went 3 → 7 and `db:verify-rls` is clean. **R21 is answered**: the three functions read
+  correctly where the caller is not a superuser
+- **The loop, walked** (2026-09-23, against Supabase, at 360×800): browse → register → check in → XP →
+  leaderboard. Registering and cancelling persist. A scan awards 10 XP once and answers "already
+  checked in" the second time, with one ledger row — **non-negotiable test 2, confirmed in a browser
+  and not only in the suite**. The learner's XP screen names the event the point came from. An event
+  that has ended refuses registration with `NOT_ELIGIBLE / registration_closed`, which is right
+
+**Decisions**
+
+- **D33** — an integration test for a query wrapper goes through a Drizzle transaction, not raw
+  postgres-js. `asUser` tests SQL; the new `asUserThroughDrizzle` tests the TypeScript that parses what
+  the SQL returns. Registration reached `main` broken with seventeen green tests over it because all
+  seventeen took the path production does not
+
+**Docs updated**
+
+- `docs/MILESTONE_ROADMAP.md` — three Phase 0 acceptance criteria ticked from evidence: the walkable
+  loop, the 500 KB budget (208 KB re-measured after P-07), and no real learner data. WCAG AA stays
+  open on P-14; the phone-over-mobile-data load stays open on M-01
+- `docs/WORKSTREAMS.md` — §0 rewritten; P-07 and D-06 struck; **P-08** and **D-07** booked
+- `docs/TECHNICAL_ARCHITECTURE.md` — D33 added
+
+**Risks**
+
+- Materialized: **a slice can be green in CI and broken in production**, and D-06 is the proof. The
+  suite tested the SQL thoroughly and the wrapper around it not at all. D33 closes this shape of hole;
+  it does not close the general one, which is that CI is the only automated gate left (D32)
+- Retired: none
+
+**Next**
+
+- **D-07** — the demo's live event goes stale hours after seeding
+- **M-01** — the Vercel deploy. The schema half is done; what is left is genuinely maintainer-only
+
+**Flagged**
+
+- **The demo is a same-day artefact.** `db:seed:demo` gives Club Fair a five-hour window from seed
+  time. Hours later `live_events_now = 0`: no officer can open a gate, and the check-in half of the
+  pitch — the half the whole product argument rests on — cannot be shown. Booked as D-07, and it
+  should close before M-02, not after
+- **`P-08`: avatar keys outrun the assets.** `scripts/seed-demo.ts` assigns `avatar-01`…`avatar-16`
+  against 14 files, so every 15th and 16th learner 404s on the roster, the board and the persona
+  picker. Two ways to close it and they are not equivalent — see the row
+- **A citation drift worth one line, not a fix by guess.** `.env.example` and
+  `src/lib/auth/demo-allowlist.ts` call the `HIRAYA_DEMO_SCHOOLS` allowlist "the second half of the
+  **D23** gate"; `CLAUDE.md` §6 and `SETUP_GUIDE.md` call it **D25**. `SYSTEM_DESIGN.md` cites both.
+  D23 is the persona switcher and D25 is the two-facts rule, so D25 is the better citation for the
+  allowlist — but the two files are pre-D25 phrasing rather than a contradiction, and which one was
+  meant is the maintainer's call
+- **Method note, recorded because it cost most of a session.** Half the walk was spent chasing an
+  apparent "writes do not persist" defect that did not exist: the browser's demo session was one
+  persona while the row being checked belonged to another, and a long real-time gap mid-session made
+  stale comparisons look like frozen ones. Verify *which profile the session holds* before comparing a
+  row, and read `clock_timestamp()` alongside anything time-sensitive
+
+---
+
 ## 2026-09-22 — The plan, rewritten for a maintainer who is learning and for contributors who are not here yet
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio

@@ -93,11 +93,11 @@ proposal document from an outside developer stalls.
 **Acceptance criteria**
 
 - [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds
-- [ ] The full loop is walkable in the demo: browse → register → check in → see XP → see leaderboard
+- [x] The full loop is walkable in the demo: browse → register → check in → see XP → see leaderboard — walked against the Supabase project, not a fixture (2026-09-23). Registering and cancelling persist; a scan awards 10 XP once and answers "already checked in" the second time; the learner's XP screen names the event the point came from. **Caveat:** the seed's live event runs for five hours from seeding, so the check-in half needs a same-day `db:seed:demo` (D-07)
 - [x] Cross-tenant denial test passes against seeded schools A and B — all 21 tenant tables, plus a case proving the test fails when RLS is disabled (2026-09-21)
-- [ ] First load ≤ 500 KB, verified via `browser_network_requests`
+- [x] First load ≤ 500 KB, verified in the browser — 200–209 KB across 14 routes on a production build (P-06, 2026-09-22); re-measured at 208 KB after P-07 (2026-09-23)
 - [ ] WCAG AA passes on every demo screen via the a11y tree
-- [ ] No real learner data exists anywhere
+- [x] No real learner data exists anywhere — one school in the only live database, flagged `is_demo`, and `db:seed:demo` refuses to run if that is ever untrue (2026-09-23)
 
 **Testing checkpoint.** `hiraya-mobile-audit` on every demo screen; `hiraya-tenancy-auditor` on the
 initial schema; CI green.
