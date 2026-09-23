@@ -5,8 +5,8 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // The Capacitor shell ships a static bundle and calls the same /api/v1 as the
-  // web app (CLAUDE.md R3). Nothing here may introduce a server-only data path.
+  // Every client reaches data through /api/v1 and nothing else (CLAUDE.md R3).
+  // Nothing here may introduce a second, server-only data path.
   typedRoutes: true,
 };
 

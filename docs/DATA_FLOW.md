@@ -160,7 +160,7 @@ expression of the processor arrangement, not a courtesy.
 | Password | Supabase Auth (bcrypt) | TLS | No one | Logged or exported |
 | Consent record | Metadata only — granted, date, recorder, paper reference | TLS | School Admin, DPO | **Scans or images of consent forms are never uploaded** |
 | QR token | Not stored; `jti` retained for de-duplication | Displayed on screen | — | Contains no name or LRN |
-| Signing key | **Private:** server environment only. **Public:** cached on devices | TLS | — | In the repo; in a Capacitor bundle; in a log |
+| Signing key | **Private:** server environment only. **Public:** cached on devices | TLS | — | In the repo; in any client bundle or service-worker cache; in a log |
 | Non-participant list | Derived at query time, never materialized | TLS | Guidance + advisers, **audited** | Exported casually; shown to officers or learners |
 | Event photos | Supabase Storage, access-controlled | TLS | School-scoped | Public buckets |
 | Avatars | Curated SVG keys — a reference, not an upload | — | Anyone | Photo uploads do not exist |

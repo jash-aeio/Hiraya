@@ -86,8 +86,9 @@ DepEd's Learner Information System.
 
 ## 3. Target users and personas
 
-Ten roles, matching the `user_role` enum in `src/db/schema.ts` — the enum is the authority, because a
-role the database does not know is a role RLS cannot grant against. A learner can hold more than one —
+Ten roles, matching the `user_role` enum in `src/db/enums.ts` — the enum is the authority, because a
+role the database does not know is a role RLS cannot grant against. (`src/db/schema.ts` re-exports it,
+so both imports resolve; `enums.ts` is where it is defined and where a change must be made.) A learner can hold more than one —
 member of two organizations, officer of a third.
 
 | Role | Who | Main permissions |
@@ -171,7 +172,7 @@ Recorded so the change is deliberate rather than silent:
 
 | Original delimitation | Status | Why |
 |---|---|---|
-| "Delivered as a PWA, not native apps" | **Superseded** | Web PWA *and* installable Android/iOS app via Capacitor (D11). Native camera is what the ≥15 check-ins/min target depends on |
+| "Delivered as a PWA, not native apps" | **Reinstated** | D11 superseded this in favour of Capacitor shells; **D35 (2026-09-23) reverses that and returns to the proposal's original position** — the MVP is a web PWA only, native is post-pilot expansion. The round trip is worth recording: D11's reason (native camera is what the ≥15 check-ins/min target depends on) was never wrong, it was deferred, and Phase 3 now has to show the browser path can hold that number |
 | Academic evaluation apparatus (ISO/IEC 25010 instrument, SUS as research instrument, stratified sampling, weighted mean/SD, thematic analysis, five-person team) | **Removed** | This is a personal project, not a thesis. §13's targets survive as product KPIs (§9) |
 | Working title "Kasali", `kasali.ph` | **Superseded** | The system is Hiraya |
 
@@ -321,7 +322,7 @@ Traced to objectives (O1–O10) and problems (P1–P8). **M** = MVP, **2** = Pha
 | NFR-7 | **Auditability** — every point traces to a verified action; every admin action logged | Append-only ledger; `audit_log` |
 | NFR-8 | HTTPS everywhere, hashed passwords, encrypted backups | `/security-review` |
 | NFR-9 | ≥15 check-ins/minute sustained at one entrance | Load test, Phase 6 |
-| NFR-10 | Installable from Play Store and App Store; web PWA installable without a store | Phase 5 |
+| NFR-10 | **Web PWA installable to the home screen without a store.** Store distribution is out of MVP scope (D35) and returns only if Phase 5 is resumed | Phase 0 (manifest), Phase 3 (offline) |
 | NFR-11 | Runs within free hosting tiers during the pilot | Usage monitoring |
 | NFR-12 | Full data export in an open format, on demand | FR-7.5 |
 

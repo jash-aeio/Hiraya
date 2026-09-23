@@ -1,6 +1,6 @@
 ---
 name: hiraya-mobile-audit
-description: Verify a Hiraya UI change on the device learners actually own - Playwright at 360x800, WCAG 2.1 AA via the accessibility tree, the 500 KB first-load budget, offline behaviour, and Capacitor shell parity. Use before merging any user-facing UI change.
+description: Verify a Hiraya UI change on the device learners actually own - Playwright at 360x800, WCAG 2.1 AA via the accessibility tree, the 500 KB first-load budget, offline behaviour, and home-screen PWA install. Use before merging any user-facing UI change.
 ---
 
 # Hiraya mobile audit
@@ -78,11 +78,14 @@ Emulate offline and reload:
 - [ ] Layout survives longer Filipino strings — Filipino text commonly runs longer than English, and a
       button that fits in English can break in Filipino
 
-### 8. Capacitor parity (from Phase 5)
+### 8. Home-screen PWA install
 
-- [ ] Route works inside the native shell
-- [ ] Native plugin calls have a web fallback and do not throw in a browser
-- [ ] Safe-area insets respected (notch, home indicator)
+There is no native shell to check parity against (D35) — the installed PWA *is* the app.
+
+- [ ] Route works when launched from the home screen, not only from a browser tab
+- [ ] Device-API calls (camera, storage) degrade gracefully when permission is refused
+- [ ] Safe-area insets respected (notch, home indicator) — standalone display mode has no browser chrome
+      to absorb them
 
 ## Outputs
 

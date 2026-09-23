@@ -81,8 +81,10 @@ Run every scenario. Report pass/fail with reproduction steps.
 2. Open the scanner at **360×800**
 3. For each scenario: set network and clock conditions, execute, capture the result and the network log
 4. Verify the database state after each — do not trust the UI's account of what happened
-5. For Phase 5, repeat the full matrix against the **native Capacitor shell**, where the queue is SQLite
-   rather than IndexedDB
+5. The queue is **IndexedDB**, and since D35 that is the only store — there is no native SQLite variant
+   to re-test. Pay attention to eviction: IndexedDB can be cleared under storage pressure in a way a
+   native database cannot, so the force-quit and low-storage cases carry more weight than they would
+   have. If Phase 5 is ever resumed, repeat the whole matrix against the shell
 
 ## Output format
 

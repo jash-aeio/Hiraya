@@ -15,9 +15,9 @@ import type { EventScope, EventSummary, ListEventsResponse } from "../schema";
  *
  * A client component that talks to /api/v1 rather than a Server Component
  * reading the service directly, for the same reason the persona switcher is
- * one: the Capacitor shell ships a static bundle and runs no server
- * (CLAUDE.md R3). A browse screen that only works when Next renders it is a
- * browse screen the native app does not have.
+ * one: every read and write goes through one authorization path (CLAUDE.md R3),
+ * and a Server Component reading the service directly would be a second one
+ * — checked separately, and therefore checked worse.
  *
  * `fetch` and a shallow type guard rather than TanStack Query and Zod, also
  * following the switcher — and for a reason that cost a measurement to learn
