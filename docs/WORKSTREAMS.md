@@ -13,31 +13,34 @@ New here? Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first.
 
 > **Updated by `/hiraya-checkpoint`. If this block and the tables below disagree, the tables win.**
 
-**Phase 0 — Foundation, design system, demo tenant.** Everything buildable is built and on `main`.
-What remains is one cleanup task and the first public deploy.
+**Phase 0 — Foundation, design system, demo tenant.** Every buildable task is built and on `main`, and
+the loop has now been walked end to end against the real database rather than inferred from a diff.
+What remains is the first public deploy and the pitch kit.
 
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last work to land** | Lane D's whole Phase 0 critical path, D-01…D-05 (`1e6bd1f`), and the P-06 mobile audit (`904f6d0`) |
-| **In flight** | Nothing. Every open PR is merged |
-| **Blocked on the maintainer** | **M-01** — apply the schema to Supabase, deploy to Vercel → `SETUP_GUIDE.md` §4–§5 |
-| **Open tasks, whole project** | 3 in Phase 0 · 15 queued behind Gate A in Phase 1 |
+| **Last work to land** | P-07, the fixture seam deleted (`f588b91`), and D-06, the registration row parser (`f07ead4`) |
+| **In flight** | Nothing. No open PRs |
+| **Blocked on the maintainer** | **M-01** — deploy to Vercel → `SETUP_GUIDE.md` §5. The schema half of M-01 is done: RLS and all seven SECURITY DEFINER functions are applied to Supabase and `db:verify-rls` is clean |
+| **Open tasks, whole project** | 4 in Phase 0 · 17 queued behind Gate A in Phase 1 |
 
 **▶ Next, in order:**
 
 | | Task | Who | Say |
 |---|---|---|---|
-| 1 | **P-07** — delete the fixture seam | Lane P | `build P-07` |
-| 2 | **M-01** — Supabase + Vercel | **you** (`SETUP_GUIDE.md` §4–§5) | `walk me through M-01` |
+| 1 | **D-07** — the demo's live event goes stale hours after seeding | Lane D | `build D-07` |
+| 2 | **M-01** — Vercel deploy | **you** (`SETUP_GUIDE.md` §5) | `walk me through M-01` |
 | 3 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
 
-Phase 0's remaining acceptance criteria are **the walkable loop and a public URL** — both close with
-M-01. The 500 KB budget closed with P-06 at 200–209 KB per route across 14 routes, measured in the
-browser. WCAG AA is one finding from done: **P-14**, the missing navigation landmark, which is booked
-into Phase 1 on purpose (§6).
+**Four of Phase 0's six acceptance criteria are ticked.** The walkable loop and the 500 KB budget closed
+on 2026-09-23; cross-tenant denial closed on 2026-09-21. Two remain and neither is a task you can
+prompt: **the phone-over-mobile-data load** needs M-01's public URL, and **WCAG AA** is one finding
+short — **P-14**, the missing navigation landmark, deliberately booked into Phase 1 (§6).
 
----
+**D-07 is small and it gates the demo, not the code.** A tenant seeded yesterday has no live event, so
+the check-in half of the pitch cannot be shown at all — and check-in is the half the whole product
+argument rests on.
 
 ## 1. Lanes
 
@@ -168,6 +171,8 @@ Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets 
 | ~~P-06~~ | ~~`hiraya-mobile-audit` on every demo screen~~ | P | jash-aeio | P-01…P-05 | **Done 2026-09-22** (`904f6d0`). 14 routes walked at 360×800 on a production build, P-04's deferred walk included. **Budget passes**: 200–209 KB per route. **Two a11y failures found and fixed**: `text-primary` at 4.44:1 on the canvas, and no `h1` on `/checkin/[eventId]` — which also never named the event it was scanning. **One left open**: no `nav` landmark anywhere, booked as P-14 |
 | ~~P-07~~ | ~~Delete the fixture seam~~ | P | jash-aeio | — | **Done 2026-09-23** (PR #14). Six files and the `NEXT_PUBLIC_HIRAYA_FIXTURES` flag gone, 677 lines deleted. Closed the P-06 finding it was expected to: `/events/<id>` ignored its own id because `fixtureEventDetail` ignored its argument. Walked at 360×800 against the seeded tenant — 208 KB, no fixture chunk |
 | **P-08** | **Avatar keys outrun the assets** — `scripts/seed-demo.ts` assigns `avatar-01`…`avatar-16`; `public/avatars/` holds 14 | P | — | — | **Open, unblocked.** Found by the P-07 browser walk (2026-09-23): every 15th and 16th person in the cast 404s on the gate roster, the leaderboard and the persona picker — the screens M-01 deploys. Two ways to close it and they are not equivalent: take the seed script to `% 14` (one character, Lane D file), or author `avatar-15.svg` and `avatar-16.svg`. `ASSET_CHECKLIST.md` asks for 12–16, so 14 already satisfies it |
+| ~~D-06~~ | ~~Registration answered VALIDATION_FAILED against every real database~~ | D | jash-aeio | — | **Done 2026-09-23** (PR #15). `tx.execute` returns postgres-js rows unparsed, so `r_registered_at` arrived as wire text where the row parser demanded a `Date`. The SQL was never wrong. Found by walking the loop, not by reading the diff, because `registration.test.ts` drove the SQL through raw postgres-js and the TypeScript wrapper had never run (D33). `asUserThroughDrizzle` is the seam that was missing |
+| **D-07** | **The demo's live event goes stale hours after seeding** | D | — | — | **Open.** `db:seed:demo` gives Club Fair a five-hour window from seed time, so a tenant seeded yesterday has no event an officer can open a gate for and the check-in half of the demo cannot be walked at all. Confirmed 2026-09-23: `live_events_now = 0`. It makes the demo a same-day artefact, which is the wrong property for the thing M-01 deploys and M-02 pitches. Either seed the window relative to each request, or give the demo a standing always-live event |
 | **M-01** | Apply the schema to Supabase; deploy to Vercel | **M** | jash-aeio | D-05, P-06 | **Open, blocking.** `SETUP_GUIDE.md` §4–§5. R13: the free project sleeps — wake it before a pitch. R21 is answered here and nowhere else: locally the owner is a superuser, so only Supabase proves whether three SECURITY DEFINER functions read correctly |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
