@@ -51,3 +51,5 @@ export { Textarea } from "./Textarea";
 export type { TextareaProps } from "./Textarea";
 export { ToastProvider, useToast } from "./Toast";
 export type { ToastInput, ToastTone } from "./Toast";
+export { NavBar } from "./NavBar";
+export type { NavBarItem, NavBarProps } from "./NavBar";
