@@ -22,8 +22,8 @@ reachable**. What remains is two demo defects and the pitch kit.
 | **Current phase** | 0 of 7 · Gate A not yet reached |
 | **Last work to land** | **P-15**, the Phase 0 bottom navigation — WCAG AA closed. Before it, **D35** (native deferred out of MVP) and **M-01**, the live deploy at `https://hiraya-eosin.vercel.app` |
 | **In flight** | Nothing. No open PRs |
-| **Blocked on the maintainer** | Nothing blocking. **M-02** (pitch kit) is yours whenever you want it; Claude drafts all three pieces |
-| **Open tasks, whole project** | 3 in Phase 0 · 17 queued behind Gate A in Phase 1 |
+| **Blocked on the maintainer** | **M-03** — the phone test (`SETUP_GUIDE.md` §5a), the last Phase 0 criterion and two minutes of work. Then **M-02**, the pitch kit |
+| **Open tasks, whole project** | 4 in Phase 0 · 17 queued behind Gate A in Phase 1 |
 
 **▶ Next, in order:**
 
@@ -31,14 +31,14 @@ reachable**. What remains is two demo defects and the pitch kit.
 |---|---|---|---|
 | 1 | **D-07** — the demo's live event goes stale hours after seeding | Lane D | `build D-07` |
 | 2 | **P-08** — avatar keys outrun the assets; 404s on the *public* demo | Lane P | `build P-08` |
-| 3 | **The phone test** — the last Phase 0 criterion | **you**, on a phone off wifi | `walk me through the phone test` |
+| 3 | **M-03** — the phone test, the last Phase 0 criterion | **you**, on a phone off wifi | `walk me through M-03` |
 | 4 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
 
 **Five of Phase 0's six acceptance criteria are ticked.** **WCAG AA closed on 2026-09-23** with
 P-15, the Phase 0 bottom navigation — the last P-06 finding. The walkable loop and the 500 KB budget
 closed on 2026-09-23; cross-tenant denial on 2026-09-21; no-real-learner-data on 2026-09-23.
 
-**One criterion remains, and it is not a task anyone can prompt.** *"Demo tenant loads on a real phone
+**One criterion remains, booked as M-03.** *"Demo tenant loads on a real phone
 over mobile data in under 3 seconds"* needs a real phone on real mobile data. M-01 removed the blocker
 by publishing the URL; what is left is two minutes of the maintainer's time and a phone off wifi. It is
 the only Phase 0 criterion that cannot be closed from this machine — and with native deferred (D35),
@@ -182,6 +182,7 @@ Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets 
 | **D-07** | **The demo's live event goes stale hours after seeding** | D | — | — | **Open.** `db:seed:demo` gives Club Fair a five-hour window from seed time, so a tenant seeded yesterday has no event an officer can open a gate for and the check-in half of the demo cannot be walked at all. Confirmed 2026-09-23: `live_events_now = 0`. It makes the demo a same-day artefact, which is the wrong property for something now publicly deployed and about to be pitched (M-02). Either seed the window relative to each request, or give the demo a standing always-live event |
 | ~~P-15~~ | ~~Phase 0 bottom navigation~~ | P | jash-aeio | — | **Done 2026-09-23.** Closes the last P-06 finding and with it Phase 0's **WCAG AA** criterion. A real `nav` landmark (`aria-label`, `aria-current="page"`) over the four screens that exist, plus **Scan** for the two officer roles. **Deliberately not P-14**: two of §7's five learner tabs (Orgs, Me) are Phase 1 screens, and a tab pointing at a 404 is worse than a tab that is not there yet — P-14 widens the item list and changes nothing else. Verified at 360×800: one landmark per screen, absent on `/demo` and `/design`, targets 83×54px, contrast 4.83:1 active and 6.0:1 inactive on `--surface`, focus ring on every tab, no horizontal scroll, 198 KB first load. 18 unit tests |
 | ~~M-01~~ | ~~Apply the schema to Supabase; deploy to Vercel~~ | **M** | jash-aeio | D-05, P-06 | **Done 2026-09-23.** Live at `https://hiraya-eosin.vercel.app`; `/api/v1/health` answers `{"status":"ok","database":true}` and `/api/v1/demo/personas` offers 42. No commit — infrastructure, not code. **Two defects found and fixed in the deploying, both invisible locally**: the runtime had no `DATABASE_URL` (the variable existed but postdated the live build, and Vercel binds env at deploy time — the fix was a redeploy, not a new variable), and `HIRAYA_DEMO_SCHOOLS` did not match `halimbawa-demo`, so D25's allowlist discarded every persona and the public demo offered nobody. The second was hidden behind the first. R21 is answered: the SECURITY DEFINER functions read correctly where the caller is not a superuser |
+| **M-03** | **The phone test** — load the demo on a real phone over mobile data, under 3 seconds | **M** | jash-aeio | M-01 | **Open, blocking Phase 0.** `SETUP_GUIDE.md` §5a. The last unticked acceptance criterion and the only one that cannot be closed from this machine: it needs a real budget Android on real prepaid data, which is what PRD assumptions A1–A3 are about. A throttled desktop browser is not a substitute — it simulates bandwidth, not CPU, not a cell handover, and not the school's tower. Two minutes. More important since D35, because the web PWA is now the only delivery path |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
 **Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01~~ → M-02 → **Gate A**. D-07 and P-08 are off the path but both are now visible on the public URL, so both want closing before it is shown to anyone.

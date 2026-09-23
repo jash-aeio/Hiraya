@@ -248,6 +248,43 @@ result.
 
 ---
 
+## 5a. 🔴 The phone test — the last Phase 0 criterion (M-03)
+
+**Two minutes, and only you can do it.** Phase 0's last unticked acceptance criterion is *"Demo tenant
+loads on a real phone over mobile data in under 3 seconds."* Every other criterion is closed. A desktop
+browser throttled to "Slow 3G" is not this test: it simulates bandwidth, not a budget Android's CPU, not
+a real cell handover, and not the tower your school actually sits under. Assumptions **A1–A3** in
+`docs/PRD.md` are about Ana's shared prepaid phone, and this is the only check that touches them.
+
+Since D35 deferred native, **the web PWA is the only delivery path** — so this is not a nice-to-have.
+
+**Do this:**
+
+1. On your phone, **turn wifi off.** Mobile data only. Do not use a hotspot from a laptop.
+2. Open a **private/incognito** tab — an empty cache is the first-visit case, which is the one that
+   matters for a learner opening a link at homeroom.
+3. Load **`https://hiraya-eosin.vercel.app/demo`** and start counting when you hit go.
+4. Note **how many seconds until you can read the persona list** — not until the spinner appears, and
+   not until the page finishes settling. Time-to-usable is the number.
+5. Tap a **learner** persona, then walk: **Events → an event → Leaderboard → XP**, using the bottom
+   tab bar (P-15). Note anything that feels slow, any tab that is hard to hit with a thumb, and any
+   text you have to squint at.
+6. Tell Claude the number and what you noticed, and it will record the result in
+   `docs/MILESTONE_ROADMAP.md` and `docs/PROGRESS.md`.
+
+**What the answer means:**
+
+| Result | What it means |
+|---|---|
+| **Under 3 s** | Criterion closed. **Phase 0 is complete** and the next thing is Gate A |
+| **3–6 s** | Record the real number rather than tick the box. Usually the free Supabase project waking (R13) — load it once before timing, then time a second cold load |
+| **Over 6 s** | A finding, not a formality. Book it and fix it before the pitch: a demo that takes this long on the school's own network will be judged on that, not on the loop |
+
+**Before a pitch, always:** load the URL once a few minutes ahead. The free Supabase project sleeps
+(R13), and the first request after it sleeps pays the wake-up cost in front of your audience.
+
+---
+
 ## 6. 🟡 Rotating a secret
 
 When a key leaks, or at Gate B when the school takes ownership.

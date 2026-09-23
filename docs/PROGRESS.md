@@ -12,6 +12,107 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-23 — Native leaves the MVP, the nav landmark lands, Phase 0 reaches five of six
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+Two merges and a scope decision. Phase 0 now has **one** unticked acceptance criterion, and it is the
+one nobody at a keyboard can close.
+
+**Shipped**
+
+- **D35 — native packaging is out of MVP scope** (`52b7bf3`, PR #20). Maintainer decision: focus the
+  pilot on one delivery path and take native up as post-pilot expansion. It cost almost nothing because
+  **nothing native was ever built** — no Capacitor dependency, no `android/`, no `ios/`, no
+  `src/lib/native/`. The whole footprint was two npm scripts invoking a binary that was never installed
+  and 11 code comments citing Capacitor as *rationale*. Phase 5 is marked deferred rather than deleted;
+  so are `ASSET_CHECKLIST.md` Tier 3 and `SETUP_GUIDE.md` §10
+- **P-15 — the Phase 0 bottom navigation** (`6c54c13`, PR #21), which **closes WCAG AA**. The P-06
+  audit found no `nav` landmark anywhere and no way between screens without typing a URL. Four tabs
+  plus Scan for the two officer roles, scoped to the screens that exist. Verified at 360×800 on the
+  production build across all six demo routes: one labelled landmark each, absent on `/demo` and
+  `/design`, `aria-current` on the active tab, 83×54px targets, 4.83:1 active and 6.0:1 inactive
+  contrast on `--surface`, focus ring on every tab, no horizontal scroll, 198 KB first load
+- **Four contradictions resolved**, all flagged by the previous checkpoint: the `hiraya-checkpoint`
+  skill told future sessions to `git push origin main`, which `CLAUDE.md` §7 forbids and
+  `.githooks/pre-push` refuses; `PRD.md` §3 cited the `user_role` enum in `schema.ts` rather than
+  `enums.ts`; the `HIRAYA_DEMO_SCHOOLS` allowlist was cited as D23 in two files and D25 in two others;
+  and the `vercel link` `.gitignore` trap is now documented where it happens
+- **`tests/unit/i18n-parity.test.ts`** — new, and beyond what was asked. Nothing covered catalogue
+  parity. The nav is the first component whose *accessible names* come entirely from the catalogue, so
+  a key missing from `fil.json` renders the key path and a screen reader announces it
+- **M-03 booked** — the phone test, with a procedure in `SETUP_GUIDE.md` §5a
+
+**Decisions**
+
+- **D35** — native packaging out of MVP; supersedes D11. Two consequences recorded rather than buried:
+  the **≥15 check-ins/min KPI** loses the thing D11 said it depended on and now rests on the browser
+  `getUserMedia` path, so Phase 3 must measure it and a miss reopens Phase 5 rather than lowering the
+  number; and **iOS Web Push goes from mitigated to unmitigated**, because D11's iOS app *was* the
+  mitigation and Safari delivers push only to an installed PWA
+- **R3 kept, rationale rewritten.** It was justified by Capacitor. It now leads with *one authorization
+  path instead of two*, which never depended on native, and notes that keeping the API boundary is what
+  would let native resume without re-deriving every check. No code changed
+- **No D-number for the Vercel Secret-vs-Config rule.** Operational rather than architectural, so it
+  went in `SETUP_GUIDE.md` §5 beside the variables it governs. Flagged in case a future session
+  disagrees — the same altitude argument could be made for D34, which did get a number
+- **The D23/D25 drift resolved to D25.** D23 is the persona switcher; D25 is the two-facts rule; the
+  allowlist is the second fact. The one genuine D23 reference — why a database fact, not an env var, is
+  the *primary* gate — is correct and stays
+
+**Docs updated**
+
+- `CLAUDE.md` — §1 delivery target, R3's rationale, R5 generalized from "Capacitor bundle" to any
+  device, the `lib/native` → `lib/device` line, the `cap:*` commands removed
+- `docs/TECHNICAL_ARCHITECTURE.md` — D35 added after D34, D11 struck as superseded, D1a rewritten, the
+  stack and notification rows, the client diagram (with the `classDef` it was missing), the offline
+  queue now IndexedDB-only, the iOS Web Push risk escalated
+- `docs/MILESTONE_ROADMAP.md` — **WCAG AA ticked**; Phase 5 banner; Phase 3's throughput criterion now
+  carries D35's consequence
+- `docs/WORKSTREAMS.md` — §0 rewritten, P-15 and M-03 booked, M-01 struck, lane-5 row deferred
+- `docs/DESIGN_SYSTEM.md` — `NavBar` and `NavIcon` added to the inventory as Chrome
+- `docs/PRD.md`, `docs/DATA_FLOW.md`, `docs/ASSET_CHECKLIST.md`, `docs/SETUP_GUIDE.md`,
+  `CONTRIBUTING.md`, `SKILLS.md`, `README.md`, and three `.claude/` skill and agent files
+
+**Risks**
+
+- Materialized: **the ≥15 check-ins/min KPI is now the roadmap's most exposed criterion.** D11 said
+  native camera was what it depended on, and native is deferred. Phase 3 measures it or the target is
+  a guess
+- Materialized: **iOS push has no path without a home-screen install.** Onboarding must walk an iOS
+  learner through Share → Add to Home Screen before promising a notification, and the pitch should not
+  claim push on iOS without it
+- Retired: **the WCAG AA gap**, open since the P-06 audit
+- Retired: **R21**, already answered by M-01 and recorded here for the register
+
+**Next**
+
+- **M-03** — the phone test. Two minutes, maintainer-only, and the last Phase 0 criterion
+- **D-07** — the demo's live event goes stale hours after seeding
+- **P-08** — avatar keys outrun the assets, 404ing publicly
+- **M-02** — the pitch kit, then Gate A
+
+**Flagged**
+
+- **Phase 0 cannot be declared complete by Claude.** Five criteria are ticked and the sixth needs a
+  phone. No `phase-0-complete` tag was created, and none should be until M-03 returns a number
+- **`/events/[id]` has no `h1` in its SSR payload.** It appears after hydration, because the screen is
+  a client component that fetches (R3). Different in kind from the permanent gap P-06 found on
+  `/checkin/[eventId]`, so it was not treated as a WCAG failure — but if M-03 reports a slow first
+  paint, this is a heading that is missing for exactly as long as that paint takes
+- **The nav prefetches every tab on every page** — Next's `<Link>` default, measured at ~10 KB across
+  11 requests per page load. Kept, because instant tab switching is worth 10 KB. Revisit if M-03 says
+  the connection is latency-bound rather than bandwidth-bound
+- **`vercel link` silently rewrites `.gitignore`**, appending `.env*` *after* the `!.env.example`
+  negation, where a later pattern wins. Caught and reverted; documented in `SETUP_GUIDE.md` §5. Check
+  `git diff .gitignore` after any future `vercel link`
+- **P-14's scope changed without P-14 changing.** It is no longer "the missing nav" but "widen the item
+  list to Orgs and Me, and add the adviser set". The component and its tests do not change
+- **Still open: whether the Secret-vs-Config rule deserves a D-number**, and the `--type config`
+  re-typing was done for only two variables. The rest remain write-only Secrets, correctly
+
+---
+
 ## 2026-09-23 — Hiraya is deployed, and the deploy found two defects nothing local could
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
