@@ -4,9 +4,14 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { sql as drizzleSql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
 import EmbeddedPostgres from "embedded-postgres";
 import postgres from "postgres";
 import type { Sql } from "postgres";
+
+import * as schema from "../../../src/db/schema";
+import type { TenantTransaction } from "../../../src/lib/db/client";
 
 import { applyRls } from "../../../scripts/apply-rls";
 import { assertDisposableDatabase } from "../../../scripts/env";
@@ -185,4 +190,44 @@ export async function asUser<T>(
 /** Re-applies policy files, for the test that proves the suite notices when RLS is off. */
 export async function reapplyRls(url: string): Promise<void> {
   await applyRls(url);
+}
+
+/**
+ * `asUser`, but through the stack the application actually runs on.
+ *
+ * `asUser` above hands the callback a postgres-js tagged template, which
+ * applies the driver's type parsers. `src/lib/db/client.ts` hands services a
+ * Drizzle transaction, whose `execute` does not — a `timestamptz` arrives as
+ * wire text there and as a `Date` here. A test that only ever takes the first
+ * path proves the SQL and leaves the TypeScript wrapper around it unrun, which
+ * is exactly how `POST /events/:id/register` reached `main` returning
+ * VALIDATION_FAILED against every real database (2026-09-23).
+ *
+ * Use this for anything in `features/<f>/queries.ts` that parses a row it did
+ * not build itself. Use `asUser` for testing the SQL.
+ */
+export async function asUserThroughDrizzle<T>(
+  url: string,
+  claims: TestClaims,
+  fn: (tx: TenantTransaction) => Promise<T>,
+): Promise<T> {
+  const jwt = JSON.stringify({
+    school_id: claims.schoolId,
+    profile_id: claims.profileId,
+    roles: claims.roles,
+    org_grants: (claims.orgGrants ?? []).map((g) => ({ org_id: g.orgId, role: g.role })),
+  });
+
+  // The same options production opens its pool with, so the driver behaves the
+  // same way here as it does behind the endpoint.
+  const client = postgres(url, { max: 1, prepare: false });
+  try {
+    return await drizzle(client, { schema }).transaction(async (tx) => {
+      await tx.execute(drizzleSql`select set_config('request.jwt.claims', ${jwt}, true)`);
+      await tx.execute(drizzleSql`set local role authenticated`);
+      return fn(tx);
+    });
+  } finally {
+    await client.end();
+  }
 }

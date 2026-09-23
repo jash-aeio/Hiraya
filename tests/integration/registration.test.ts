@@ -2,7 +2,9 @@ import postgres from "postgres";
 import type { Sql } from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { asUser, startTestDatabase } from "./helpers/db";
+import { callCancelRegistration, callRegisterForEvent } from "@/features/registration/queries";
+
+import { asUser, asUserThroughDrizzle, startTestDatabase } from "./helpers/db";
 import type { TestClaims, TestDatabase } from "./helpers/db";
 import { seedTenant } from "./helpers/fixtures";
 import type { Tenant } from "./helpers/fixtures";
@@ -113,8 +115,9 @@ beforeAll(async () => {
     endsIn: "-1 day",
   });
 
-  // The fixture ships one learner per school; capacity needs a queue.
-  for (let i = 0; i < 4; i += 1) {
+  // The fixture ships one learner per school; capacity needs a queue, and the
+  // wrapper tests at the foot of this file need two nobody else has registered.
+  for (let i = 0; i < 6; i += 1) {
     const [row] = await db.sql<{ id: string }[]>`
       INSERT INTO profiles (school_id, username, display_name, grade_level, section, status)
       VALUES (${schoolA.schoolId}, ${`reg-a-learner-${String(i)}`},
@@ -440,5 +443,68 @@ describe("the roster", () => {
         `,
     );
     expect(rows).toHaveLength(0);
+  });
+});
+
+/**
+ * The same two functions, reached the way a request reaches them.
+ *
+ * Everything above proves the SQL. These prove the twenty lines of TypeScript
+ * between the SQL and the handler — the Zod row parsers — and they exist
+ * because those lines were wrong on `main` for a day while every test above
+ * stayed green: `tx.execute` returns a `timestamptz` as wire text, and the
+ * parser demanded a `Date`, so registering answered VALIDATION_FAILED against
+ * any real database while answering correctly here.
+ *
+ * The assertion that matters is not the outcome string. It is `r_registered_at`
+ * being a usable `Date`, because that is the field the driver hands over in a
+ * shape the row did not expect.
+ */
+describe("the query wrappers, through a Drizzle transaction", () => {
+  it("parses a registration the way the endpoint receives it", async () => {
+    const profileId = learners[4]!;
+    const outcome = await asUserThroughDrizzle(
+      db.url,
+      learnerClaims(schoolA, profileId),
+      (tx) => callRegisterForEvent(tx, openEventId, false),
+    );
+
+    expect(outcome.r_outcome).toBe("registered");
+    expect(outcome.r_status).toBe("registered");
+    expect(outcome.r_registered_at).toBeInstanceOf(Date);
+    expect(Number.isNaN(outcome.r_registered_at!.getTime())).toBe(false);
+    expect(outcome.r_detail).toEqual({});
+  });
+
+  it("parses a cancellation the same way", async () => {
+    const profileId = learners[5]!;
+    await asUserThroughDrizzle(db.url, learnerClaims(schoolA, profileId), (tx) =>
+      callRegisterForEvent(tx, openEventId, false),
+    );
+
+    const outcome = await asUserThroughDrizzle(
+      db.url,
+      learnerClaims(schoolA, profileId),
+      (tx) => callCancelRegistration(tx, openEventId),
+    );
+
+    expect(outcome.r_outcome).toBe("cancelled");
+    expect(outcome.r_status).toBe("cancelled");
+    expect(outcome.r_registered_at).toBeInstanceOf(Date);
+  });
+
+  it("parses a refusal, where every nullable field is actually null", async () => {
+    const outcome = await asUserThroughDrizzle(
+      db.url,
+      learnerClaims(schoolA, schoolA.learnerProfileId),
+      (tx) => callRegisterForEvent(tx, unpublishedEventId, false),
+    );
+
+    expect(outcome.r_outcome).toBe("not_found");
+    expect(outcome.r_status).toBeNull();
+    expect(outcome.r_waitlist_position).toBeNull();
+    // `.nullable()` must short-circuit before the timestamp transform runs;
+    // coercing null would quietly produce the epoch instead of failing.
+    expect(outcome.r_registered_at).toBeNull();
   });
 });
