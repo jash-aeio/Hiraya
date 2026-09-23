@@ -13,34 +13,37 @@ New here? Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first.
 
 > **Updated by `/hiraya-checkpoint`. If this block and the tables below disagree, the tables win.**
 
-**Phase 0 — Foundation, design system, demo tenant.** Every buildable task is built and on `main`, and
-the loop has now been walked end to end against the real database rather than inferred from a diff.
-What remains is the first public deploy and the pitch kit.
+**Phase 0 — Foundation, design system, demo tenant.** Every buildable task is built and on `main`, the
+loop has been walked end to end against the real database, and **Hiraya is now deployed and publicly
+reachable**. What remains is two demo defects and the pitch kit.
 
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last work to land** | P-07, the fixture seam deleted (`f588b91`), and D-06, the registration row parser (`f07ead4`) |
+| **Last work to land** | **M-01 — the deploy is live** at `https://hiraya-eosin.vercel.app` (2026-09-23, no commit: infrastructure, not code). Before it, D34 (`00965b3`) |
 | **In flight** | Nothing. No open PRs |
-| **Blocked on the maintainer** | **M-01** — deploy to Vercel → `SETUP_GUIDE.md` §5. The schema half of M-01 is done: RLS and all seven SECURITY DEFINER functions are applied to Supabase and `db:verify-rls` is clean |
-| **Open tasks, whole project** | 4 in Phase 0 · 17 queued behind Gate A in Phase 1 |
+| **Blocked on the maintainer** | Nothing blocking. **M-02** (pitch kit) is yours whenever you want it; Claude drafts all three pieces |
+| **Open tasks, whole project** | 3 in Phase 0 · 17 queued behind Gate A in Phase 1 |
 
 **▶ Next, in order:**
 
 | | Task | Who | Say |
 |---|---|---|---|
 | 1 | **D-07** — the demo's live event goes stale hours after seeding | Lane D | `build D-07` |
-| 2 | **M-01** — Vercel deploy | **you** (`SETUP_GUIDE.md` §5) | `walk me through M-01` |
+| 2 | **P-08** — avatar keys outrun the assets; 404s on the *public* demo | Lane P | `build P-08` |
 | 3 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
 
-**Four of Phase 0's six acceptance criteria are ticked.** The walkable loop and the 500 KB budget closed
-on 2026-09-23; cross-tenant denial closed on 2026-09-21. Two remain and neither is a task you can
-prompt: **the phone-over-mobile-data load** needs M-01's public URL, and **WCAG AA** is one finding
-short — **P-14**, the missing navigation landmark, deliberately booked into Phase 1 (§6).
+**Four of Phase 0's six acceptance criteria are ticked** — unchanged by the deploy. The walkable loop
+and the 500 KB budget closed on 2026-09-23; cross-tenant denial closed on 2026-09-21. Two remain:
+**WCAG AA** is one finding short — **P-14**, the missing navigation landmark, deliberately booked into
+Phase 1 (§6) — and **the phone-over-mobile-data load** is now *unblocked but untested*. The URL exists;
+what it still needs is a real phone on real mobile data, which is a maintainer action and not a task
+anyone can prompt.
 
-**D-07 is small and it gates the demo, not the code.** A tenant seeded yesterday has no live event, so
-the check-in half of the pitch cannot be shown at all — and check-in is the half the whole product
-argument rests on.
+**D-07 and P-08 are now public defects, not private ones.** Both were booked when the demo lived only
+on `localhost`. A tenant seeded yesterday has no live event, so the check-in half of the pitch cannot
+be shown at all — and check-in is the half the whole product argument rests on. P-08's missing avatars
+404 on the roster, the board and the persona picker. Anyone given the URL today sees both.
 
 ## 1. Lanes
 
@@ -170,13 +173,13 @@ Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets 
 | ~~P-05~~ | ~~Tier 1 assets~~ | P | jash-aeio | — | **Done 2026-09-21.** Reviewable at `/design`. One caveat open: the OG card's typeface |
 | ~~P-06~~ | ~~`hiraya-mobile-audit` on every demo screen~~ | P | jash-aeio | P-01…P-05 | **Done 2026-09-22** (`904f6d0`). 14 routes walked at 360×800 on a production build, P-04's deferred walk included. **Budget passes**: 200–209 KB per route. **Two a11y failures found and fixed**: `text-primary` at 4.44:1 on the canvas, and no `h1` on `/checkin/[eventId]` — which also never named the event it was scanning. **One left open**: no `nav` landmark anywhere, booked as P-14 |
 | ~~P-07~~ | ~~Delete the fixture seam~~ | P | jash-aeio | — | **Done 2026-09-23** (PR #14). Six files and the `NEXT_PUBLIC_HIRAYA_FIXTURES` flag gone, 677 lines deleted. Closed the P-06 finding it was expected to: `/events/<id>` ignored its own id because `fixtureEventDetail` ignored its argument. Walked at 360×800 against the seeded tenant — 208 KB, no fixture chunk |
-| **P-08** | **Avatar keys outrun the assets** — `scripts/seed-demo.ts` assigns `avatar-01`…`avatar-16`; `public/avatars/` holds 14 | P | — | — | **Open, unblocked.** Found by the P-07 browser walk (2026-09-23): every 15th and 16th person in the cast 404s on the gate roster, the leaderboard and the persona picker — the screens M-01 deploys. Two ways to close it and they are not equivalent: take the seed script to `% 14` (one character, Lane D file), or author `avatar-15.svg` and `avatar-16.svg`. `ASSET_CHECKLIST.md` asks for 12–16, so 14 already satisfies it |
+| **P-08** | **Avatar keys outrun the assets** — `scripts/seed-demo.ts` assigns `avatar-01`…`avatar-16`; `public/avatars/` holds 14 | P | — | — | **Open, unblocked.** Found by the P-07 browser walk (2026-09-23): every 15th and 16th person in the cast 404s on the gate roster, the leaderboard and the persona picker. **Since 2026-09-23 those 404s are public** — M-01 deployed the screens they appear on. Two ways to close it and they are not equivalent: take the seed script to `% 14` (one character, Lane D file), or author `avatar-15.svg` and `avatar-16.svg`. `ASSET_CHECKLIST.md` asks for 12–16, so 14 already satisfies it |
 | ~~D-06~~ | ~~Registration answered VALIDATION_FAILED against every real database~~ | D | jash-aeio | — | **Done 2026-09-23** (PR #15). `tx.execute` returns postgres-js rows unparsed, so `r_registered_at` arrived as wire text where the row parser demanded a `Date`. The SQL was never wrong. Found by walking the loop, not by reading the diff, because `registration.test.ts` drove the SQL through raw postgres-js and the TypeScript wrapper had never run (D33). `asUserThroughDrizzle` is the seam that was missing |
-| **D-07** | **The demo's live event goes stale hours after seeding** | D | — | — | **Open.** `db:seed:demo` gives Club Fair a five-hour window from seed time, so a tenant seeded yesterday has no event an officer can open a gate for and the check-in half of the demo cannot be walked at all. Confirmed 2026-09-23: `live_events_now = 0`. It makes the demo a same-day artefact, which is the wrong property for the thing M-01 deploys and M-02 pitches. Either seed the window relative to each request, or give the demo a standing always-live event |
-| **M-01** | Apply the schema to Supabase; deploy to Vercel | **M** | jash-aeio | D-05, P-06 | **Open, blocking.** `SETUP_GUIDE.md` §4–§5. R13: the free project sleeps — wake it before a pitch. R21 is answered here and nowhere else: locally the owner is a superuser, so only Supabase proves whether three SECURITY DEFINER functions read correctly |
+| **D-07** | **The demo's live event goes stale hours after seeding** | D | — | — | **Open.** `db:seed:demo` gives Club Fair a five-hour window from seed time, so a tenant seeded yesterday has no event an officer can open a gate for and the check-in half of the demo cannot be walked at all. Confirmed 2026-09-23: `live_events_now = 0`. It makes the demo a same-day artefact, which is the wrong property for something now publicly deployed and about to be pitched (M-02). Either seed the window relative to each request, or give the demo a standing always-live event |
+| ~~M-01~~ | ~~Apply the schema to Supabase; deploy to Vercel~~ | **M** | jash-aeio | D-05, P-06 | **Done 2026-09-23.** Live at `https://hiraya-eosin.vercel.app`; `/api/v1/health` answers `{"status":"ok","database":true}` and `/api/v1/demo/personas` offers 42. No commit — infrastructure, not code. **Two defects found and fixed in the deploying, both invisible locally**: the runtime had no `DATABASE_URL` (the variable existed but postdated the live build, and Vercel binds env at deploy time — the fix was a redeploy, not a new variable), and `HIRAYA_DEMO_SCHOOLS` did not match `halimbawa-demo`, so D25's allowlist discarded every persona and the public demo offered nobody. The second was hidden behind the first. R21 is answered: the SECURITY DEFINER functions read correctly where the caller is not a superuser |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
-**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07~~ → M-01 → M-02 → **Gate A**. P-08 is off the path but wants closing before the demo is shown to anyone.
+**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01~~ → M-02 → **Gate A**. D-07 and P-08 are off the path but both are now visible on the public URL, so both want closing before it is shown to anyone.
 
 ---
 

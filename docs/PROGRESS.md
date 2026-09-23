@@ -12,6 +12,112 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-23 — Hiraya is deployed, and the deploy found two defects nothing local could
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+**M-01 is done.** Hiraya is publicly reachable at `https://hiraya-eosin.vercel.app`. This entry has
+almost no diff behind it — one docs commit — because the work was infrastructure. It is recorded from
+live endpoint responses, not from memory.
+
+**Shipped**
+
+- **The deploy is live and verified.** `/api/v1/health` answers `{"status":"ok","database":true}`;
+  `/api/v1/demo/personas` answers with `halimbawa-demo` and 42 personas. Project `sibol-hiraya/hiraya`
+  on the free `*.vercel.app` URL (D9). The Vercel CLI is now installed and the repo is linked
+- **Two defects found and fixed in the deploying, neither reproducible locally.** They are the point of
+  this entry:
+  1. **The production runtime had no `DATABASE_URL`** — every request died at the database for ten
+     hours. The variable *was* in project settings; it was added after the live build, and **Vercel
+     binds environment variables at deploy time**, so the functions serving traffic had none. The fix
+     was a redeploy, not a new variable
+  2. **`HIRAYA_DEMO_SCHOOLS` did not match `halimbawa-demo`**, so D25's allowlist discarded every
+     persona and the public demo offered nobody — `{"schools":[]}`. **This was invisible until the
+     first defect was fixed**, because nothing reached the gate while everything died before it
+- **Runtime config brought in line with D34**: `DATABASE_URL` moved to the pooler in transaction mode
+  (6543) with `DATABASE_POOL_MAX=1`, on both Production and Preview. Both ports were probed from the
+  maintainer's machine before the change, so the target value was known good rather than assumed
+- **`TEST_DATABASE_URL` removed from Production and Preview.** The deployed runtime never reads it and
+  the suite it belongs to disables RLS mid-test; an unused database credential on a public deployment
+  is pure downside. Pre-Gate-B and synthetic today, but this is exactly the variable that must not be
+  deployed once rosters are real
+- **`HIRAYA_DEMO_SCHOOLS` and `DATABASE_POOL_MAX` re-typed `Config` rather than `Secret`.** Vercel
+  stores every variable write-only by default. Neither of these is a secret, and a write-only `1`
+  cannot be audited by anyone later — it can only be destroyed and re-added to find out what it was
+
+**Decisions**
+
+- No new D-number. The Secret-vs-Config rule is operational rather than architectural, so it went into
+  `SETUP_GUIDE.md` §5 beside the variables it governs. Flagged below in case a future session judges
+  otherwise — the same altitude argument could be made for D34, which did get a number
+
+**Docs updated**
+
+- `docs/TECHNICAL_ARCHITECTURE.md` — **D34's stated cause corrected.** It read "its environment carried
+  no database URL at all". That described the log line, not the project: the variable existed and the
+  deployment predated it. Left as a visible correction rather than a silent overwrite, because the
+  original sentence would send a future session hunting a missing variable that was never missing
+- `docs/SETUP_GUIDE.md` §5 — rewritten and marked done. Adds `DATABASE_POOL_MAX`, the 6543 requirement
+  and the reason, a Type column, the Secret-vs-Config rule, the `TEST_DATABASE_URL` prohibition, two
+  verification curls, and the two facts that cost this deploy a day: **changing a variable does not
+  change a running deployment**, and **`/api/v1/health` reports the same `degraded` for every cause** —
+  the reason is only in `vercel logs` as `api.unhandled`. Removed the claim that the build "imports
+  modules that read them": nothing in `src/` reads `LRN_HMAC_PEPPER` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  yet, so a missing one fails a request later rather than the build now. §4's "this unblocks M-01"
+  moved to past tense; the §5 marker went 🔴 → ⚪
+- `docs/WORKSTREAMS.md` — §0 rewritten, M-01 struck with its findings, critical path closed through
+  M-01, D-07 and P-08 re-described as public defects
+
+**Risks**
+
+- Materialized: **local green proves nothing about a deployed runtime.** This is D33's lesson at the
+  next layer out — D33 was a tested path differing from the production path inside one process; this is
+  a whole environment differing. The build passed locally and on Vercel while the running application
+  could not reach its database. CI cannot catch this class: nothing in CI deploys
+- Materialized: **a public URL changes the severity of two open tasks.** D-07 (stale demo event) and
+  P-08 (avatar 404s) were booked as local blemishes. They are now the first two things a visitor sees
+- Retired: **R21** — whether the SECURITY DEFINER functions read correctly where the caller is not a
+  superuser. Answered yes, against Supabase, through a deployed runtime
+
+**Next**
+
+- **D-07** — the demo's live event goes stale hours after seeding. It gates the check-in half of the
+  pitch, which is the half the product argument rests on
+- **P-08** — avatar keys outrun the assets, now 404ing publicly
+- **M-02** — the pitch kit, then Gate A
+
+**Flagged**
+
+- **`vercel link` silently edited `.gitignore`** and the edit was not harmless. It appended `.vercel`
+  and `.env*` — both already present at lines 9–10 and 38 — but `.env*` landed *after* the
+  `!.env.example` negation at line 11, and in gitignore a later pattern wins. `.env.example` survives
+  only because it is already tracked; a contributor recreating it would find `git add` silently
+  skipping the one file `CONTRIBUTING.md` §2 tells them to copy. Reverted. **Worth re-checking after
+  any future `vercel link`**
+- **The health endpoint's silence is a deliberate trade, and it cost a day.** The `catch` in
+  `pingDatabase()` collapses unset-variable, wrong-port and sleeping-project into one `degraded`. That
+  is correct for a public endpoint and should not change. But it means the first move on any deployment
+  problem is `vercel logs <url>`, not the health endpoint — now written into `SETUP_GUIDE.md` §5
+- **Claude cannot write to Vercel's secret store.** `vercel env add` and `vercel env rm` are blocked by
+  the harness; the maintainer ran them with the `!` prefix and Claude verified each result. Not a
+  limitation worth routing around — it kept a human on every credential write — but it shapes how §5
+  must be followed
+- **A citation drift, reported not fixed.** `docs/PRD.md` §3 says the `user_role` enum lives in
+  `src/db/schema.ts`; it is defined in `src/db/enums.ts`, which `schema.ts` re-exports with a wildcard.
+  The PRD is therefore reachable-but-indirect rather than wrong. The checkpoint skill's own checklist
+  names `enums.ts` as the authority. Which to standardize on is the maintainer's call — the same shape
+  as the D23/D25 drift below, which is still open
+- **Still open from 2026-09-22:** `.env.example` and `src/lib/auth/demo-allowlist.ts` cite the
+  `HIRAYA_DEMO_SCHOOLS` allowlist as "the second half of the **D23** gate"; `CLAUDE.md` §6 and
+  `SETUP_GUIDE.md` call it **D25**. This checkpoint touched §5 and left the citation alone rather than
+  guess. It is now slightly more pressing: D25's allowlist is the thing that silently emptied the
+  public demo, so the rule a reader is sent to should be the right one
+- **The phone-over-mobile-data criterion is unblocked but untested.** The URL exists. What remains is a
+  real phone on real mobile data — a maintainer action, and the only Phase 0 criterion that cannot be
+  closed from this machine
+
+---
+
 ## 2026-09-23 — The loop walked, and the two things that only a walk finds
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
