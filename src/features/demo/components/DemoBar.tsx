@@ -18,8 +18,8 @@ import { ExitDemoButton } from "./ExitDemoButton";
  * Rendered on the server, from the cookie, so it is in the first HTML the
  * browser paints. A client-fetched marker would be absent for a beat on every
  * load, and a marker with a gap in it is a marker that can be photographed
- * missing. The Capacitor shell (Phase 5) has no server render and will need the
- * client variant; that is a Phase 5 note, not a Phase 0 shortcut.
+ * missing. (A static export would have no server render and would need a client
+ * variant — only relevant if Phase 5 is ever resumed; D35.)
  *
  * Staff register: this is a warning strip, not a celebration.
  */

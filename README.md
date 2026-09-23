@@ -34,7 +34,7 @@ Later phases add badges and quests, e-certificates and a Co-curricular Record sp
 One codebase → a web PWA **and** an installable Android/iOS app, sharing one database.
 
 Next.js 16 (App Router) · TypeScript · Tailwind · Supabase (Postgres with row-level security, Auth,
-Storage) · Drizzle · Capacitor · Vercel.
+Storage) · Drizzle · Vercel. Delivered as a web PWA; native packaging is post-MVP (D35).
 
 ## Development
 

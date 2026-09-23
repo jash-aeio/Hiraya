@@ -118,25 +118,45 @@ Then verify by reading:
 conflict, because trust in it decays invisibly and you discover the problem at the moment you were
 relying on it.
 
-### 5. Commit and push
+### 5. Commit, and land it through a PR
 
 Conventional commits. Reference PRD requirement IDs where they apply.
 
+**`main` is protected (D26). A checkpoint lands the same way every other change does — never by a
+direct push.** `.githooks/pre-push` refuses one, so a checkpoint that tries it simply fails.
+
 ```bash
+git checkout -b docs/<short-name>
 git add -A
 git commit -m "docs: checkpoint - <summary>"
-git push origin main
+git push -u origin docs/<short-name>
+gh pr create --title "docs: checkpoint - <summary>" --body-file -
 ```
 
-At a phase boundary, tag:
+Then wait for CI and squash-merge once it is green (D32, standing permission 4):
+
+```bash
+gh pr merge <n> --squash --delete-branch
+git checkout main && git pull origin main
+```
+
+**Tag the checkpoint** so the next one can find it — step 1 reads `checkpoint-*` to establish what
+changed, and an untagged checkpoint makes the next session diff against a stale baseline:
+
+```bash
+git tag -a checkpoint-<short-name> -m "<summary>"
+git push origin checkpoint-<short-name>
+```
+
+At a phase boundary, tag that too:
 
 ```bash
 git tag -a phase-N-complete -m "Phase N: <name>"
 git push origin phase-N-complete
 ```
 
-**Git policy (D16).** Commit freely without asking. **Push at checkpoints, and say so in one line.**
-Never force-push. Never commit directly to `main` without asking, if a branch workflow is in use.
+**Git policy (D16, D26, D32).** Commit freely without asking. **Push at checkpoints, and say so in one
+line.** Never force-push, and never push to `main` directly — `CLAUDE.md` §7 is the authority here.
 
 ### 6. Never commit
 

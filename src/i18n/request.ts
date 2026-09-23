@@ -3,8 +3,10 @@ import { getRequestConfig } from "next-intl/server";
 
 /**
  * Locale resolution. Cookie-based rather than path-prefixed (`/fil/events`)
- * because the Capacitor shell serves one bundle from the app's own origin, and a
- * locale segment in the URL would need the same routing to exist in both.
+ * because a locale segment would put the same page behind two URLs, which costs
+ * a redirect on every cold load and splits any link a teacher shares. The cookie
+ * also survives a home-screen PWA launch, where there is no referring URL to read
+ * a prefix from.
  *
  * The catalogues exist so that no string is ever written outside one — retrofitting
  * i18n across a finished UI is the refactor that never happens.

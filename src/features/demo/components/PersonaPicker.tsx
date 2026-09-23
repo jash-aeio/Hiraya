@@ -12,9 +12,9 @@ import type { DemoSchool, Persona, PersonasResponse } from "../schema";
  * The persona switcher (D23).
  *
  * A client component that talks to /api/v1 rather than a Server Component
- * reading the service directly, for one reason: the Capacitor shell ships a
- * static bundle and runs no server (CLAUDE.md R3). A switcher that only works
- * when Next renders it is a switcher the native demo does not have.
+ * reading the service directly, for one reason: every read and write goes
+ * through one authorization path (CLAUDE.md R3). Reading the service here would
+ * be a second way in, checked separately from the endpoint beside it.
  *
  * `fetch` rather than TanStack Query: two calls, no cache to invalidate, and a
  * dependency added for a Phase 0 demo screen is a dependency the 500 KB budget

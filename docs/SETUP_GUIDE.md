@@ -103,8 +103,9 @@ node -e "const c=require('crypto');const{publicKey,privateKey}=c.generateKeyPair
 ```
 
 **Why the QR scheme is asymmetric, in one line:** officer phones verify with the *public* key and never
-hold a secret, which is what makes offline check-in possible at all. **Never ship the private half in a
-Capacitor bundle** — a native binary is trivially unpacked, so anything on a device is public (R5).
+hold a secret, which is what makes offline check-in possible at all. **Never ship the private half to a
+device** — not in a client bundle, not in a service-worker cache: anything that reaches a device is
+public (R5).
 
 ---
 
@@ -233,6 +234,13 @@ variable, a wrong port, a sleeping project — because it is public and delibera
 (`pingDatabase().catch(() => false)`). The reason is in the function logs as `api.unhandled`:
 `vercel logs <deployment-url>`.
 
+**`vercel link` edits `.gitignore`, and the edit is not safe here.** It appends `.vercel` and `.env*`
+to the end of the file. Both are already covered (lines 9–10 and 38), but `.env*` lands *after* the
+`!.env.example` negation on line 11, and in gitignore the last matching pattern wins — so
+`.env.example` becomes ignored. It survives only because it is already tracked; a contributor
+recreating it would find `git add` silently skipping the one file `CONTRIBUTING.md` §2 tells them to
+copy. **Check `git diff .gitignore` after any `vercel link` and revert it.**
+
 🤝 Claude can read logs, list variables, and check the deployed build's bundle budget and accessibility
 (`hiraya-mobile-audit`) once the URL exists. It **cannot write to the secret store** — `vercel env
 add`/`rm` are blocked for it, so run those yourself with the `!` prefix and Claude will verify the
@@ -357,10 +365,12 @@ cannot sign anything, and it cannot decide what the school consents to.**
 
 ---
 
-## 10. 🟡 Phase 5 — store accounts
+## 10. ⚪ Phase 5 — store accounts · **NOT NEEDED (D35)**
 
-Needed only when native packaging starts. Both take days to verify identity, so open them at the
-*start* of Phase 5.
+**Native packaging left MVP scope on 2026-09-23.** Nothing here is needed for the pilot: no Google Play
+account, no Apple Developer account, no $99/year, and no child-directed store-policy review. Kept for
+the day Phase 5 resumes. Both accounts take days to verify identity, so open them at the *start* of
+that phase, not partway through it.
 
 | | Google Play | Apple |
 |---|---|---|

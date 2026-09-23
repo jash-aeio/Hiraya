@@ -3,9 +3,11 @@ import type { MetadataRoute } from "next";
 /**
  * The PWA manifest.
  *
- * Web first, always: the Capacitor shells (D11) are an addition to this, never
- * a replacement for it — a learner whose phone has no room for another app
- * still installs Hiraya from the browser.
+ * Web only, and therefore load-bearing: since D35 deferred native packaging,
+ * this manifest is the whole install story — a learner adds Hiraya to the home
+ * screen from the browser or does not have it on their home screen at all.
+ * On iOS it is also what Web Push depends on, which is not obvious: Safari
+ * delivers push only to a PWA the user has installed.
  *
  * `display: "standalone"` rather than `fullscreen` on purpose. The scanner runs
  * at a gate in daylight, and an officer needs the system clock and the battery

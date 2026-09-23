@@ -199,7 +199,10 @@ The highest-risk phase. Everything the product claims rests here.
 
 - [ ] Scanner opens in under 2 seconds and stays open between scans
 - [ ] A valid scan confirms in under 500 ms with **both** visual and audible feedback
-- [ ] **≥15 check-ins/minute sustained**
+- [ ] **≥15 check-ins/minute sustained** — on the browser `getUserMedia` path, which since 2026-09-23
+      is the only path (§8). D11 originally justified native camera as what this target *depends on*,
+      so this is now the criterion most at risk in the whole roadmap. Measure it before Phase 3 closes;
+      a miss reopens Phase 5 rather than lowering the number
 - [ ] Scanning with the network fully disabled works, and the UI shows the queue count
 - [ ] **Replaying an entire offline queue produces zero duplicate XP**
 - [ ] An expired or wrong-event token is rejected with a clear reason
@@ -246,14 +249,29 @@ and by watching top-decile XP share during the pilot).
 
 ---
 
-## 8. Phase 5 — Native packaging
+## 8. Phase 5 — Native packaging · **DEFERRED, POST-MVP**
+
+> **Out of MVP scope, decided 2026-09-23.** The MVP ships as a web PWA only (`CLAUDE.md` §1). This
+> phase is kept, not deleted, because everything in it stays true the day it resumes — and because two
+> of its criteria (the force-quit queue, and the advertising-identifier prohibition) are findings that
+> would otherwise have to be rediscovered.
+>
+> **What deferring it costs, stated plainly.** D11 justified native on the grounds that *"native camera
+> is what the ≥15 check-ins/min target actually depends on."* That target is a product KPI, not a
+> preference, and it now rests entirely on the browser `getUserMedia` path. **Phase 3 must measure it
+> and treat a miss as a failing test** (§6). If the web scanner cannot sustain 15/minute at the gate,
+> the honest response is to reopen this phase — not to quietly lower the number.
+>
+> **What it does not cost.** The architecture stays native-ready: R3 keeps `/api/v1` as the single data
+> layer, so resuming means adding a shell, not re-deriving every authorization check. No store account,
+> no Apple fee, and no child-directed store-policy review is needed for the pilot.
 
 **Deliverables.** Capacitor Android and iOS shells; native camera scanner replacing `getUserMedia`;
 native push (FCM + APNs); native secure storage and SQLite queue; store listings; **Play Families and
 Apple Kids policy compliance review**; internal-testing builds.
 
 **Dependencies.** Phases 1–4. Google Play developer account ($25 one-time), Apple Developer account
-($99/year).
+($99/year). **Also a decision to resume**, which is not a task — see the note above.
 
 **Acceptance criteria**
 

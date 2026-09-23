@@ -6,8 +6,8 @@ import { EventDetailScreen } from "@/features/events/components/EventDetailScree
  *
  * The shell is a Server Component and the screen inside it is a client one, for
  * the same split as /events: the shell is static and belongs in the first
- * paint, while the screen fetches, registers and has to work inside a Capacitor
- * bundle with no server behind it (CLAUDE.md R3).
+ * paint, while the screen fetches, registers and talks to /api/v1 rather than to
+ * a service (CLAUDE.md R3).
  *
  * There is no `notFound()` here and no server-side read to base one on. An event
  * in another school is invisible to the policy, not to the router, and the

@@ -218,8 +218,9 @@ Not style preferences. Each of these has a specific failure behind it.
    reach a named role.
 5. **Never log PII.** `profile_id` only. Not to Sentry, not to `console`, not in an error message a user
    will see.
-6. **No Server Actions.** `/api/v1` is the single data layer, because a Capacitor bundle cannot run them
-   and two data layers means two authorization paths (R3, D1a).
+6. **No Server Actions.** `/api/v1` is the single data layer, because two data layers means two
+   authorization paths and the second is the one nobody audits (R3). Native was the original forcing
+   reason and is deferred (D35); the authorization argument is what keeps the rule.
 7. **No photo uploads of learners, and no learner↔adult private messaging.** Both are permanently out of
    scope, not deferred (D13, §6).
 8. **Never edit a past `docs/PROGRESS.md` entry.** Append a new one. The log is append-only for the same

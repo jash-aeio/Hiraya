@@ -14,9 +14,9 @@ import { log } from "@/lib/log";
  *
  *   authenticate -> authorize(role) -> Zod-parse -> call service -> map errors
  *
- * Route handlers are thin because the same business logic serves the web app and
- * the Capacitor build, and duplicating it would mean duplicating the
- * authorization checks with it. There are no Server Actions to diverge into.
+ * Route handlers are thin because the business logic lives once, in the service.
+ * Duplicating it anywhere would duplicate the authorization checks with it, and
+ * the copy is the one that rots. There are no Server Actions to diverge into.
  *
  * Every step here is deliberate:
  *   - `input` is required for any route with a body, so no unparsed value ever

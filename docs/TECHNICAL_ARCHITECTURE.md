@@ -25,7 +25,7 @@ one of these.
 | # | Decision | Rationale | Trade-off accepted |
 |---|---|---|---|
 | **D1** | Next.js 16 (App Router) + Supabase (Postgres + RLS, Auth, Storage), Drizzle ORM, hosted on Vercel | One vendor; free tier; RLS makes tenancy a *database* invariant rather than a convention app code must remember | Vendor concentration — mitigated by plain Postgres and full export (NFR-12) |
-| **D1a** | **`/api/v1` is the single data layer. No Server Actions.** | A Capacitor bundle cannot run Server Actions or RSC; one API for both targets means **one authorization path instead of two** | Loses Server Action ergonomics and form progressive enhancement |
+| **D1a** | **`/api/v1` is the single data layer. No Server Actions.** | **One authorization path instead of two** — a second data layer means a second set of checks, and the second set is the one nobody audits. Originally forced by D11 (a Capacitor bundle runs neither Server Actions nor RSC); **that reason went dormant with D35 and the rule stands without it**, since it is also what lets native resume later without re-deriving every check | Loses Server Action ergonomics and form progressive enhancement |
 | **D2** | MVP is the full Phase 1 list, offline check-in and push included | Offline scanning mitigates the High-likelihood "weak signal at venues" risk and protects the ≥15/min KPI | More Phase 3 complexity than a thin MVP |
 | **D3** | Solo developer + Claude Code. **Amended by D26:** a second developer joins from 2026-09-21. **Amended by D31:** the project takes contributors across three claimable lanes | — | Automation and agents substitute for a QA role |
 | **D4** | LRN-derived username + password; one-time activation code at homeroom | Public-HS learners have no reliable email | **No self-service password reset for learners** (§6) |
@@ -35,7 +35,7 @@ one of these.
 | **D8** | School is controller, developer is processor; infra in a school-owned account | Puts learner data under the school's existing consent channel rather than a private individual | Slower setup; needs a written agreement |
 | **D9** | Free `*.vercel.app` until the school commits | Do not defend a name before there is a partner | Less polished pitch URL |
 | **D10** | git + GitHub Actions CI; `/security-review` required on auth/RBAC/tenancy/QR/PII diffs | The only reviewer is automated | CI minutes; setup time |
-| **D11** | **Capacitor** — one codebase → web PWA + Android AAB + iOS IPA | Native camera is what the ≥15 check-ins/min target actually depends on; native push works on iOS without home-screen install | Forces D1a; store review; Apple's annual fee |
+| **D11** | ~~**Capacitor** — one codebase → web PWA + Android AAB + iOS IPA~~ **Superseded by D35: the MVP is a web PWA only.** Kept for the record, and because D11's reasoning is what Phase 3 now has to disprove | Native camera is what the ≥15 check-ins/min target actually depends on; native push works on iOS without home-screen install | Forces D1a; store review; Apple's annual fee |
 | **D12** | Dual visual register, shared tokens | Advisers judge the tool on paperwork saved; playful chrome reads as a student toy | Two component moods to maintain |
 | **D13** | Curated avatar set, no photo uploads | No moderation queue for images of minors, no biometric-adjacent store | Less personalization |
 | **D14** | Assets authored as hand-written SVG + vetted free libraries | Free, tiny, token-recolorable — the only way this visual style fits 500 KB | Author time; no photorealism |
@@ -59,6 +59,7 @@ one of these.
 | **D32** | **Four standing permissions, granted once rather than asked per occurrence:** commit and push feature branches and open PRs; run local database commands; apply migrations and RLS to Supabase through the MCP server (which drops `--read-only`); and **squash-merge Claude's own PRs into `main` once CI is green** | The maintainer is one person learning the stack while building it, and a confirmation prompt on every routine action taxes attention that is better spent on review. Grant 3 removes the bottleneck R20 predicted — every migration previously round-tripped through the maintainer hand-running SQL, so a Supabase-only surprise surfaced a day late. Grants 1, 2 and 3 are reversible and touch nothing that holds real data before Gate B | **Grant 4 is the expensive one and was taken knowingly.** It removes the only human review step this project had, leaving CI as the sole automated gate: typecheck, lint (which enforces the R2 import ban), the full suite including cross-tenant denial, and the migration consistency check. CI cannot catch a bad product decision, a confusing screen, or a policy that is valid but substantively too permissive — those now rest entirely on the maintainer's post-merge reading, for which `docs/BUILD_GUIDE.md` §6 supplies six concrete checks. Grant 3 is scoped to a pre-Gate-B project holding only synthetic data and **is to be raised again at Gate B**, when real rosters make the calculation different. Contributor PRs are unaffected: they are still reviewed by the maintainer |
 | **D33** | **An integration test for a query wrapper goes through a Drizzle transaction, not through raw postgres-js.** `tests/integration/helpers/db.ts` offers both: `asUser` for testing SQL, `asUserThroughDrizzle` for testing the TypeScript that parses what the SQL returns | The two drivers disagree about types. `tx.execute` — what every service actually uses — returns rows as wire text, while a postgres-js tagged template applies the type parsers, so a `timestamptz` is a string on one path and a `Date` on the other. Registration shipped to `main` answering VALIDATION_FAILED against every real database with seventeen green tests over it, because all seventeen took the path production does not (2026-09-23, D-06). A test that proves the SQL proves only the SQL |
 | **D34** | **On a serverless runtime, `DATABASE_URL` points at the Supabase pooler in transaction mode — port 6543 — with `DATABASE_POOL_MAX=1`. Migrations keep session mode (5432) or a direct connection.** `.env.example` carries both shapes | `src/lib/db/client.ts` has set `prepare: false` since it was written, which is the transaction-mode requirement — but the URL in use was session mode, so the client was tuned for a pooling mode nothing connected to. Session mode holds one Postgres connection per client for that client's whole life, and on a serverless platform the unit of life is the instance: `max: 10` is not a cap on the deployment, it is a cap per instance times however many Vercel keeps warm. Transaction mode returns the connection at the end of each transaction, which is exactly the boundary `withTenant` already works in — `SET LOCAL` and `set_config(..., true)` are transaction-scoped by construction (R1), so nothing on the tenancy path depends on session state. Surfaced 2026-09-23 while diagnosing the first Vercel deployment, which answered `{"status":"degraded","database":false}`; the port mismatch was latent underneath that, not its cause. **Cause corrected later the same day, when the deploy was actually completed:** the project settings *did* carry a `DATABASE_URL` — it was added after the live build, and Vercel binds environment variables at deploy time, so the running functions had none. The fix was a redeploy, not a new variable. The original note here ("its environment carried no database URL at all") described the symptom in the logs, not the state of the project, and would send a future session looking for the wrong thing | Transaction mode forbids session-scoped state: no `SET` without `LOCAL`, no advisory lock held across statements, no `LISTEN`/`NOTIFY`. Nothing uses those today and the tenancy path structurally cannot, but a future feature reaching for one would fail only against a deployed environment and pass locally — the same shape of gap as D33, where the tested path and the production path differed. Migrations are the standing exception and must not run through 6543; `drizzle.config.ts` reads the same variable name, so the URL that migrates is whichever one is in the maintainer's `.env.local`, never Vercel's |
+| **D35** | **Native packaging is out of MVP scope — the MVP ships as a web PWA only.** Supersedes D11. `MILESTONE_ROADMAP.md` §8 is marked deferred rather than deleted; the `cap:*` scripts are removed; `R3` is kept on its own merits | Decided by the maintainer 2026-09-23: focus the pilot on one delivery path and take native up as post-pilot expansion. It is a cheap decision to make now and an expensive one to make late — nothing native was ever built (no dependency, no `android/`, no `ios/`, no `src/lib/native/`), so deferring costs two dead npm scripts and some rewording, where deferring after a store submission would cost a review cycle. It also removes the Play Families / Apple Kids child-directed policy review from the pilot's critical path entirely | **The ≥15 check-ins/min KPI loses the thing D11 said it depended on.** It now rests on the browser `getUserMedia` path and must be measured in Phase 3; a miss reopens Phase 5 rather than lowering the target. No native push, so every notification is a web push or nothing — iOS web push needs the user to add the PWA to their home screen first, which is a real adoption step the pitch must cover. Offline check-in keeps working (service worker + IndexedDB), but survives force-quit less predictably than a native SQLite queue would |
 
 ---
 
@@ -68,13 +69,13 @@ one of these.
 |---|---|---|
 | **Frontend** | Next.js 16 App Router, React 19, TypeScript strict, Tailwind CSS | RSC keeps JS off the wire, which is the 500 KB budget's biggest lever. Tailwind means no runtime CSS-in-JS cost |
 | **PWA** | Serwist service worker | Maintained successor to `next-pwa`; precached app shell; offline route for the scanner |
-| **Native** | Capacitor 6 (Android + iOS) | Wraps the same build; native camera, push, secure storage; no second UI codebase |
+| ~~**Native**~~ | ~~Capacitor 6 (Android + iOS)~~ **Out of MVP scope (D35).** Not a dependency; never installed | Would wrap the same build; deferred to post-pilot |
 | **API** | Next.js Route Handlers under `/api/v1` | One data layer for web and native (D1a) |
 | **Database** | Supabase Postgres | Relational integrity for a genuinely relational domain; **Row-Level Security** is the reason it is chosen over any document store |
 | **ORM** | Drizzle | SQL-shaped, typed, transparent migrations. Prefers explicit SQL for RLS policies over hiding them |
 | **Auth** | Supabase Auth | Sessions, hashing, refresh; JWT claims carry `school_id` and roles into RLS |
 | **Storage** | Supabase Storage (S3-compatible) | Event photos, certificates, report exports |
-| **Notifications** | Web Push (VAPID) on web; Capacitor Push natively; Resend free tier for **staff email only** | Learners have no email (D4) |
+| **Notifications** | Web Push (VAPID) — the only channel, since D35 removed native push; Resend free tier for **staff email only** | Learners have no email (D4). On iOS, Web Push requires the PWA be added to the home screen first (see risk table) |
 | **Typeface** | Plus Jakarta Sans (SIL OFL), self-hosted by `next/font` | The geometric sans the reference calls for. Shipped as one **variable** file covering 400-800 rather than five static weights — fewer bytes and fewer requests. Never a runtime font CDN |
 | **Icons** | `lucide-react` (ISC) | Tree-shaken per icon, never an icon font. Settled in DESIGN_SYSTEM §11.3 |
 | **i18n** | `next-intl` | App Router native; message catalogues from commit 1 |
@@ -109,8 +110,8 @@ one of these.
 flowchart TD
   subgraph Clients
     W["Web PWA<br/>browser"]
-    A["Android app<br/>Capacitor"]
-    I["iOS app<br/>Capacitor"]
+    A["Android app<br/>Capacitor<br/>(post-MVP, D35)"]:::deferred
+    I["iOS app<br/>Capacitor<br/>(post-MVP, D35)"]:::deferred
   end
 
   subgraph Vercel
@@ -124,8 +125,10 @@ flowchart TD
     ST["Storage<br/>photos, certificates"]
   end
 
-  EXT["Web Push / FCM / APNs"]
+  EXT["Web Push (VAPID)"]
   SEN["Sentry"]
+
+  classDef deferred stroke-dasharray: 4 3,opacity:0.55
 
   W --> RSC
   W --> API
@@ -155,7 +158,7 @@ exists.
 | **`features/*/service.ts`** | All business logic, invariants, transactions | HTTP, rendering, auth session details |
 | **`db/` (Drizzle + RLS SQL)** | Schema, migrations, **tenancy enforcement** | Anything application-shaped |
 | **`lib/qr`** | Ed25519 sign and verify, token shapes, expiry and skew | Where tokens are displayed |
-| **`lib/native`** | Capacitor wrappers, each with a web fallback | Feature logic |
+| **`lib/device`** | Browser device-API wrappers (camera, storage), each with a fallback | Feature logic. `lib/native` was the Capacitor equivalent; it does not exist and is not to be created before Phase 5 resumes (D35) |
 | **Scanner (offline client)** | Local queue, offline verification, sync retry | Deciding whether XP is owed — the server does that |
 | **Service worker** | App-shell precache, offline route, background sync | Business logic |
 
@@ -216,8 +219,11 @@ while the learner is offline. Short expiry is what defeats screenshot sharing.
 
 **Event token.** Rotates every 30s under an event-scoped key, for the learner-scan fallback path (D5).
 
-**Offline queue.** The officer device stores `{jti, event_id, profile_id, scanned_at, device_id}` — web:
-IndexedDB; native: Capacitor SQLite. On reconnect, the queue POSTs to `/api/v1/checkins/sync`.
+**Offline queue.** The officer device stores `{jti, event_id, profile_id, scanned_at, device_id}` in
+**IndexedDB** — the only store, since D35 removed the native SQLite option. On reconnect, the queue POSTs
+to `/api/v1/checkins/sync`. IndexedDB survives a tab close and a browser restart, but is evictable under
+storage pressure in a way a native database is not: request persistent storage, and treat the
+force-quit case as something to test rather than assume (`hiraya-offline-scenario-tester`).
 
 **Idempotency.** The server de-duplicates on `(event_id, profile_id, jti)`. Replaying an entire queue is
 a no-op. This is assumed to happen, not hoped against — flaky connections guarantee replays.
@@ -231,7 +237,8 @@ window for an attacker with a captured token and a manipulated device clock — 
 alternative is a scanner that fails at the gate, and because `jti` de-duplication caps the damage at one
 check-in per token regardless.
 
-**Never ship the private key in a Capacitor bundle.** A native binary is trivially unpacked; anything on
+**Never ship the private key to a device** — not in a client bundle, not in a service-worker cache, and
+not in a native binary if native ever resumes. Anything on
 a device is public.
 
 ---
@@ -312,7 +319,7 @@ Xcode, then store upload (Phase 5).
 |---|---|---|
 | **Supabase pauses idle free projects (~7 days)** | The demo tenant sleeps between pitch meetings — an embarrassing failure at exactly the wrong moment | Keep-alive ping before any scheduled pitch; verify the URL the morning of |
 | **Vercel free tier is non-commercial** | Terms question if the school ever monetizes | Fine for a school pilot; re-evaluate at multi-school scale |
-| **iOS Web Push needs home-screen install** | Silent notification failure for iOS web users | The Capacitor iOS app (D11) sidesteps it; web onboarding must say so explicitly |
+| **iOS Web Push needs home-screen install** | Silent notification failure for every iOS user | **Escalated by D35.** D11's iOS app was the mitigation and it is deferred, so there is no longer a path that sidesteps this: on iOS, Safari delivers push only to a PWA already added to the home screen. Onboarding must walk an iOS learner through Share → Add to Home Screen *before* promising them a notification, and the pitch should not claim push on iOS without it |
 | **App stores restrict child-directed apps** | Rejection at submission | Play Families / Apple Kids rules settled in Phase 5; no advertising-ID SDKs |
 | **D1a means more boilerplate than idiomatic Next.js** | Slower feature velocity | Accepted deliberately — one auth path is worth it |
 | **Supabase concentration** | Vendor dependence, the Classcraft lesson | Plain Postgres underneath; full export (NFR-12); no proprietary query features |

@@ -97,7 +97,8 @@ the code correctly and proving it survives a hostile network are different jobs.
 **Inputs.** The route(s) changed.
 
 **Workflow.** Playwright at 360×800 → a11y tree snapshot for WCAG AA → `browser_network_requests` against
-the 500 KB budget → offline behaviour → Capacitor shell parity.
+the 500 KB budget → offline behaviour → home-screen PWA install (D35: there is no native shell to
+check parity against).
 
 **Output.** Pass/fail per criterion with specific violations, never a general impression.
 

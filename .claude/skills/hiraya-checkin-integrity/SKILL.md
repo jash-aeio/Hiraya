@@ -26,7 +26,8 @@ Any diff touching `src/lib/qr/`, `src/features/checkin/`, `src/features/xp/`, th
 
 - Tokens are **Ed25519**, never HMAC or a symmetric scheme
 - The **private key exists only in server environment settings** — never in the repo, never in a client
-  bundle, never in a Capacitor build. A native binary is trivially unpacked; anything on a device is public
+  bundle, never in a service-worker cache. Anything that reaches a device is public — a JS bundle is
+  readable in devtools, and a native binary, if native ever resumes, is trivially unpacked
 - Devices verify with the **public** key from `GET /checkin/public-key`, cached
 - If a change would put a secret on a device, the change is wrong. There is no version of this that is
   acceptable "just for the scanner"

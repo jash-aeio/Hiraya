@@ -9,7 +9,7 @@ import { EventList } from "@/features/events/components/EventList";
  *
  * The page shell is a Server Component and the list is a client one: the shell
  * is static and belongs in the first paint, while the list filters and refetches
- * and has to work inside a Capacitor bundle with no server behind it (R3).
+ * and talks to /api/v1 rather than to a service (R3).
  *
  * There is no `status` filter anywhere in this feature, and that is the point.
  * "An event is invisible to learners until it is approved" lives in the SELECT

@@ -1,7 +1,7 @@
 import "server-only";
 
 /**
- * The second half of the demo gate (D23).
+ * The second half of the demo gate (D25).
  *
  * `schools.is_demo` is a database fact, and it is the right primary gate — an
  * env var alone would be forgeable by whoever can set one, which is why D23

@@ -22,9 +22,9 @@ import type { EventDetail } from "../schema";
  * The event detail screen (P-01) — one event, and the register control.
  *
  * A client component talking to /api/v1 rather than a Server Component reading
- * the service, for the reason EventList is one: the Capacitor shell ships a
- * static bundle and runs no server (CLAUDE.md R3). A screen that only works
- * when Next renders it is a screen the native app does not have.
+ * the service, for the reason EventList is one: every read and write goes
+ * through one authorization path (CLAUDE.md R3), and a Server Component reading
+ * the service directly would be a second one.
  *
  * `fetch` and shallow type guards rather than TanStack Query and Zod, also
  * following EventList — importing the shared Zod schema into a client component

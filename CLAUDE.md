@@ -34,8 +34,11 @@ proposal PDF is not in the repo and should not need to be read — if something 
 that is a documentation bug worth fixing. (The proposal's working title was *Kasali*; the system is
 **Hiraya**, and that older name appears nowhere else.)
 
-**Delivery targets.** One codebase → a web PWA **and** an installable Android/iOS app (Capacitor),
-sharing one Supabase database.
+**Delivery target.** A **web PWA**, installable to a phone's home screen, on one Supabase database.
+**Native Android/iOS packaging (Capacitor) is out of MVP scope** — deferred to post-pilot expansion,
+decided 2026-09-23. The architecture stays native-ready (see R3) because that costs nothing and keeps
+the option open, but nothing in the MVP ships a store build. `docs/MILESTONE_ROADMAP.md` §8 holds the
+deferred phase and what it would cost to resume.
 
 ---
 
@@ -82,7 +85,7 @@ src/
 ├── lib/
 │   ├── auth/                 # session, role resolution
 │   ├── qr/                   # Ed25519 sign/verify
-│   ├── native/               # Capacitor wrappers, each with a web fallback
+│   ├── device/               # camera/storage wrappers, each with a fallback
 │   ├── db/client.ts          # anon key + RLS  <- the default
 │   └── db/admin.ts           # service role  <- server-only, import-banned
 ├── design/                   # tokens, primitives, and art/ (authored SVG components)
@@ -121,11 +124,18 @@ explicitly, and `npm run db:verify-rls` is what catches you forgetting.
 
 ### R3 — `/api/v1` is the single data layer. No Server Actions.
 
-A Capacitor shell ships a static bundle and cannot run Server Actions or RSC. Rather than let web and
-native diverge into two data layers with two sets of authorization checks, **both call `/api/v1`**.
-Business logic lives once in `src/features/*/service.ts`; route handlers are thin. This costs Server
-Action ergonomics and form progressive enhancement; it buys **one authorization path instead of two**,
-which is the trade that matters for an app holding minors' data maintained by one person.
+**Every read and write goes through one authorization path.** Business logic lives once in
+`src/features/*/service.ts`; route handlers are thin and do nothing but parse, call, and map errors.
+This costs Server Action ergonomics and form progressive enhancement; it buys **one place where
+authorization can be wrong**, which is the trade that matters for an app holding minors' data
+maintained by one person. A second data layer means a second set of checks, and the second set is the
+one nobody audits.
+
+This rule predates the decision to defer native (§1) and **survives it unchanged.** Native was its
+original forcing reason — a Capacitor shell ships a static bundle and cannot run Server Actions or RSC,
+so web and native would otherwise have diverged. That reason is now dormant rather than gone: keeping
+the API boundary is what lets native resume later without re-deriving every authorization check. The
+authorization argument alone is sufficient to keep it, and is the one to cite.
 
 ### R4 — The XP ledger is append-only
 
@@ -139,8 +149,9 @@ rather than aspirational.
 Learner ID tokens are **Ed25519**-signed (`sub`, `sid`, `exp` ≈ 60s, rotating `nonce`). Officer devices
 verify with a cached **public** key and never hold a secret — this is the entire reason the scheme is
 asymmetric, and it is what makes offline check-in possible. The private key lives only in server
-environment settings. **Never ship a signing key in a Capacitor bundle**: a native binary is trivially
-unpacked, so anything on a device is public.
+environment settings. **Never ship a signing key to a device** — not in a client bundle, not in a
+service worker cache, and not in a native binary if native ever resumes. Anything that reaches a device
+is public: a JS bundle is readable in devtools and a native binary is trivially unpacked.
 
 ### R6 — Check-in sync is idempotent
 
@@ -176,8 +187,11 @@ target ids, not names.
   trade-off, a policy citation, or a non-obvious constraint earns its place.
 - **i18n.** Every user-facing string goes through `next-intl` from the first commit. No bare string
   literals in JSX, ever — retrofitting i18n across a finished UI is the refactor that never happens.
-- **Native.** Anything touching a Capacitor plugin is wrapped in `src/lib/native/` with a web fallback,
-  so the web build never breaks and tests can run headless.
+- **Device APIs.** The MVP is web-only (§1), so anything touching a device capability — camera,
+  storage, notifications — is used through its web API behind a thin wrapper with a graceful fallback,
+  so a permission refusal degrades instead of breaking and tests can run headless. If native resumes,
+  `src/lib/native/` is where the platform-specific half goes; it does not exist today and should not
+  be created speculatively.
 
 ---
 
@@ -286,14 +300,13 @@ npm run db:migrate       # apply migrations AND RLS policies, in that order
 npm run db:rls           # apply RLS policy SQL only (idempotent; db:migrate calls it)
 npm run db:verify-rls    # assert the tenancy invariants actually landed
 npm run db:seed:demo     # synthetic demo tenant
-npm run cap:sync         # copy web build into android/ + ios/
-npm run cap:android      # open Android Studio
 ```
 
-*(All but `test:e2e`, `cap:sync` and `cap:android` are wired as of 2026-09-21; Playwright lands
-alongside the first walkable loop, Capacitor in Phase 5. `db:seed:demo` reads `seed/demo-*.json` —
-see `seed/README.md` — writes as School Admin under RLS rather than around it, and refuses to run if
-any school in the database is not flagged `is_demo`.)*
+*(All but `test:e2e` are wired as of 2026-09-21; Playwright lands alongside the first walkable loop.
+The `cap:sync` and `cap:android` scripts were removed on 2026-09-23 with native (§1) — they invoked a
+binary that was never a dependency. `db:seed:demo` reads `seed/demo-*.json` — see `seed/README.md` —
+writes as School Admin under RLS rather than around it, and refuses to run if any school in the
+database is not flagged `is_demo`.)*
 
 ---
 

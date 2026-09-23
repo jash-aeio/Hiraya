@@ -2,7 +2,7 @@
 
 **Status:** Approved for Phase 0 · **Version:** 1.1 · **Last updated:** 2026-09-21
 
-Everything that must exist before Hiraya can be demoed, piloted, and shipped to app stores. Tiered by
+Everything that must exist before Hiraya can be demoed and piloted. Tiered by
 **what each asset blocks**, so nothing is produced earlier than it is needed.
 
 ---
@@ -175,8 +175,8 @@ school, carries the word as well as the colour, and is not dismissible. It rende
 there is no demo session, so it cannot mark a real tenant by accident.
 
 Two limits worth knowing. It resolves on the **server** from the session cookie, so it is in the first
-HTML painted and cannot be photographed missing - but a Capacitor static export has no server render,
-and Phase 5 needs a client variant of this component. And it marks a *session*, not a *page*: the
+HTML painted and cannot be photographed missing. (A static export would have no server render and
+would need a client variant; that only matters if Phase 5 is resumed - D35.) And it marks a *session*, not a *page*: the
 `/demo` persona list itself renders synthetic names before any session exists and therefore carries no
 bar. That is defensible only because the page says "Demo tenant" and names the school in its own
 heading; a screen that lists learner data outside the demo route must not rely on it.
@@ -231,7 +231,11 @@ project can lawfully hold a thousand minors' records.
 
 ---
 
-## Tier 3 — Blocks store submission (Phase 5)
+## Tier 3 — Blocks store submission · **DEFERRED, POST-MVP (D35)**
+
+> Native packaging left MVP scope on 2026-09-23, so nothing in this tier blocks anything today.
+> Kept intact because it is an accurate list the day Phase 5 resumes, and because assembling it from
+> scratch later is the kind of work that looks small and is not. **Do not author these assets now.**
 
 ### 3.1 Google Play
 
