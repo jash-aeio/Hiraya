@@ -12,6 +12,96 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-26 — Both public defects closed; no code task left in Phase 0
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+Covers **two** merged slices, not one. D-08 landed on 2026-09-25 as PR #26 and was never checkpointed —
+`WORKSTREAMS.md` was two slices stale when this pass started, still listing both as the next things to
+build. Verified against the deployed project rather than only locally, because both defects were
+defects *of the public URL*.
+
+**Shipped**
+
+- **An SSLG officer can work the gate** (D-08, `4a7bf73`, PR #26). `checkins_insert_hosts` admitted
+  `sslg_officer` and `checkins_select_self_or_hosts` did not, while `insertCheckin` carries
+  `RETURNING id` — Postgres runs the returned row through the SELECT policy, so the write died as
+  `new row violates row-level security policy` and reached the officer as a 500. **Neither fix the
+  task row proposed was taken.** Widening the SELECT policy to the role was written first and
+  **`hiraya-privacy-auditor` blocked it**: `profiles_select_tenant` already hands every learner the
+  whole roster, so school-wide attendance rows make roster-minus-attendees derivable — the
+  non-participant list, which `SYSTEM_DESIGN.md` §2 denies to SSLG Officer and even to Guidance, and
+  which `DATA_FLOW.md` T8 requires audited on every access. A raw SELECT satisfied by RLS is audited
+  nowhere, and the role is held by learners. What shipped is narrower than either option: the SELECT
+  policy grants `recorded_by = current_profile_id()`, so a session reads back only the rows it wrote —
+  exactly what `RETURNING id` needs — and the officer's other question, *has this learner already been
+  scanned in?*, goes to `public.find_existing_checkin`, a `SECURITY DEFINER` bridge that re-states the
+  INSERT policy and answers about one named learner with an id and no attendance detail. Same shape as
+  `award_checkin_xp`, and for the same reason. Ten integration tests, proven in both directions: four
+  fail without the grant, two fail against the widened policy
+- **No seeded learner 404s on their avatar** (P-08, `1c8fb07`, PR #27). `scripts/seed-demo.ts` derives
+  keys modulo 16 against 14 files, so four of the 44-person cast carried dead keys — `avatar-15` twice,
+  `avatar-16` twice — on the gate roster, the leaderboard and the persona picker, public since M-01.
+  Closed by **authoring the two missing assets** rather than taking the seed to `% 14`. The deployed
+  data decided which: those keys are already written in `profiles`, so adding files makes them resolve
+  with **no write to the database and no re-seed**, where `% 14` would have needed one. Both follow the
+  set's construction — 64×64, circle-clipped, one light geometric figure on a dark ground,
+  non-figurative (`CLAUDE.md` §6), literal hex because `public/` art is fetched off the JS budget.
+  285 and 433 bytes against a 2 KB ceiling. Figure-against-ground contrast 2.56 and 5.09, inside the
+  existing set's own 2.06–4.22 spread; they are decorative (`alt=""`), so no WCAG criterion binds them
+
+**Decisions**
+
+- none new. D-08 applied **D25**-adjacent reasoning and the R1/R2 posture already in the D-table; the
+  P-08 fork was a maintainer choice between two conforming options, recorded in PR #27 rather than
+  the D-table because nothing about it constrains future work
+
+**Docs updated**
+
+- `docs/ASSET_CHECKLIST.md` — §1.5 avatar count 14 → 16, with why and when (landed in PR #27)
+- `docs/WORKSTREAMS.md` — D-08 and P-08 struck with their commits; §0 rewritten; the critical-path
+  line updated; §5's header corrected (see Risks); the Phase 1 open-task count corrected 17 → 14
+
+**Risks**
+
+- Materialized: **a slice can merge without a checkpoint, and the board goes stale silently.** D-08
+  merged on the 25th and `WORKSTREAMS.md` §0 still named it the next task to build on the 26th. The
+  six triggers (`CLAUDE.md` §7) were not run on PR #26. Nothing broke, but §0 is the first thing a
+  session reads, and a session that had trusted it would have rebuilt a fix that was already on `main`
+- Retired: **the public URL shows a visitor two defects.** Both are gone from it, and both were
+  confirmed on the deployed project, not inferred from a green CI: the `checkins` SELECT policy carries
+  the `recorded_by` grant, `find_existing_checkin` exists as `SECURITY DEFINER`, and all 16 avatars
+  serve 200 from `hiraya-eosin.vercel.app` while `avatar-17` still 404s
+
+**Next**
+
+- **M-03**, the phone test — the last Phase 0 acceptance criterion, maintainer-only, two minutes
+- **M-02**, the pitch kit, then **Gate A**
+- **There is no Lane D or Lane P task left in Phase 0.** Phase 1 is queued *behind Gate A*; starting it
+  early is the mistake `CLAUDE.md` §10.1 names
+
+**Flagged**
+
+- **`WORKSTREAMS.md` §5's header claimed the wrong open criteria and was corrected this pass.** It read
+  *"Open acceptance criteria: the walkable loop and a public URL"*; both closed on 2026-09-23. Three
+  days stale, in the sentence that introduces the Phase 0 table
+- **The Phase 1 open-task count in §0 was wrong and was corrected this pass.** §0 claimed 17 queued
+  behind Gate A; §6 holds 14 rows. Corrected to 14 per §0's own rule that the tables win. Where the 17
+  came from is not recoverable from the history and is not worth recovering — but it is the second
+  count in this file to drift, after the criteria line above
+- **The MVP definition of done is consistent but not byte-identical** between `PRD.md` §4 and
+  `MILESTONE_ROADMAP.md` §14. Same seven criteria, same order, same meaning; the wording differs in
+  emphasis and one cites `CLAUDE.md` §5 where the other says "in CI". Left alone deliberately —
+  reporting it rather than silently converging two documents that do not actually disagree
+- **The DATABASE_URL contradiction flagged on 2026-09-24 was not re-examined this pass** and stands as
+  recorded in that entry
+- Consistency pass otherwise clean: superseded title in exactly its four sanctioned places, ten roles
+  identical across `src/db/enums.ts`, `PRD.md` §3 and `SYSTEM_DESIGN.md` §2, all 35 D-numbers cited
+  anywhere exist in the D-table, every task id has a row, design tokens match `tokens.css` exactly in
+  both directions, and every `npm run` in `CONTRIBUTING.md` §2 exists in `package.json`
+
+---
+
 ## 2026-09-25 — A checkpoint with no code in it: the MVP could not be completed as written
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
