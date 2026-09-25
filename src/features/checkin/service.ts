@@ -196,7 +196,7 @@ export async function recordCheckin(
         jti: body.jti,
         profileId: body.profileId,
         status: "duplicate",
-        checkinId: existing?.id ?? null,
+        checkinId: existing,
         xpAwarded: 0,
         reason: null,
       };

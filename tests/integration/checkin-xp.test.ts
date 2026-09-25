@@ -2,7 +2,13 @@ import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { asUser, startTestDatabase } from "./helpers/db";
+import {
+  callAwardCheckinXp,
+  insertCheckin,
+  selectExistingCheckin,
+} from "../../src/features/checkin/queries";
+
+import { asUser, asUserThroughDrizzle, startTestDatabase } from "./helpers/db";
 import type { TestClaims, TestDatabase } from "./helpers/db";
 import { seedTenant } from "./helpers/fixtures";
 import type { Tenant } from "./helpers/fixtures";
@@ -31,6 +37,12 @@ let liveEventId: string;
 let learnerId: string;
 /** The officer who holds the scanner: an org_officer of the hosting org. */
 let officer: TestClaims;
+/**
+ * The other kind of officer: school-wide, an officer of no organization, and a
+ * learner. This is who staffs a Club Fair, and D-08 is what happened because no
+ * test had ever held the scanner as them.
+ */
+let sslgOfficer: TestClaims;
 
 const ATTEND_XP = 10;
 
@@ -61,6 +73,20 @@ beforeAll(async () => {
     INSERT INTO xp_rules (school_id, participation_type, xp_value, effective_from)
     VALUES (${schoolA.schoolId}, 'attend_event', ${ATTEND_XP}, now() - interval '30 days')
   `;
+
+  const [sslg] = await db.sql<{ id: string }[]>`
+    INSERT INTO profiles (school_id, username, display_name, grade_level, section, status)
+    VALUES (${schoolA.schoolId}, 'chk-a-sslg', 'Fixture SSLG Officer', 12, 'STEM-B', 'active')
+    RETURNING id
+  `;
+  sslgOfficer = {
+    schoolId: schoolA.schoolId,
+    profileId: sslg!.id,
+    roles: ["learner", "sslg_officer"],
+    // An officer of no organization, which is the point: the school-wide role is
+    // their only claim to the gate.
+    orgGrants: [],
+  };
 }, 300_000);
 
 afterAll(async () => {
@@ -377,5 +403,249 @@ describe("who may turn a scan into a point", () => {
         async (tx) => tx`UPDATE xp_ledger SET delta = 999 WHERE profile_id = ${learnerId}`,
       ),
     ).rejects.toThrow();
+  });
+});
+
+describe("a school-wide SSLG officer at the gate (D-08)", () => {
+  /**
+   * The role that could write attendance and not read it.
+   *
+   * `checkins_insert_hosts` admits `sslg_officer`; `checkins_select_self_or_hosts`
+   * did not — and `insertCheckin` carries `RETURNING id`, which Postgres runs
+   * through the SELECT policy. The write died as "new row violates row-level
+   * security policy" and reached the officer as a 500. Every earlier test in
+   * this file holds the scanner as an `org_officer` of the hosting org, which is
+   * why a defect on the product's load-bearing path survived four walks of the
+   * loop.
+   *
+   * The repair is deliberately *not* to admit the role school-wide: it is held
+   * by learners, and school-wide attendance plus the roster every learner can
+   * already read is the non-participant list (src/db/rls/checkins.sql). A
+   * session may read the rows it wrote itself, and `find_existing_checkin`
+   * answers the one question that needs more than that.
+   *
+   * These go through `insertCheckin` and `selectExistingCheckin` rather than
+   * restating their SQL: the clause that broke is one those functions own, and a
+   * test that wrote its own INSERT could keep passing while the shipped one
+   * failed (D33).
+   */
+  let clubFairId: string;
+
+  beforeAll(async () => {
+    const [event] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, status, publish_at)
+      VALUES (${schoolA.schoolId}, ${schoolA.orgId}, 'Fixture Club Fair',
+              now() - interval '1 hour', now() + interval '2 hours', 'approved', now())
+      RETURNING id
+    `;
+    clubFairId = event!.id;
+  });
+
+  /** A learner nobody else's assertions count. */
+  async function freshLearner(label: string): Promise<string> {
+    const [row] = await db.sql<{ id: string }[]>`
+      INSERT INTO profiles (school_id, username, display_name, grade_level, section, status)
+      VALUES (${schoolA.schoolId}, ${`chk-a-${label}`}, ${`Fixture ${label}`}, 9, 'Sampaguita', 'active')
+      RETURNING id
+    `;
+    return row!.id;
+  }
+
+  async function scanAs(claims: TestClaims, attendee: string): Promise<string | null> {
+    return asUserThroughDrizzle(db.url, claims, (tx) =>
+      insertCheckin(tx, schoolA.schoolId, claims.profileId, {
+        eventId: clubFairId,
+        profileId: attendee,
+        jti: randomUUID(),
+        scannedAt: new Date().toISOString(),
+        deviceId: "fixture-sslg-scanner",
+        direction: "in",
+        method: "officer_scan",
+      }),
+    );
+  }
+
+  it("writes the attendance row and gets its id back", async () => {
+    const checkinId = await scanAs(sslgOfficer, await freshLearner("clubfair-1"));
+    expect(checkinId).not.toBeNull();
+  });
+
+  it("turns that scan into a point", async () => {
+    const attendee = await freshLearner("clubfair-2");
+    const before = await ledgerTotal(attendee);
+
+    const xp = await asUserThroughDrizzle(db.url, sslgOfficer, async (tx) => {
+      const checkinId = await insertCheckin(tx, schoolA.schoolId, sslgOfficer.profileId, {
+        eventId: clubFairId,
+        profileId: attendee,
+        jti: randomUUID(),
+        scannedAt: new Date().toISOString(),
+        direction: "in",
+        method: "officer_scan",
+      });
+      if (!checkinId) throw new Error("the insert was absorbed; this scan is meant to be new");
+      return callAwardCheckinXp(tx, checkinId);
+    });
+
+    expect(xp).toBe(ATTEND_XP);
+    expect(await ledgerTotal(attendee)).toBe(before + ATTEND_XP);
+  });
+
+  /**
+   * Every role `checkins_insert_hosts` admits can complete a write.
+   *
+   * The two policies are no longer symmetric and are not meant to be — the
+   * repair was to stop trying to make the SELECT policy a superset of the INSERT
+   * one. What has to hold instead is weaker, and is the thing that actually
+   * broke: a role allowed to write attendance can finish the write. A role added
+   * to the INSERT policy and to neither the SELECT policy nor `recorded_by`
+   * fails here rather than at a gate.
+   */
+  it.each([
+    ["school_admin", ["school_admin"]],
+    ["sslg_officer", ["learner", "sslg_officer"]],
+    ["sslg_adviser", ["sslg_adviser"]],
+  ])("lets a school-wide %s finish the write it is allowed to make", async (label, roles) => {
+    const claims: TestClaims = {
+      schoolId: schoolA.schoolId,
+      profileId: sslgOfficer.profileId,
+      roles,
+      orgGrants: [],
+    };
+
+    expect(await scanAs(claims, await freshLearner(`write-${label}`))).not.toBeNull();
+  });
+});
+
+describe("what the gate may ask, and what it may not read (D-08)", () => {
+  /**
+   * The privacy half of D-08, and the reason the SELECT policy was not widened.
+   *
+   * `sslg_officer` is held by learners (seed/demo-people.json), and
+   * `profiles_select_tenant` already gives every learner the whole roster. So
+   * school-wide SELECT on `checkins` is the non-participant list by subtraction
+   * — a surface docs/SYSTEM_DESIGN.md §2 denies to SSLG Officer, denies even to
+   * Guidance, and docs/DATA_FLOW.md T8 requires to be audited on every access. A
+   * raw SELECT satisfied by RLS is audited nowhere.
+   *
+   * `find_existing_checkin` is what the officer gets instead: one answer about
+   * one learner they already named.
+   */
+  let eventId: string;
+  let attendee: string;
+
+  beforeAll(async () => {
+    const [event] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, status, publish_at)
+      VALUES (${schoolA.schoolId}, ${schoolA.orgId}, 'Fixture Two-Gate Assembly',
+              now() - interval '1 hour', now() + interval '2 hours', 'approved', now())
+      RETURNING id
+    `;
+    eventId = event!.id;
+
+    const [row] = await db.sql<{ id: string }[]>`
+      INSERT INTO profiles (school_id, username, display_name, grade_level, section, status)
+      VALUES (${schoolA.schoolId}, 'chk-a-two-gate', 'Fixture Two Gate', 9, 'Sampaguita', 'active')
+      RETURNING id
+    `;
+    attendee = row!.id;
+
+    // Gate A: an org officer of the hosting org writes the row.
+    await asUserThroughDrizzle(db.url, officer, (tx) =>
+      insertCheckin(tx, schoolA.schoolId, officer.profileId, {
+        eventId,
+        profileId: attendee,
+        jti: randomUUID(),
+        scannedAt: new Date().toISOString(),
+        direction: "in",
+        method: "officer_scan",
+      }),
+    );
+  });
+
+  /** A second gate, staffed by the SSLG officer, scanning a different learner. */
+  async function scanAtGateB(): Promise<string> {
+    const [row] = await db.sql<{ id: string }[]>`
+      INSERT INTO profiles (school_id, username, display_name, grade_level, section, status)
+      VALUES (${schoolA.schoolId}, 'chk-a-gate-b', 'Fixture Gate B', 9, 'Sampaguita', 'active')
+      RETURNING id
+    `;
+    const id = await asUserThroughDrizzle(db.url, sslgOfficer, (tx) =>
+      insertCheckin(tx, schoolA.schoolId, sslgOfficer.profileId, {
+        eventId,
+        profileId: row!.id,
+        jti: randomUUID(),
+        scannedAt: new Date().toISOString(),
+        direction: "in",
+        method: "officer_scan",
+      }),
+    );
+    if (!id) throw new Error("the fixture scan was absorbed");
+    return id;
+  }
+
+  it("tells gate B the learner is already checked in", async () => {
+    const existing = await asUserThroughDrizzle(db.url, sslgOfficer, (tx) =>
+      selectExistingCheckin(tx, eventId, attendee, "in"),
+    );
+
+    // Without this the officer is told "accepted" beside an award of zero, which
+    // is how an officer learns to distrust the scanner.
+    expect(existing).not.toBeNull();
+  });
+
+  it("shows that officer none of the rows behind the answer", async () => {
+    const rows = await asUser(db.sql, sslgOfficer, async (tx) =>
+      tx<{ id: string }[]>`SELECT id FROM checkins WHERE event_id = ${eventId}`,
+    );
+
+    // The row exists, gate B was just told about it, and the policy still does
+    // not hand it over: no scanned_at, no device_id, no recorded_by, and above
+    // all no way to ask the same question of everybody at once.
+    expect(rows).toHaveLength(0);
+  });
+
+  it("shows that officer the rows they wrote themselves, and only those", async () => {
+    const mine = await scanAtGateB();
+
+    const rows = await asUser(db.sql, sslgOfficer, async (tx) =>
+      tx<{ id: string }[]>`SELECT id FROM checkins WHERE event_id = ${eventId}`,
+    );
+
+    expect(rows.map((row) => row.id)).toEqual([mine]);
+  });
+
+  /*
+   * The two refusals below drive the function through `asUser` rather than
+   * `asUserThroughDrizzle`: what is under test is the SQL, and Drizzle wraps a
+   * Postgres error as "Failed query: …" with the real message on `cause`, which
+   * would make the assertion about the driver instead of the rule.
+   */
+  it("refuses a learner who may not write attendance here", async () => {
+    await expect(
+      asUser(
+        db.sql,
+        { schoolId: schoolA.schoolId, profileId: learnerId, roles: ["learner"] },
+        async (tx) =>
+          tx`SELECT public.find_existing_checkin(${eventId}::uuid, ${attendee}::uuid, 'in')`,
+      ),
+    ).rejects.toThrow(/not an officer or adviser/);
+  });
+
+  it("refuses an officer of another school outright (R1)", async () => {
+    await expect(
+      asUser(
+        db.sql,
+        {
+          schoolId: schoolB.schoolId,
+          profileId: schoolB.adminProfileId,
+          roles: ["learner", "sslg_officer"],
+        },
+        async (tx) =>
+          tx`SELECT public.find_existing_checkin(${eventId}::uuid, ${attendee}::uuid, 'in')`,
+      ),
+      // Not "no such check-in": the event itself is invisible, which is the same
+      // answer an event that does not exist gets (src/lib/errors.ts).
+    ).rejects.toThrow(/no such event in this school/);
   });
 });
