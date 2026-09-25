@@ -63,7 +63,9 @@ const CATEGORY_ART: readonly { key: OrgCategory; tone: string }[] = [
   { key: "interest", tone: "text-cat-interest" },
 ];
 
-const AVATARS = Array.from({ length: 14 }, (_, i) => String(i + 1).padStart(2, "0"));
+// 16, because `scripts/seed-demo.ts` derives keys modulo 16 and a key with no file
+// is a 404 on the roster, the board and the persona picker (P-08).
+const AVATARS = Array.from({ length: 16 }, (_, i) => String(i + 1).padStart(2, "0"));
 
 const EMPTY_STATES = [
   "no-events",
