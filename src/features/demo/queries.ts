@@ -77,3 +77,31 @@ export async function selectDemoPersonas(): Promise<DemoSchool[]> {
 
   return [...schools.values()];
 }
+
+const rolledRow = z.object({ demo_roll_live_events: z.number().int() });
+
+/**
+ * Re-centres this demo school's standing live event on now (D-07).
+ *
+ * Returns how many events moved — 0 while the window still covers now, which is
+ * the common case and writes nothing. The gate is `is_demo` inside
+ * public.demo_roll_live_events (src/db/rls/08_demo_rolling_event.sql), not a
+ * check here: a school id is an argument, and an argument is the one thing a
+ * caller controls.
+ *
+ * `withoutClaims` rather than `withTenant`, for the same reason the two reads
+ * above use it — this runs while a session is being established, before claims
+ * exist to present. The function is SECURITY DEFINER, so it writes past RLS;
+ * what it may write is bounded by its own WHERE clause rather than by a policy.
+ */
+export async function rollLiveEvents(schoolId: string): Promise<number> {
+  const rows = await withoutClaims(async (tx) => {
+    const result = await tx.execute(
+      sql`select * from public.demo_roll_live_events(${schoolId}::uuid)`,
+    );
+    return result as unknown as unknown[];
+  });
+
+  const row = rolledRow.safeParse(rows[0]);
+  return row.success ? row.data.demo_roll_live_events : 0;
+}

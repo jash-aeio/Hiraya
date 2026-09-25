@@ -338,6 +338,12 @@ export const events = pgTable(
     eligibilityJson: jsonb("eligibility_json").notNull().default({}),
     status: eventStatus("status").notNull().default("draft"),
     requiresSslgApproval: boolean("requires_sslg_approval").notNull().default(false),
+    // The demo's standing live event (D-07). Set by db:seed:demo on the one
+    // event the scanner points at, and read only by public.demo_roll_live_events
+    // (src/db/rls/08_demo_rolling_event.sql), which re-centres that event's
+    // window on now so a tenant seeded months ago is still walkable. Harmless
+    // on a real tenant: the function will not touch a school without is_demo.
+    demoRollsLive: boolean("demo_rolls_live").notNull().default(false),
     publishAt: timestamp("publish_at", { withTimezone: true }),
     createdBy: uuid("created_by").references(() => profiles.id, { onDelete: "set null" }),
     createdAt: createdAt(),
@@ -347,6 +353,16 @@ export const events = pgTable(
     index("events_school_id_idx").on(t.schoolId),
     index("events_org_idx").on(t.orgId),
     index("events_status_starts_idx").on(t.schoolId, t.status, t.startsAt),
+    // One standing live event per school, as a database fact rather than a
+    // check in the seed script. public.demo_roll_live_events rewrites the window
+    // of every row this flag is set on, so a second one would have its timetable
+    // moved to today on every persona switch — and if it were a past event, out
+    // from under the XP rows that cite it. The seed still refuses a second
+    // `happeningNow`, because a clear error beats a constraint violation; this
+    // is what makes the rule true regardless of who is writing.
+    uniqueIndex("events_one_rolling_live_per_school")
+      .on(t.schoolId)
+      .where(sql`${t.demoRollsLive}`),
   ],
 );
 

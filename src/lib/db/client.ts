@@ -98,7 +98,8 @@ export async function withTenant<T>(
  * This is the pre-session privilege level: `current_school_id()` is NULL, so
  * every tenancy policy fails closed and no table in src/db/rls/ returns a row.
  * The only things reachable from here are the SECURITY DEFINER functions that
- * resolve a session in the first place (src/db/rls/02_demo_session.sql), which
+ * resolve a session in the first place (src/db/rls/02_demo_session.sql) and the
+ * one that keeps the demo's live event live (08_demo_rolling_event.sql), which
  * carry their own gate in SQL.
  *
  * It exists because resolving claims is the one read that cannot present claims

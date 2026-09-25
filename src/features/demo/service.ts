@@ -3,7 +3,7 @@ import "server-only";
 import { resolveDemoSession } from "@/lib/auth/demo-session";
 import { errors } from "@/lib/errors";
 
-import { selectDemoPersonas } from "./queries";
+import { rollLiveEvents, selectDemoPersonas } from "./queries";
 import type { PersonasResponse, StartSessionResponse } from "./schema";
 
 /**
@@ -31,6 +31,27 @@ export async function listPersonas(): Promise<PersonasResponse> {
 export async function startSession(profileId: string): Promise<StartSessionResponse> {
   const session = await resolveDemoSession(profileId);
   if (!session) throw errors.notFound("persona");
+
+  /*
+   * The demo's live event is re-centred on now, here (D-07).
+   *
+   * Here and not in resolveDemoSession, which is on the path of every guarded
+   * request and of two Server Components: this is a write, and a write on a
+   * per-request path is a write that runs thousands of times to do the work of
+   * one. A persona switch is the moment the demo actually begins, it is already
+   * the endpoint that changes something, and its rate is a human tapping.
+   *
+   * After the allowlist, not before: resolveDemoSession has already refused any
+   * school this deployment is not configured for, so the school id below has
+   * cleared both of D25's facts before it is handed to a function that writes.
+   *
+   * The bound worth knowing: a session that outlives the rolled five-hour window
+   * — the cookie lasts eight — sees a stale scanner again until the persona is
+   * re-picked, which is one tap in the demo bar. Widening the window to cover
+   * the cookie would have bought that hour at the cost of an event whose length
+   * is no longer the one the seed describes.
+   */
+  await rollLiveEvents(session.claims.schoolId);
 
   return {
     profileId: session.claims.profileId,

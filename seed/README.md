@@ -29,7 +29,16 @@ Change the JSON and re-run. Three things are worth knowing first.
 **Dates are relative.** `startsInDays` counts from the moment the seed runs, so
 a demo rehearsed in September still looks alive in December. Exactly one event
 carries `happeningNow`, which puts it an hour into its own window — that is the
-event the scanner points at, and the demo is much weaker without one.
+event the scanner points at, and the demo is much weaker without one. The seed
+refuses to run if a second event claims it.
+
+**The live event stays live (D-07).** `happeningNow` also sets `demo_rolls_live`
+on that row, and `public.demo_roll_live_events` re-centres its window on now
+whenever a persona is picked — so a tenant seeded months ago still has something
+an officer can open a gate for. Only the marked event moves, and only in a
+school flagged `is_demo`; the past events the XP ledger cites stay where they
+are. The window it lands on is still the real five hours this file asks for, so
+a scan can still fall outside it — the scan rule itself was left alone.
 
 **Re-running adds nothing.** `xp_ledger` has no DELETE grant for any role and a
 trigger rejects the attempt even from the table owner, so there is no
