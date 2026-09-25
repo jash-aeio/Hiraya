@@ -13,22 +13,37 @@ REVOKE ALL ON public.checkins FROM anon, authenticated;
 -- happened. A wrong scan is corrected by an audited adviser action, not erased.
 GRANT SELECT, INSERT, UPDATE ON public.checkins TO authenticated;
 
--- The role list below must stay a superset of the one in the INSERT policy.
+-- `recorded_by` is here because the INSERT policy admits a role this one must
+-- not (D-08).
 --
--- It did not, and the gap was a 500 at the gate: `sslg_officer` could write
--- attendance and could not read it, so the `RETURNING id` on the insert in
--- src/features/checkin/queries.ts died as "new row violates row-level security
--- policy" — Postgres applies the SELECT policy to a row an INSERT returns. The
--- role is school-wide without being an adviser or an admin, which is exactly
--- who staffs a school-wide event, and every walk of the loop until 2026-09-25
--- had used an org officer of the hosting org instead.
+-- `checkins_insert_hosts` admits `sslg_officer` — the role that staffs a
+-- school-wide event — and `insertCheckin` carries `RETURNING id`, which
+-- Postgres runs through *this* policy. So an SSLG officer's scan died as "new
+-- row violates row-level security policy" and reached the gate as a 500. It
+-- survived four walks of the loop because each used an org officer of the
+-- hosting org.
 --
--- Admitting them widens who may read attendance, and that is a real privacy
--- decision rather than a mechanical fix: an SSLG officer is a learner. It is a
--- small widening of a read the schema already grants, not a new one —
--- xp_ledger_select_self_or_staff admits the same role to every learner's ledger
--- school-wide, and each row there cites the check-in behind it. What is added
--- is the scan metadata: when, at which gate, on whose device.
+-- The obvious repair is to admit `sslg_officer` here too, and it is wrong. That
+-- role is held by learners (seed/demo-people.json), and school-wide SELECT on
+-- this table is the non-participant list: `profiles_select_tenant` already
+-- gives every learner the whole roster, so roster minus this event's attendees
+-- is the surface docs/SYSTEM_DESIGN.md §2 denies to SSLG Officer, denies even
+-- to Guidance, and docs/DATA_FLOW.md T8 says is audited on every access — and a
+-- raw SELECT satisfied by RLS is audited nowhere.
+--
+-- Nor is it a read the schema already grants elsewhere.
+-- `xp_ledger_select_self_or_staff` does admit this role school-wide, but
+-- `award_checkin_xp` writes `source_id` and leaves `reason` NULL, so without a
+-- SELECT path into this table that id is opaque: the ledger says a learner
+-- attended *something*, never which event. Per-event attendance is a new
+-- capability, and it is precisely the one that completes the derivation.
+--
+-- So the grant is the narrowest thing that makes the write work: a session may
+-- read the attendance rows it wrote itself. Nothing else changes. The officer's
+-- other need — "has this learner already been scanned in?" — is answered by
+-- public.find_existing_checkin (09_checkin_lookup.sql), a purpose-built bridge
+-- past RLS rather than a blanket grant, which is the same shape as
+-- award_checkin_xp and for the same reason.
 DROP POLICY IF EXISTS checkins_select_self_or_hosts ON public.checkins;
 CREATE POLICY checkins_select_self_or_hosts ON public.checkins
   FOR SELECT TO authenticated
@@ -36,8 +51,9 @@ CREATE POLICY checkins_select_self_or_hosts ON public.checkins
     school_id = public.current_school_id()
     AND (
       profile_id = public.current_profile_id()
+      OR recorded_by = public.current_profile_id()
       OR public.is_school_admin()
-      OR public.has_any_role(ARRAY['sslg_officer', 'sslg_adviser', 'school_head'])
+      OR public.has_any_role(ARRAY['sslg_adviser', 'school_head'])
       OR EXISTS (
         SELECT 1 FROM public.events e
         WHERE e.id = event_id

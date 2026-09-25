@@ -75,39 +75,36 @@ export async function profileIsInTenant(
   return row !== undefined;
 }
 
-export interface ExistingCheckin {
-  id: string;
-  jti: string;
-}
-
 /**
  * This learner's existing check-in for this event and direction, if any.
  *
- * Two different questions share this one read. Same `jti` means the officer's
+ * Two different questions share this one answer. Same `jti` means the officer's
  * device replayed a scan it had already sent, and nothing should be written
  * (R6). A different `jti` means a genuine second scan — at a second gate, or
  * after stepping out — which is recorded, and is worth no further points.
+ *
+ * It goes through `find_existing_checkin` rather than selecting the row,
+ * because the session asking is often one that may not read it. An SSLG officer
+ * may write attendance for any event in the school and may **not** read the
+ * table school-wide: that plus the roster every learner can already see is the
+ * non-participant list (src/db/rls/09_checkin_lookup.sql). The function answers
+ * one yes/no about one named learner and returns no attendance detail, which is
+ * all the gate needs to tell "already checked in" from "accepted".
  */
 export async function selectExistingCheckin(
   tx: TenantTransaction,
   eventId: string,
   profileId: string,
   direction: "in" | "out",
-): Promise<ExistingCheckin | null> {
-  const [row] = await tx
-    .select({ id: checkins.id, jti: checkins.jti })
-    .from(checkins)
-    .where(
-      and(
-        eq(checkins.eventId, eventId),
-        eq(checkins.profileId, profileId),
-        eq(checkins.direction, direction),
-      ),
-    )
-    .orderBy(asc(checkins.scannedAt))
-    .limit(1);
-
-  return row ?? null;
+): Promise<string | null> {
+  const rows = await tx.execute(
+    sql`select public.find_existing_checkin(${eventId}::uuid, ${profileId}::uuid,
+                                           ${direction}::public.checkin_direction) as id`,
+  );
+  const parsed = z
+    .object({ id: z.uuid().nullable() })
+    .parse((rows as unknown as unknown[])[0]);
+  return parsed.id;
 }
 
 /**
