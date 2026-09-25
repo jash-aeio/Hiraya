@@ -12,6 +12,75 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-25 — A checkpoint with no code in it: the MVP could not be completed as written
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+No code landed since `checkpoint-d-07`; `HEAD` was the checkpoint commit itself and the tree was clean.
+The consistency pass ran anyway, and that is the entire content of this entry — three of its checks
+failed. Documentation drift does not need a commit to happen, which is the argument for running the
+pass on a quiet checkpoint rather than skipping it.
+
+**Shipped**
+
+- **The MVP definition of done no longer requires an app store.** Criterion 7 of seven, in both
+  `PRD.md` and `MILESTONE_ROADMAP.md`, still read *"Web PWA and Android/iOS builds ship from one
+  codebase against one database"* — a criterion D35 made impossible to tick when it deferred native out
+  of MVP scope on 2026-09-23. Both files already recorded D35 correctly elsewhere (roadmap §8, the PRD
+  delimitations table, NFR-10), so each had been contradicting itself for two days. It now reads that
+  the **web PWA installs to a phone's home screen**, pointing at §8 for the deferred phase. This was
+  the D35 checkpoint's miss: it updated the prose about native and left the acceptance criteria alone
+- **`DESIGN_SYSTEM.md` §2 now shows the tokens the code actually defines.** The document specified
+  `:root { --primary: #0D7F7C; … }`; `src/design/tokens.css` ships `@theme { --color-primary: #0d7f7c; … }`.
+  All 29 hex values matched exactly — only the names and the enclosing block did not, so anyone
+  copying a token name out of the specification wrote one that resolves to nothing. §2 is now the
+  `@theme` block verbatim, and the implementation note says why the prefix is load-bearing rather than
+  cosmetic: `@theme` derives each utility by stripping it (`--color-surface` → `bg-surface`), so a
+  token without the prefix generates no utility. Verified both directions — 29 names, 29 values, no drift
+- **`--font-sans` is documented** in §3, where `ASSET_CHECKLIST.md` had been citing it while
+  `DESIGN_SYSTEM.md` never defined it. It was real all along (`tokens.css:78`)
+- **`WORKSTREAMS.md`** — D-07's row was missing its closing pipe, and the header still said
+  *Last updated: 2026-09-22* while §0 described work through the 25th
+
+**Decisions**
+
+- none. D35 was already decided; this entry only finishes applying it
+
+**Docs updated**
+
+- `docs/PRD.md`, `docs/MILESTONE_ROADMAP.md` — MVP criterion 7 rewritten as web-PWA-only, citing D35
+- `docs/DESIGN_SYSTEM.md` — §2 token block converted to `@theme` with `--color-` names; implementation
+  note rewritten; `--font-sans` added to §3
+- `docs/WORKSTREAMS.md` — malformed D-07 row repaired, header date corrected
+
+**Risks**
+
+- Retired: *the MVP has an untickable acceptance criterion.* It was only two days old and nobody had
+  reached it yet, but it would have surfaced at the worst possible moment — the Gate A pitch, where
+  "what does done mean" is a question a principal asks
+- Materialized: **a checkpoint can apply a decision to a document's prose and miss its lists.** D35
+  landed in four places and missed the two that define completion. Both misses were in numbered
+  criteria, which read like settled furniture and get skimmed. The consistency pass caught it two days
+  later only because it greps rather than reads
+
+**Next**
+
+- Unchanged by this entry: **D-08** (an SSLG officer gets a 500 at the gate), then **P-08** (avatar keys
+  outrun the assets), both open and unblocked. **M-03**, the phone test, is still the one Phase 0
+  acceptance criterion that cannot be closed from this machine
+
+**Flagged**
+
+- **Nothing unresolved.** The three findings above were reported before being fixed and each was
+  confirmed by the maintainer. The DATABASE_URL contradiction flagged on 2026-09-24 was not re-examined
+  this pass and stands as recorded in that entry
+- **`src/design/tokens.css`'s header still reads "If the two disagree, the document is the specification
+  and this file is the bug."** That governance is unchanged and was left alone deliberately — but note
+  it was exactly backwards in this instance: the code was right and the document was stale. It holds for
+  *values*, which is what it was written about; it did not hold for *names*
+
+---
+
 ## 2026-09-25 — The demo stops being a same-day artefact, and a check-in defect surfaces
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
