@@ -269,7 +269,7 @@ enabled. Only distinguishing columns are listed.
 | `org_memberships` | `org_id`, `profile_id`, `status`, `applied_at` | `status`: applied / active / inactive |
 | `org_officers` | `org_id`, `profile_id`, `position`, `term_start`, `term_end` | Term bounds preserve history across turnover |
 | `org_advisers` | `org_id`, `profile_id`, `is_primary`, `term_start`, `term_end` | Written by School Admin only — an adviser appointing advisers is a staffing decision |
-| `events` | `org_id`, `title`, `starts_at`, `ends_at`, `venue`, `capacity`, `eligibility_json`, `status`, `requires_sslg_approval` | `status`: draft / pending / approved / rejected / cancelled / completed |
+| `events` | `org_id`, `title`, `starts_at`, `ends_at`, `venue`, `capacity`, `eligibility_json`, `status`, `requires_sslg_approval`, `demo_rolls_live` | `status`: draft / pending / approved / rejected / cancelled / completed. `demo_rolls_live` marks the one event a demo tenant keeps live (D-07); a partial unique index allows one per school, and only `public.demo_roll_live_events` reads it |
 | `event_approvals` | `event_id`, `approver_id`, `role`, `decision`, `reason`, `decided_at` | Multiple rows when SSLG approval also applies. `reason` required on reject. An officer may insert only an **undecided** row; writing a `decision` requires an approver, enforced by two separate INSERT policies |
 | `event_registrations` | `event_id`, `profile_id`, `status`, `waitlist_position` | Unique `(event_id, profile_id)` |
 | `checkins` | `event_id`, `profile_id`, `jti`, `scanned_at`, `synced_at`, `device_id`, `method`, `direction` | **Unique `(event_id, profile_id, jti)`** — the idempotency key. `method`: officer_scan / learner_scan / manual |

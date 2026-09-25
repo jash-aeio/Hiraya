@@ -12,6 +12,107 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-25 — The demo stops being a same-day artefact, and a check-in defect surfaces
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+One slice merged. Phase 0 still has one unticked acceptance criterion, still M-03, and the walkable-loop
+criterion lost the caveat it has carried since it was ticked.
+
+**Shipped**
+
+- **D-07 — the demo's live event keeps itself live** (`3bfd8a8`, PR #23). `db:seed:demo` wrote Club
+  Fair's window from the clock at seed time, so a tenant seeded the day before had no event an officer
+  could open a gate for and the check-in half of the demo could not be walked at all. Since M-01 that
+  demo is a public URL, so the staleness was public. `happeningNow` is now a property of the event
+  rather than of the moment it was seeded: the seed marks that one row `demo_rolls_live`, and
+  `public.demo_roll_live_events` re-centres its window on now when a persona is picked, carrying the
+  seeded duration rather than re-stating it
+- **The scan rule was deliberately left alone.** `isWithinScanWindow` still decides every write against
+  server time, so a scan can still fall outside the rolled window. The alternative on the table was an
+  event that never ends — three lines in the seed, and it would have made the one event a teacher
+  watches us scan into the one event whose window can refuse nothing
+- **Two migrations.** `0001` adds `events.demo_rolls_live`; `0002` adds
+  `events_one_rolling_live_per_school`, a partial unique index. The second closes the tenancy audit's
+  only finding: "exactly one flagged event" was held by a `throw` in the seed script, which is
+  application code remembering a rule. `0001` was already applied, so it could not be edited
+- **Nine new integration tests**, 265 total. The `is_demo` case plants a **real** school with the flag
+  set and asserts zero rows move, so the test fails if the gate is removed rather than passing vacuously
+- **Verified against the deployed database**, not only the harness: window pushed 30 hours into the past
+  (`live_events_now = 0`, the exact D-07 state), persona switch, gate list shows Club Fair
+  `scannableNow`, scan accepted for 10 XP, replay answers `duplicate` with 0
+
+**Decisions**
+
+- **No new D-number.** The fork — roll the window versus ship an event that never ends — is recorded in
+  the header of `src/db/rls/08_demo_rolling_event.sql` and in PR #23. It is a demo-fixture decision, not
+  an architectural one, and the D-table is already carrying operational entries it arguably should not
+  (see the 2026-09-23 note on the Vercel Secret-vs-Config rule). Flagged in case a future session
+  disagrees
+- **Called from `startSession`, not `resolveDemoSession`.** The latter runs on every guarded request and
+  in two Server Components; this is a write, and a write on a per-request path runs thousands of times
+  to do the work of one. It runs after the D25 allowlist has already refused anything it should not reach
+
+**Docs updated**
+
+- `docs/WORKSTREAMS.md` — §0 rewritten, D-07 struck, **D-08 booked**
+- `docs/MILESTONE_ROADMAP.md` — the walkable-loop criterion's D-07 caveat removed; the criterion now
+  stands without it
+- `docs/SYSTEM_DESIGN.md` §4 — `demo_rolls_live` added to the `events` row
+- `docs/DATA_FLOW.md` §7 — the rolling event and its three gates
+- `docs/SETUP_GUIDE.md` §12 — the `DATABASE_URL` contradiction, recorded and **not** resolved
+- `seed/README.md` — the rolling-event paragraph, next to the dates it corrects
+
+**Risks**
+
+- Materialized: **an SSLG officer cannot check anyone in.** `checkins_insert_hosts` admits
+  `sslg_officer` (`src/db/rls/checkins.sql:43`); `checkins_select_self_or_hosts` does not (`:24`); the
+  insert carries `.returning({ id })` (`src/features/checkin/queries.ts:146`), so Postgres applies the
+  SELECT policy to the new row and the write dies as `new row violates row-level security policy`,
+  surfacing at the gate as a 500. Measured on the deployed project: `org_officer` of the hosting org,
+  `sslg_adviser` and `school_admin` all scan; `sslg_officer` does not. Pre-existing on `main` and not
+  introduced by this slice. Booked as **D-08**, not folded into PR #23 — the narrow fix widens who may
+  *read* attendance rows, which is a privacy decision rather than only a bug fix
+- Materialized: **`npm run db:*` on the maintainer's machine writes to the deployed project.** See
+  **Flagged**
+- Retired: **the demo as a same-day artefact.** It was the reason the check-in half of the pitch could
+  not be shown on a URL more than five hours old
+
+**Next**
+
+- **D-08** — the SSLG officer check-in failure. Settle the fork first: widen the SELECT policy, or drop
+  `RETURNING` and read the id back separately
+- **P-08** — avatar keys outrun the assets, 404ing publicly
+- **M-03** — the phone test. Two minutes, maintainer-only, and the last Phase 0 criterion
+- **M-02** — the pitch kit, then Gate A
+
+**Flagged**
+
+- **`DATABASE_URL` on the maintainer's machine is the deployed Supabase project, not a local Postgres.**
+  `.env.local` points it at the session pooler deliberately — there is no local Postgres installed — so
+  every `db:migrate`, `db:rls`, `db:verify-rls` and `db:seed:demo` run there writes to **production**.
+  Two documents say otherwise and both are read immediately before somebody runs a destructive command:
+  `SETUP_GUIDE.md` §12's table row (*local Postgres*) and **`CLAUDE.md` §11 standing grant 2**, which
+  permits those commands "against the local Postgres". **Neither was changed** — which side is wrong is
+  the maintainer's call. It costs nothing today, because the only database holds synthetic data; it
+  changes character entirely at **Gate B**, which is already named as the moment to revisit grant 3.
+  The integration suite is unaffected: `TEST_DATABASE_URL` is unset, so it boots its own embedded
+  Postgres and `assertDisposableDatabase` never sees the two match
+- **The D-07 verification left a row in the public demo.** Bagwis Karagatan scanning Liwayway Talahib
+  into Club Fair, plus its 10 XP ledger row. Kept, by decision, on the same basis as the Agila Batisan
+  row the 2026-09-22 walk left: the ledger is append-only, and Club Fair showing two attendees is
+  cosmetic. Worth knowing before the pitch, because `seed/demo-events.json` says that event's attendance
+  is *deliberately empty*
+- **A demo session can still outlive its rolled window.** The cookie lasts eight hours, the window is
+  five. Re-picking the persona is one tap and rolls it again; widening the window to cover the cookie
+  would have bought that hour at the cost of an event whose length is no longer the seed's
+- **Phase 0 still cannot be declared complete by Claude**, unchanged from 2026-09-23. No
+  `phase-0-complete` tag exists, and none should until M-03 returns a number
+- **`/events/[id]` still has no `h1` in its SSR payload**, unchanged from 2026-09-23
+- **P-14's scope is still "widen the nav item list"**, unchanged from 2026-09-23
+
+---
+
 ## 2026-09-23 — Native leaves the MVP, the nav landmark lands, Phase 0 reaches five of six
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio

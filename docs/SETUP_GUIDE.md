@@ -456,6 +456,20 @@ and note the date in `docs/PROGRESS.md`.
 | `SUPABASE_ACCESS_TOKEN` | shell env, for MCP | — | issued here | never |
 | `HIRAYA_DEMO_SCHOOLS` | `halimbawa-demo` | `halimbawa-demo` | — | `.env.example` only |
 
+> **Unresolved, found 2026-09-25 (D-07).** The `DATABASE_URL` row above says *local Postgres*, and
+> `.env.example` ships a `127.0.0.1` default — but on the maintainer's machine `.env.local` points it
+> at the **Supabase session pooler**, deliberately (there is no local Postgres installed). Every
+> `npm run db:migrate`, `db:rls`, `db:verify-rls` and `db:seed:demo` on that machine therefore writes
+> to the **deployed project**, not to a throwaway. The integration suite is unaffected:
+> `TEST_DATABASE_URL` is left unset, so it boots its own embedded Postgres and
+> `assertDisposableDatabase` never sees the two match.
+>
+> Two places now disagree with reality rather than with each other, and both are read before somebody
+> runs a destructive command: this row, and `CLAUDE.md` §11 standing grant 2, which permits those
+> commands "against the local Postgres". **Neither has been changed** — which one is wrong is the
+> maintainer's call, and it matters most at Gate B, when the same database holds real rosters. See
+> `docs/PROGRESS.md`, 2026-09-25.
+
 **Never commit:** real learner data, `.env` files, the service-role key, the QR private key, database
 dumps, guardian-consent scans, Android keystores, iOS provisioning profiles. When in doubt, it does not
 go in the repo.
