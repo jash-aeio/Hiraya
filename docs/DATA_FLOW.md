@@ -278,6 +278,12 @@ The demo tenant (Phase 0, for the school pitch) contains **only synthetic data**
 - `schools.is_demo = true` drives a persistent **"DEMO DATA"** marker in the UI, so no one mistakes it
   for a real record — including the person being pitched to.
 - Seeded via `npm run db:seed:demo` from committed files under `/seed/demo-*`.
+- **The demo's one live event stays live** (D-07). The seed marks it `events.demo_rolls_live`, and
+  `public.demo_roll_live_events` re-centres its window on now when a persona is picked — the only
+  write in the demo path, and the only place any event's timetable moves. It is gated by `s.is_demo`
+  in SQL, by the flag, and by a school id the caller has already cleared the D25 allowlist to learn;
+  a real tenant is unreachable from it rather than merely unrequested. The scan window rule is
+  untouched, so a scan can still fall outside the rolled window.
 - **No real learner data enters any environment before Gate B.** The `/seed/real-*` and `/seed/import-*`
   paths are gitignored precisely so a real roster cannot be committed by accident.
 

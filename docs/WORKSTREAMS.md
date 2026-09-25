@@ -14,13 +14,13 @@ New here? Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first.
 > **Updated by `/hiraya-checkpoint`. If this block and the tables below disagree, the tables win.**
 
 **Phase 0 — Foundation, design system, demo tenant.** Every buildable task is built and on `main`, the
-loop has been walked end to end against the real database, and **Hiraya is now deployed and publicly
-reachable**. What remains is two demo defects and the pitch kit.
+loop has been walked end to end against the real database, and **Hiraya is deployed and publicly
+reachable**. What remains is one demo defect, one check-in defect, and the pitch kit.
 
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last work to land** | **P-15**, the Phase 0 bottom navigation — WCAG AA closed. Before it, **D35** (native deferred out of MVP) and **M-01**, the live deploy at `https://hiraya-eosin.vercel.app` |
+| **Last work to land** | **D-07** (`3bfd8a8`, PR #23) — the demo's live event now re-centres itself on now, so a tenant seeded months ago is still walkable. Before it, **P-15** (bottom navigation, WCAG AA closed), **D35** (native deferred), **M-01** (the live deploy at `https://hiraya-eosin.vercel.app`) |
 | **In flight** | Nothing. No open PRs |
 | **Blocked on the maintainer** | **M-03** — the phone test (`SETUP_GUIDE.md` §5a), the last Phase 0 criterion and two minutes of work. Then **M-02**, the pitch kit |
 | **Open tasks, whole project** | 4 in Phase 0 · 17 queued behind Gate A in Phase 1 |
@@ -29,14 +29,16 @@ reachable**. What remains is two demo defects and the pitch kit.
 
 | | Task | Who | Say |
 |---|---|---|---|
-| 1 | **D-07** — the demo's live event goes stale hours after seeding | Lane D | `build D-07` |
+| 1 | **D-08** — an SSLG officer cannot check anyone in; the gate answers 500 | Lane D | `build D-08` |
 | 2 | **P-08** — avatar keys outrun the assets; 404s on the *public* demo | Lane P | `build P-08` |
 | 3 | **M-03** — the phone test, the last Phase 0 criterion | **you**, on a phone off wifi | `walk me through M-03` |
 | 4 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
 
 **Five of Phase 0's six acceptance criteria are ticked.** **WCAG AA closed on 2026-09-23** with
 P-15, the Phase 0 bottom navigation — the last P-06 finding. The walkable loop and the 500 KB budget
-closed on 2026-09-23; cross-tenant denial on 2026-09-21; no-real-learner-data on 2026-09-23.
+closed on 2026-09-23; cross-tenant denial on 2026-09-21; no-real-learner-data on 2026-09-23. The
+walkable-loop criterion's D-07 caveat — that the check-in half needed a same-day re-seed — **is now
+gone**, and the criterion stands without it.
 
 **One criterion remains, booked as M-03.** *"Demo tenant loads on a real phone
 over mobile data in under 3 seconds"* needs a real phone on real mobile data. M-01 removed the blocker
@@ -44,10 +46,12 @@ by publishing the URL; what is left is two minutes of the maintainer's time and 
 the only Phase 0 criterion that cannot be closed from this machine — and with native deferred (D35),
 the web PWA is the only delivery path, so it matters more than it did when it was written.
 
-**D-07 and P-08 are public defects, not private ones.** Both were booked when the demo lived only on
-`localhost`. A tenant seeded yesterday has no live event, so the check-in half of the pitch cannot be
-shown at all — and check-in is the half the whole product argument rests on. P-08's missing avatars
-404 on the roster, the board and the persona picker. Anyone given the URL today sees both.
+**D-08 is the one that would embarrass a pitch.** An SSLG officer — the role that staffs a school-wide
+event, and the one P-15 ships a **Scan** tab to — gets a 500 at the gate, because
+`checkins_insert_hosts` admits the role and `checkins_select_self_or_hosts` does not while the insert
+carries `RETURNING`. It is pre-existing, not new, and it hid because every walk so far used an org
+officer of the hosting org. **P-08's missing avatars** 404 on the roster, the board and the persona
+picker. Anyone given the URL today meets both.
 
 ## 1. Lanes
 
