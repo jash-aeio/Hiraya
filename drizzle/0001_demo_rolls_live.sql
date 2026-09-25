@@ -1,0 +1,1 @@
+ALTER TABLE "events" ADD COLUMN "demo_rolls_live" boolean DEFAULT false NOT NULL;

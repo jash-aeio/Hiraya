@@ -338,6 +338,12 @@ export const events = pgTable(
     eligibilityJson: jsonb("eligibility_json").notNull().default({}),
     status: eventStatus("status").notNull().default("draft"),
     requiresSslgApproval: boolean("requires_sslg_approval").notNull().default(false),
+    // The demo's standing live event (D-07). Set by db:seed:demo on the one
+    // event the scanner points at, and read only by public.demo_roll_live_events
+    // (src/db/rls/08_demo_rolling_event.sql), which re-centres that event's
+    // window on now so a tenant seeded months ago is still walkable. Harmless
+    // on a real tenant: the function will not touch a school without is_demo.
+    demoRollsLive: boolean("demo_rolls_live").notNull().default(false),
     publishAt: timestamp("publish_at", { withTimezone: true }),
     createdBy: uuid("created_by").references(() => profiles.id, { onDelete: "set null" }),
     createdAt: createdAt(),

@@ -278,3 +278,161 @@ describe("who may call them", () => {
     }
   });
 });
+
+/**
+ * The demo's standing live event (D-07).
+ *
+ * `db:seed:demo` writes Club Fair's window from the clock at seed time, so the
+ * scanner had nothing to point at a day later and the check-in half of the demo
+ * — the half the product argument rests on — could not be walked at all. The
+ * function under test re-centres that one event on now.
+ *
+ * It is the first demo function that WRITES, which is what these cases are
+ * really about: SECURITY DEFINER means it edits past RLS, so the only thing
+ * standing between it and a real school's timetable is its own WHERE clause.
+ */
+describe("demo_roll_live_events — keeping the demo walkable", () => {
+  let staleEventId: string;
+  let ordinaryEventId: string;
+  let realEventId: string;
+  let realOrgId: string;
+
+  /** An event whose window closed five hours ago, as a day-old seed leaves it. */
+  async function insertEvent(
+    schoolId: string,
+    orgId: string,
+    createdBy: string,
+    rolls: boolean,
+  ): Promise<string> {
+    const [row] = await db.sql<{ id: string }[]>`
+      INSERT INTO events (school_id, org_id, title, starts_at, ends_at, venue, status,
+                          publish_at, created_by, demo_rolls_live)
+      VALUES (${schoolId}, ${orgId}, 'Fixture Club Fair',
+              now() - interval '10 hours', now() - interval '5 hours',
+              'Covered Court', 'approved', now() - interval '7 days', ${createdBy}, ${rolls})
+      RETURNING id
+    `;
+    return row!.id;
+  }
+
+  async function windowOf(eventId: string): Promise<{ starts: Date; ends: Date }> {
+    const [row] = await db.sql<{ starts_at: Date; ends_at: Date }[]>`
+      SELECT starts_at, ends_at FROM events WHERE id = ${eventId}
+    `;
+    return { starts: row!.starts_at, ends: row!.ends_at };
+  }
+
+  async function roll(schoolId: string): Promise<number> {
+    const [row] = await asRole(
+      "authenticated",
+      async (tx) => tx<{ demo_roll_live_events: number }[]>`
+        SELECT * FROM public.demo_roll_live_events(${schoolId}::uuid)
+      `,
+    );
+    return row!.demo_roll_live_events;
+  }
+
+  beforeAll(async () => {
+    staleEventId = await insertEvent(
+      demoTenant.schoolId,
+      demoTenant.orgId,
+      demoTenant.learnerProfileId,
+      true,
+    );
+    ordinaryEventId = await insertEvent(
+      demoTenant.schoolId,
+      demoTenant.orgId,
+      demoTenant.learnerProfileId,
+      false,
+    );
+
+    const [org] = await db.sql<{ id: string }[]>`
+      INSERT INTO organizations (school_id, name, slug, category)
+      VALUES (${realSchoolId}, 'Outsider Club', 'real-school-club', 'academic')
+      RETURNING id
+    `;
+    realOrgId = org!.id;
+
+    // Flagged as the rolling event *and* in a school that is not is_demo. The
+    // flag alone must not be enough, or the column becomes the gate.
+    realEventId = await insertEvent(realSchoolId, realOrgId, realProfileId, true);
+  });
+
+  it("re-centres a stale event on now, keeping its seeded duration", async () => {
+    const before = await windowOf(staleEventId);
+    expect(before.ends.getTime()).toBeLessThan(Date.now());
+
+    expect(await roll(demoTenant.schoolId)).toBe(1);
+
+    const after = await windowOf(staleEventId);
+    const now = Date.now();
+    expect(after.starts.getTime()).toBeLessThan(now);
+    expect(after.ends.getTime()).toBeGreaterThan(now);
+
+    // Five hours, as seed/demo-events.json says — not a literal in the SQL.
+    const duration = after.ends.getTime() - after.starts.getTime();
+    expect(duration).toBe(before.ends.getTime() - before.starts.getTime());
+    expect(duration).toBe(5 * 60 * 60 * 1000);
+  });
+
+  it("writes nothing while the window already covers now", async () => {
+    // Called on every persona switch, so the common case has to be a no-op
+    // rather than a rewrite that merely lands on the same values.
+    const before = await windowOf(staleEventId);
+    expect(await roll(demoTenant.schoolId)).toBe(0);
+    const after = await windowOf(staleEventId);
+
+    expect(after.starts.getTime()).toBe(before.starts.getTime());
+    expect(after.ends.getTime()).toBe(before.ends.getTime());
+  });
+
+  it("leaves every other event in the same demo school alone", async () => {
+    // The past events the XP ledger cites are in here. A roll that moved them
+    // would put a check-in outside the event it is attendance for.
+    const after = await windowOf(ordinaryEventId);
+    expect(after.ends.getTime()).toBeLessThan(Date.now());
+  });
+
+  it("will not touch a school that is not flagged is_demo, even when named", async () => {
+    // The case the whole function is bounded for: the caller controls the
+    // argument, so `is_demo` and not the argument has to be what refuses.
+    const before = await windowOf(realEventId);
+    expect(await roll(realSchoolId)).toBe(0);
+    const after = await windowOf(realEventId);
+
+    expect(after.starts.getTime()).toBe(before.starts.getTime());
+    expect(after.ends.getTime()).toBe(before.ends.getTime());
+  });
+
+  it("rolls only the school it was given, not every demo tenant", async () => {
+    const otherEventId = await insertEvent(
+      otherDemoTenant.schoolId,
+      otherDemoTenant.orgId,
+      otherDemoTenant.learnerProfileId,
+      true,
+    );
+
+    expect(await roll(demoTenant.schoolId)).toBe(0);
+
+    const after = await windowOf(otherEventId);
+    expect(after.ends.getTime()).toBeLessThan(Date.now());
+  });
+
+  it("is granted to authenticated only, and pins its search_path", async () => {
+    const [row] = await db.sql<
+      { anon: boolean; authenticated: boolean; service_role: boolean; config: string[] | null }[]
+    >`
+      SELECT has_function_privilege('anon', 'public.demo_roll_live_events(uuid)', 'EXECUTE') AS anon,
+             has_function_privilege('authenticated', 'public.demo_roll_live_events(uuid)', 'EXECUTE') AS authenticated,
+             has_function_privilege('service_role', 'public.demo_roll_live_events(uuid)', 'EXECUTE') AS service_role,
+             (SELECT p.proconfig FROM pg_proc p
+                JOIN pg_namespace n ON n.oid = p.pronamespace
+               WHERE n.nspname = 'public' AND p.proname = 'demo_roll_live_events') AS config
+    `;
+
+    expect(row!.anon).toBe(false);
+    expect(row!.service_role).toBe(false);
+    expect(row!.authenticated).toBe(true);
+    expect(row!.config).toContain('search_path=""');
+  });
+});

@@ -689,6 +689,21 @@ export async function seedDemo(connectionString: string): Promise<SeedSummary> {
       const startOf = new Map<string, Date>();
       const endOf = new Map<string, Date>();
 
+      /*
+       * Exactly one, checked rather than documented. `demo_rolls_live` is what
+       * public.demo_roll_live_events rewrites the window of, and a second event
+       * carrying it would have its timetable moved to today every time somebody
+       * opened the demo — including, if it were a past event, out from under the
+       * XP rows that cite it. The scanner also has nowhere to send an officer if
+       * two events claim to be the live one.
+       */
+      const live = events.events.filter((event) => event.happeningNow === true);
+      if (live.length !== 1) {
+        throw new Error(
+          `seed/demo-events.json: ${String(live.length)} events carry happeningNow; the demo needs exactly one (D-07).`,
+        );
+      }
+
       const eventRows: Row[] = events.events.map((event) => {
         const starts = event.happeningNow
           ? new Date(now.getTime() - 3_600_000)
@@ -711,6 +726,20 @@ export async function seedDemo(connectionString: string): Promise<SeedSummary> {
           eligibility_json: event.eligibility ?? {},
           status: event.status,
           requires_sslg_approval: event.requiresSslgApproval ?? false,
+          /*
+           * `happeningNow` twice: once as the window written here, and once as a
+           * standing fact the database can act on (D-07).
+           *
+           * The window alone made the demo a same-day artefact — five hours from
+           * whenever the seed last ran, after which the scanner has nothing to
+           * point at. The flag is what public.demo_roll_live_events reads to
+           * re-centre this one event on now, so a tenant seeded months ago still
+           * walks. It stays on the seeded event rather than being inferred from
+           * the window, because "the event that happens to be live" is a
+           * different thing from "the event the demo is built around", and only
+           * the second may have its timetable rewritten.
+           */
+          demo_rolls_live: event.happeningNow ?? false,
           publish_at: published ? new Date(starts.getTime() - 7 * DAY_MS) : null,
           created_by: profileId(event.createdByKey),
         };

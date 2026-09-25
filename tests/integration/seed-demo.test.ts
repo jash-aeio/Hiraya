@@ -153,6 +153,47 @@ describe("the demo seed", () => {
     expect(row?.n).toBe(1);
   });
 
+  it("marks that event, and only it, as the one the demo keeps live (D-07)", async () => {
+    // The test above only holds at seed time, which was the whole defect: five
+    // hours later the scanner had nothing to point at. The flag is what lets the
+    // database put the window back.
+    const [row] = await db.sql<{ n: number; live: number }[]>`
+      SELECT count(*)::int AS n,
+             count(*) FILTER (WHERE now() BETWEEN starts_at AND ends_at)::int AS live
+      FROM events WHERE demo_rolls_live
+    `;
+    expect(row?.n).toBe(1);
+    expect(row?.live).toBe(1);
+  });
+
+  it("recovers a tenant whose live event went stale overnight (D-07)", async () => {
+    // The state a demo seeded yesterday is actually in, reproduced rather than
+    // described: push the window into the past and ask whether the demo is
+    // walkable again afterwards.
+    const [school] = await db.sql<{ id: string }[]>`SELECT id FROM schools WHERE is_demo LIMIT 1`;
+
+    await db.sql`
+      UPDATE events
+         SET starts_at = now() - interval '30 hours', ends_at = now() - interval '25 hours'
+       WHERE demo_rolls_live
+    `;
+
+    const [stale] = await db.sql<{ n: number }[]>`
+      SELECT count(*)::int AS n FROM events WHERE now() BETWEEN starts_at AND ends_at
+    `;
+    expect(stale?.n).toBe(0);
+
+    await db.sql.begin(async (tx) => {
+      await tx.unsafe("set local role authenticated");
+      await tx`SELECT public.demo_roll_live_events(${school!.id}::uuid)`;
+    });
+
+    const [after] = await db.sql<{ n: number }[]>`
+      SELECT count(*)::int AS n FROM events WHERE now() BETWEEN starts_at AND ends_at
+    `;
+    expect(after?.n).toBe(1);
+  });
+
   it("leaves one event full, with a contiguous waitlist behind it (D-05)", async () => {
     // The demo has to be able to tap Register and be refused with the offer
     // (US-2). That needs a capped event whose seats are actually gone.
