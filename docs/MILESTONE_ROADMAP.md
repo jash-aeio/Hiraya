@@ -92,7 +92,7 @@ proposal document from an outside developer stalls.
 
 **Acceptance criteria**
 
-- [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds
+- [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds — **measured 2026-09-26 at 3–4 s, occasionally near 3 s** (M-03, real phone, mobile data, incognito, Supabase pre-warmed). Open: the number is the number, and it is over. Cause is understood rather than guessed — `/api/v1/demo/personas` answers in a flat **1.28 s** for 1,983 bytes, because Vercel runs the function in **iad1** while Supabase is in **ap-southeast-1**, so every query crosses the Pacific twice (`X-Vercel-Id: sin1::iad1`, no `vercel.json`/`vercel.ts` in the repo). `/demo` then pays it serially: the persona list is a client fetch in `PersonaPicker.tsx` that only starts after ~209 KB of JS hydrates. Booked as **M-04**; re-test after it lands
 - [x] The full loop is walkable in the demo: browse → register → check in → see XP → see leaderboard — walked against the Supabase project, not a fixture (2026-09-23). Registering and cancelling persist; a scan awards 10 XP once and answers "already checked in" the second time; the learner's XP screen names the event the point came from. The D-07 caveat — that the live event ran only five hours from seeding, so the check-in half needed a same-day re-seed — was closed 2026-09-25: the event now re-centres itself on now when a persona is picked
 - [x] Cross-tenant denial test passes against seeded schools A and B — all 21 tenant tables, plus a case proving the test fails when RLS is disabled (2026-09-21)
 - [x] First load ≤ 500 KB, verified in the browser — 200–209 KB across 14 routes on a production build (P-06, 2026-09-22); re-measured at 208 KB after P-07 (2026-09-23)
