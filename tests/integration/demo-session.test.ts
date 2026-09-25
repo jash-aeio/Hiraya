@@ -418,6 +418,16 @@ describe("demo_roll_live_events — keeping the demo walkable", () => {
     expect(after.ends.getTime()).toBeLessThan(Date.now());
   });
 
+  it("refuses a second standing live event in the same school", async () => {
+    // The invariant the function's WHERE clause depends on, held by the database
+    // rather than by the seed script remembering to check. A second flagged row
+    // would have its window rewritten on every persona switch — and a past event
+    // moved to today is one the XP ledger already cites.
+    await expect(
+      insertEvent(demoTenant.schoolId, demoTenant.orgId, demoTenant.learnerProfileId, true),
+    ).rejects.toThrow(/events_one_rolling_live_per_school/);
+  });
+
   it("is granted to authenticated only, and pins its search_path", async () => {
     const [row] = await db.sql<
       { anon: boolean; authenticated: boolean; service_role: boolean; config: string[] | null }[]

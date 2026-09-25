@@ -15,6 +15,13 @@
       "when": 1790315409550,
       "tag": "0001_demo_rolls_live",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790316566920,
+      "tag": "0002_one_rolling_live_event",
+      "breakpoints": true
     }
   ]
 }

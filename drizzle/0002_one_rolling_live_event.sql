@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "events_one_rolling_live_per_school" ON "events" USING btree ("school_id") WHERE "events"."demo_rolls_live";
