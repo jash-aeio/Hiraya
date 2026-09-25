@@ -115,7 +115,7 @@ Without these there is nothing to show the school, and the pitch is where this p
 
 | Asset | Count | Spec | Status |
 |---|---|---|---|
-| **Avatar set — authored** | 12–16 | Geometric, non-photographic, non-figurative enough to avoid implying ethnicity or gender. Each ≤2 KB | [x] 14 in `public/avatars/`, 273–430 bytes each (2026-09-21) |
+| **Avatar set — authored** | 12–16 | Geometric, non-photographic, non-figurative enough to avoid implying ethnicity or gender. Each ≤2 KB | [x] 16 in `public/avatars/`, 273–433 bytes each (2026-09-21; **15 and 16 added 2026-09-26** to close P-08 — `scripts/seed-demo.ts` derives keys modulo 16, so 14 files meant four seeded learners 404ed) |
 | Unlock frames | 4 | Decorative rings tied to level tiers — the zero-cost reward FR-5 already asks for | [x] `UnlockFrame` in `LevelBadge.tsx` (2026-09-21) |
 
 No photo uploads exist. That is a privacy decision (CLAUDE.md §6), not an asset shortfall.
