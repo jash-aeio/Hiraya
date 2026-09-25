@@ -12,6 +12,90 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-26 — the phone test was run, and it found that every query crosses the Pacific
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** at risk — a Phase 0 acceptance criterion was measured and missed · **By:** jash-aeio
+
+**M-03 was finally run on a real phone.** It did not pass, and it was worth far more than the criterion
+it failed.
+
+**Shipped**
+
+- **M-03 measured: 3–4 s time-to-usable, occasionally near 3 s**, against a *under 3 seconds* bar. Real
+  phone, mobile data, wifi off, incognito, Supabase pre-warmed from this machine so the R13 wake-up was
+  not in the number. `SETUP_GUIDE.md` §5a puts 3–6 s in the *record the real number rather than tick the
+  box* band, and that is what the maintainer chose
+- **The cause was measured, not guessed.** `/api/v1/demo/personas` answers in a flat **1.28 s** for
+  1,983 bytes — three runs, warm, from a wired desktop, variance under 20 ms. 1.28 s to return 2 KB is
+  not a slow network, it is a round trip
+- **`X-Vercel-Id: sin1::iad1`** — the request enters at the Singapore edge and the function executes in
+  **iad1, Washington DC**. `DATABASE_URL` points at `aws-0-ap-southeast-…pooler.supabase.com`, so
+  Supabase is in **Singapore**. There is no `vercel.json` and no `vercel.ts` in the repo, so the deploy
+  sits on Vercel's default function region. **Nobody chose this; it was inherited from the default**
+- Booked as **M-04** (Lane D, one config file) with the M-03 re-test behind it
+
+**No code changed this entry.** Documentation only — the fix is deliberately a separate slice.
+
+**Why `/demo` pays the full cost serially.** The page itself is a Server Component and its HTML is fast
+(~0.4–0.7 s warm). The persona list is a client fetch in `PersonaPicker.tsx`, which is a deliberate R3
+choice and documented as one in that file — reading the service from the Server Component would be a
+second authorization path. So the 1.28 s cannot begin until ~209 KB of JS has downloaded, parsed and
+hydrated on a budget Android. HTML, then hydrate, then 1.28 s: that is the 3–4 s, and the mobile leg
+moving around is the *"sometimes near 3"*.
+
+**Decisions**
+
+- None new yet. **M-04 will likely warrant a D-row** when it lands, because "which region the functions
+  run in" is exactly the kind of inherited default that a future session would otherwise re-derive from
+  scratch — the same shape as D34, where the pooler port was wrong for a year of nobody looking
+
+**Docs updated**
+
+- `docs/MILESTONE_ROADMAP.md` — the phone-test criterion now carries the measured number and the cause;
+  still unticked, because it was not met
+- `docs/WORKSTREAMS.md` — §0 rewritten (there is a Lane D task in Phase 0 again), M-03 row updated from
+  *open* to *run and failed*, **M-04 added**, critical path now `M-04 → M-03 re-test → M-02 → Gate A`
+- `docs/PROGRESS.md` — this entry
+
+**Risks**
+
+- Materialized: **R-new — the ≥15 check-ins/minute gate KPI now has a known latency tax in front of it.**
+  This is the part that outgrows M-03. Every `/api/v1` call from the Philippines currently makes the
+  same Pacific round trip, and Phase 3 has to sustain 15 scans a minute at a school gate on the school's
+  own network. A per-scan cost measured in whole seconds is not something to discover in Phase 3 with a
+  teacher watching. M-04 is Phase 0 work for a Phase 3 reason
+- Materialized: **PRD assumptions A1–A3 were unverified for the entire project, and the first contact
+  with them cost a criterion.** They have been flagged in this log since the first entry. The lesson is
+  not that the assumptions were wrong — it is that *a two-minute maintainer task sat open long enough
+  for six code slices to land on top of it*, and it turned out to be the one holding a whole-API finding
+- Not a risk: **the 500 KB first-load budget is unaffected and stays closed.** 28 KB HTML + 209 KB of
+  JS/CSS across 11 assets, re-measured today on the deployed build. M-04 is latency, not weight — do not
+  let the two criteria get conflated in a later reading
+
+**Next**
+
+- **M-04** — pin the function region to `sin1`. Lane D, one config file, no schema change, no R3 tension
+- **M-03 re-test** — the maintainer, on the same phone, after M-04 deploys. Same procedure, §5a
+- Then **M-02**, then **Gate A**, unchanged
+
+**Flagged**
+
+- **Re-measure `/api/v1/demo/personas` before and after M-04**, and put both numbers in the M-04 entry.
+  The prediction on record is that most of the 1.28 s is the region hop; if pinning `sin1` does not move
+  it substantially, the cause is something else — a slow query, or per-invocation pooler connection
+  setup — and the M-04 row's stated diagnosis was wrong and must be corrected rather than quietly
+  widened. **Write down what would falsify it before running the fix**
+- **Vercel Hobby allows one function region.** M-04 should confirm the plan's limit before assuming a
+  multi-region answer is available; one region matching the database is the whole fix here anyway
+- **Check whether `sin1` is the best match for the school's actual network**, not just for Supabase.
+  Singapore is the closest Vercel region to the Philippines and co-locates with the database, so it is
+  almost certainly right — but this is worth one minute of checking rather than an assumption, since it
+  is the second inherited default in this finding
+- **A throttled desktop browser would never have found this.** §5a says so about CPU and cell handover;
+  it turns out to be true for a reason §5a does not mention. Keep the phone test as a real phone test
+
+---
+
 ## 2026-09-26 — `main` was never actually protected; it is now
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
