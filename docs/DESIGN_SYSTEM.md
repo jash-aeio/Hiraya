@@ -38,45 +38,49 @@ learners reading it on a cheap screen in daylight.
 ## 2. Color tokens
 
 ```css
-:root {
+@theme {
   /* Canvas and surface */
-  --canvas:        #F4F5F8;   /* app background */
-  --surface:       #FFFFFF;   /* cards */
-  --surface-sunk:  #EDEFF4;   /* wells, track backgrounds */
-  --border:        #E4E7EE;
+  --color-canvas: #f4f5f8;                          /* app background */
+  --color-surface: #ffffff;                         /* cards */
+  --color-surface-sunk: #edeff4;                    /* wells, track backgrounds */
+  --color-border: #e4e7ee;
 
   /* Brand */
-  --primary:       #0D7F7C;   /* nav pill, primary CTA  — 4.8:1 on white ONLY */
-  --primary-hover: #0A6A67;
-  --primary-soft:  #E3F2F1;   /* tinted backgrounds */
-  --primary-ink:   #06504E;   /* text on canvas or primary-soft — 8.5:1 / 8.2:1 */
+  --color-primary: #0d7f7c;                         /* nav pill, primary CTA  — 4.8:1 on white ONLY */
+  --color-primary-hover: #0a6a67;
+  --color-primary-soft: #e3f2f1;                    /* tinted backgrounds */
+  --color-primary-ink: #06504e;                     /* text on canvas or primary-soft — 8.5:1 / 8.2:1 */
 
   /* Points and progress */
-  --xp:            #F5A524;   /* XP coin, progress fill — decorative only */
-  --xp-ink:        #8A5A00;   /* XP text on light       — 4.8:1 */
-  --xp-soft:       #FEF6E7;   /* tinted background      — added 2026-09-21 */
+  --color-xp: #f5a524;                              /* XP coin, progress fill — decorative only */
+  --color-xp-ink: #8a5a00;                          /* XP text on light       — 4.8:1 */
+  --color-xp-soft: #fef6e7;                         /* tinted background      — added 2026-09-21 */
 
   /* Text */
-  --ink:           #141824;   /* headings, body         — 15.8:1 */
-  --ink-muted:     #5A6472;   /* secondary              — 5.9:1  (reference was ~3:1) */
-  --ink-subtle:    #7A8494;   /* tertiary, >=16px only  — 4.0:1  NOT for body text */
-  --ink-inverse:   #FFFFFF;
+  --color-ink: #141824;                             /* headings, body         — 15.8:1 */
+  --color-ink-muted: #5a6472;                       /* secondary              — 5.9:1  (reference was ~3:1) */
+  --color-ink-subtle: #7a8494;                      /* tertiary, >=16px only  — 4.0:1  NOT for body text */
+  --color-ink-inverse: #ffffff;
 
   /* Status — each with a tinted background, added 2026-09-21 when Badge needed
      one: a status pill has to sit on something, and picking a tint per call site
      is how six slightly different greens appear. The ink is the token above it. */
-  --success:       #0F7B4F;   --success-soft: #E6F4ED;
-  --warning:       #B45309;   --warning-soft: #FDF1E3;
-  --danger:        #C0392B;   --danger-soft:  #FCECEB;
-  --info:          #2563A8;   --info-soft:    #E9F0F9;
+  --color-success: #0f7b4f;
+  --color-success-soft: #e6f4ed;
+  --color-warning: #b45309;
+  --color-warning-soft: #fdf1e3;
+  --color-danger: #c0392b;
+  --color-danger-soft: #fceceb;
+  --color-info: #2563a8;
+  --color-info-soft: #e9f0f9;
 
   /* Organization categories */
-  --cat-academic:  #3B6FF6;
-  --cat-arts:      #E1428E;
-  --cat-sports:    #F97316;
-  --cat-service:   #0D9E8A;
-  --cat-faith:     #8257E6;
-  --cat-interest:  #5B5BD6;
+  --color-cat-academic: #3b6ff6;
+  --color-cat-arts: #e1428e;
+  --color-cat-sports: #f97316;
+  --color-cat-service: #0d9e8a;
+  --color-cat-faith: #8257e6;
+  --color-cat-interest: #5b5bd6;
 }
 ```
 
@@ -93,9 +97,11 @@ learners reading it on a cheap screen in daylight.
   sound and motion as well as color (colour-blind officers work the gate too).
 - Category colors identify, they do not rank. Never order or grade by them.
 
-**Implementation.** `src/design/tokens.css` is this block in code, declared inside Tailwind's `@theme`
-so each token also generates a utility (`bg-surface`, `text-ink-muted`). A colour is therefore reachable
-only by naming a token, which is what makes "no literal hex in a component" cost nothing to obey.
+**Implementation.** `src/design/tokens.css` *is* this block — the `@theme` above is transcribed from it
+verbatim, names included. The `--color-` prefix is not decoration: `@theme` derives a utility from each
+token by stripping it (`--color-surface` → `bg-surface`, `--color-ink-muted` → `text-ink-muted`), which
+is why the prefix is mandatory and why a colour is reachable only by naming a token. That is what makes
+"no literal hex in a component" cost nothing to obey, and visible in review when broken.
 
 **Dark mode** is not in the MVP. Tokens are structured so it can be added by redefining this block,
 but shipping one untested theme is better than two half-tested ones.
@@ -107,6 +113,14 @@ but shipping one untested theme is better than two half-tested ones.
 **Plus Jakarta Sans** (SIL OFL), self-hosted via `next/font`. The closest free match to the reference's
 geometric sans. Self-hosted, never a runtime font CDN — a render-blocking third-party request is the
 wrong thing to spend the performance budget on.
+
+```css
+--font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+```
+
+`--font-sans` is the one token `ASSET_CHECKLIST.md` cites by name. The fallback stack after it is not
+boilerplate: it is what a learner actually reads at first paint on a slow prepaid connection, before the
+webfont arrives.
 
 | Token | Size / line | Weight | Use |
 |---|---|---|---|

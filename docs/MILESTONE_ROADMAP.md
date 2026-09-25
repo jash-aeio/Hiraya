@@ -425,7 +425,8 @@ All seven, verified — not asserted:
 4. A School Admin can import learners, generate activation codes, and export all data
 5. Cross-tenant denial and idempotent-sync tests pass in CI
 6. WCAG 2.1 AA, ≤500 KB first load, and ≥15 check-ins/minute all verified
-7. Web PWA and Android/iOS builds ship from one codebase against one database
+7. The **web PWA installs to a phone's home screen** from one codebase against one database.
+   Store distribution is out of MVP scope (D35) — see §8
 
 Plus both gates: **Gate A** (school buy-in) and **Gate B** (DPO review, signed processor agreement,
 guardian consent, repository and infrastructure transferred).

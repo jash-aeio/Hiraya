@@ -411,7 +411,8 @@ Traced to objectives (O1–O10) and problems (P1–P8). **M** = MVP, **2** = Pha
 4. A School Admin can import learners, generate activation codes, and export all data
 5. Cross-tenant denial and idempotent-sync tests pass (CLAUDE.md §5)
 6. WCAG 2.1 AA, ≤500 KB first load, ≥15 check-ins/min verified
-7. Web PWA and Android/iOS builds ship from one codebase against one database
+7. The **web PWA installs to a phone's home screen** from one codebase against one database.
+   Store distribution is out of MVP scope (D35) — see `MILESTONE_ROADMAP.md` §8
 
 **Post-MVP.** Phase 2: badges, quests, credits and rewards, e-certificates, Co-curricular Record,
 *Tambayan* forum, suggestion box, Filipino locale. Phase 3: elections, scholarship board, research
