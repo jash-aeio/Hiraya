@@ -1,6 +1,6 @@
 # Hiraya — Workstreams
 
-**Status:** Active · **Version:** 2.0 · **Last updated:** 2026-09-25
+**Status:** Active · **Version:** 2.0 · **Last updated:** 2026-09-26
 
 The task board. `docs/MILESTONE_ROADMAP.md` says *what* and *in what order*;
 `docs/BUILD_GUIDE.md` says *how*; this document says **who, what is next, and what blocks what.**
@@ -15,24 +15,28 @@ New here? Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first.
 
 **Phase 0 — Foundation, design system, demo tenant.** Every buildable task is built and on `main`, the
 loop has been walked end to end against the real database, and **Hiraya is deployed and publicly
-reachable**. What remains is one demo defect, one check-in defect, and the pitch kit.
+reachable**. Both defects that a visitor to that URL would have met are now closed. **What remains is
+entirely the maintainer's:** the phone test, then the pitch kit.
 
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last work to land** | **D-07** (`3bfd8a8`, PR #23) — the demo's live event now re-centres itself on now, so a tenant seeded months ago is still walkable. Before it, **P-15** (bottom navigation, WCAG AA closed), **D35** (native deferred), **M-01** (the live deploy at `https://hiraya-eosin.vercel.app`) |
+| **Last work to land** | **P-08** (`1c8fb07`, PR #27) — `avatar-15.svg` and `avatar-16.svg` authored, so the four seeded learners whose keys had no file no longer 404 on the roster, the board or the persona picker. Before it, **D-08** (`4a7bf73`, PR #26) — an SSLG officer can now work the gate, through a read-back of their own rows and a purpose-built lookup rather than a widened policy |
 | **In flight** | Nothing. No open PRs |
 | **Blocked on the maintainer** | **M-03** — the phone test (`SETUP_GUIDE.md` §5a), the last Phase 0 criterion and two minutes of work. Then **M-02**, the pitch kit |
-| **Open tasks, whole project** | 4 in Phase 0 · 17 queued behind Gate A in Phase 1 |
+| **Open tasks, whole project** | 2 in Phase 0, **both maintainer-only** · 14 queued behind Gate A in Phase 1 |
 
 **▶ Next, in order:**
 
 | | Task | Who | Say |
 |---|---|---|---|
-| 1 | **D-08** — an SSLG officer cannot check anyone in; the gate answers 500 | Lane D | `build D-08` |
-| 2 | **P-08** — avatar keys outrun the assets; 404s on the *public* demo | Lane P | `build P-08` |
-| 3 | **M-03** — the phone test, the last Phase 0 criterion | **you**, on a phone off wifi | `walk me through M-03` |
-| 4 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
+| 1 | **M-03** — the phone test, the last Phase 0 criterion | **you**, on a phone off wifi | `walk me through M-03` |
+| 2 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
+
+**There is no Lane D or Lane P task left in Phase 0.** That is new as of 2026-09-26 and it is the
+thing to notice: the next person to open this file cannot advance the phase by writing code. Phase 1
+is real work and it is queued, but it is queued *behind Gate A* — starting it early is the mistake
+`CLAUDE.md` §10.1 names.
 
 **Five of Phase 0's six acceptance criteria are ticked.** **WCAG AA closed on 2026-09-23** with
 P-15, the Phase 0 bottom navigation — the last P-06 finding. The walkable loop and the 500 KB budget
@@ -46,12 +50,12 @@ by publishing the URL; what is left is two minutes of the maintainer's time and 
 the only Phase 0 criterion that cannot be closed from this machine — and with native deferred (D35),
 the web PWA is the only delivery path, so it matters more than it did when it was written.
 
-**D-08 is the one that would embarrass a pitch.** An SSLG officer — the role that staffs a school-wide
-event, and the one P-15 ships a **Scan** tab to — gets a 500 at the gate, because
-`checkins_insert_hosts` admits the role and `checkins_select_self_or_hosts` does not while the insert
-carries `RETURNING`. It is pre-existing, not new, and it hid because every walk so far used an org
-officer of the hosting org. **P-08's missing avatars** 404 on the roster, the board and the persona
-picker. Anyone given the URL today meets both.
+**The public URL is now clean of both defects it carried.** D-08 gave an SSLG officer — the role that
+staffs a school-wide event, and the one P-15 ships a **Scan** tab to — a 500 at the gate; P-08 404ed
+four of the cast's avatars on the roster, the board and the persona picker. Anyone given the URL today
+meets neither. Both were verified against the deployed project, not only locally: the `checkins`
+SELECT policy carries the `recorded_by` grant, `find_existing_checkin` exists as `SECURITY DEFINER`,
+and all 16 avatars serve 200 from `hiraya-eosin.vercel.app`.
 
 ## 1. Lanes
 
@@ -160,8 +164,10 @@ This is the grant to revisit at Gate B, once real rosters exist.
 
 ## 5. Phase 0 — remaining work
 
-Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets closed with P-05; the
-500 KB budget closed with P-06 at 200–209 KB per route across 14 routes, measured in the browser.
+Open acceptance criteria: **the phone test (M-03), and nothing else.** The walkable loop and the
+public URL both closed on 2026-09-23 — this line claimed otherwise until 2026-09-26. Tier 1 assets
+closed with P-05; the 500 KB budget closed with P-06 at 200–209 KB per route across 14 routes,
+measured in the browser.
 
 | # | Task | Lane | Owner | Depends on | Status |
 |---|---|---|---|---|---|
@@ -181,16 +187,16 @@ Open acceptance criteria: **the walkable loop and a public URL.** Tier 1 assets 
 | ~~P-05~~ | ~~Tier 1 assets~~ | P | jash-aeio | — | **Done 2026-09-21.** Reviewable at `/design`. One caveat open: the OG card's typeface |
 | ~~P-06~~ | ~~`hiraya-mobile-audit` on every demo screen~~ | P | jash-aeio | P-01…P-05 | **Done 2026-09-22** (`904f6d0`). 14 routes walked at 360×800 on a production build, P-04's deferred walk included. **Budget passes**: 200–209 KB per route. **Two a11y failures found and fixed**: `text-primary` at 4.44:1 on the canvas, and no `h1` on `/checkin/[eventId]` — which also never named the event it was scanning. **One left open**: no `nav` landmark anywhere, booked as P-14 |
 | ~~P-07~~ | ~~Delete the fixture seam~~ | P | jash-aeio | — | **Done 2026-09-23** (PR #14). Six files and the `NEXT_PUBLIC_HIRAYA_FIXTURES` flag gone, 677 lines deleted. Closed the P-06 finding it was expected to: `/events/<id>` ignored its own id because `fixtureEventDetail` ignored its argument. Walked at 360×800 against the seeded tenant — 208 KB, no fixture chunk |
-| **P-08** | **Avatar keys outrun the assets** — `scripts/seed-demo.ts` assigns `avatar-01`…`avatar-16`; `public/avatars/` holds 14 | P | — | — | **Open, unblocked.** Found by the P-07 browser walk (2026-09-23): every 15th and 16th person in the cast 404s on the gate roster, the leaderboard and the persona picker. **Since 2026-09-23 those 404s are public** — M-01 deployed the screens they appear on. Two ways to close it and they are not equivalent: take the seed script to `% 14` (one character, Lane D file), or author `avatar-15.svg` and `avatar-16.svg`. `ASSET_CHECKLIST.md` asks for 12–16, so 14 already satisfies it |
+| ~~P-08~~ | ~~Avatar keys outrun the assets~~ | P | jash-aeio | — | **Done 2026-09-26** (`1c8fb07`, PR #27). Closed by authoring `avatar-15.svg` and `avatar-16.svg` rather than taking the seed script to `% 14`. The two routes were not equivalent and the deployed data decided it: `profiles` already holds those four keys, so adding the files makes them resolve with no write to the database and no re-seed, where `% 14` would have needed one. Both follow the set's construction — 64×64, circle-clipped, one light geometric figure on a dark ground, non-figurative (§6); 285 and 433 bytes against a 2 KB ceiling. `ASSET_CHECKLIST.md` §1.5 asks for 12–16 and now records 16. The design gallery hardcoded 14 as well and now shows the whole set. Verified on the public URL: all 16 serve 200, `avatar-17` still 404s |
 | ~~D-06~~ | ~~Registration answered VALIDATION_FAILED against every real database~~ | D | jash-aeio | — | **Done 2026-09-23** (PR #15). `tx.execute` returns postgres-js rows unparsed, so `r_registered_at` arrived as wire text where the row parser demanded a `Date`. The SQL was never wrong. Found by walking the loop, not by reading the diff, because `registration.test.ts` drove the SQL through raw postgres-js and the TypeScript wrapper had never run (D33). `asUserThroughDrizzle` is the seam that was missing |
 | ~~D-07~~ | ~~The demo's live event goes stale hours after seeding~~ | D | jash-aeio | — | **Done 2026-09-25.** `happeningNow` is now a property of the event rather than of the moment it was seeded: the seed marks that one row `demo_rolls_live`, and `public.demo_roll_live_events` re-centres its window on now when a persona is picked, keeping the seeded five hours. The scan rule is untouched — `isWithinScanWindow` still decides every write against server time, so a scan can still fall outside the rolled window, which a never-ending event would have made impossible on the one event a teacher watches us scan into. Gated three ways: `s.is_demo`, the per-event flag, and a school id the caller has already cleared the D25 allowlist to learn. A partial unique index makes "one standing live event per school" a database fact rather than a check in the seed script — the tenancy audit's one finding |
-| **D-08** | **An SSLG officer cannot check anyone in** | D | — | — | **Open, unblocked.** `checkins_insert_hosts` admits `sslg_officer` (`src/db/rls/checkins.sql:43`) but `checkins_select_self_or_hosts` does not (`:24`), and the insert in `src/features/checkin/queries.ts:146` carries `.returning({ id })` — so Postgres applies the SELECT policy to the new row and the write dies as `new row violates row-level security policy`, surfacing at the gate as a 500. Found 2026-09-25 walking D-07 against the deployed project. `org_officer` of the hosting org, `sslg_adviser` and `school_admin` all scan fine; `sslg_officer` is the only role that is school-wide without being an adviser or admin, and it is who staffs a school-wide event like Club Fair — and P-15 ships it a **Scan** tab. Two fixes that are not equivalent: add `sslg_officer` to the SELECT policy, which widens who may *read* attendance rows and is a privacy decision, or drop `RETURNING` and read the id back separately, which changes no policy. Settle which before writing either |
+| ~~D-08~~ | ~~An SSLG officer cannot check anyone in~~ | D | jash-aeio | — | **Done 2026-09-25** (`4a7bf73`, PR #26). Neither of the two fixes this row proposed was taken. Widening the SELECT policy to `sslg_officer` was written first and **blocked by `hiraya-privacy-auditor`**: with `profiles_select_tenant` already handing every learner the whole roster, school-wide attendance rows make roster-minus-attendees derivable — the non-participant list, which `SYSTEM_DESIGN.md` §2 denies to SSLG Officer and even to Guidance, and which `DATA_FLOW.md` T8 requires audited on every access. The role is held by learners. What shipped is narrower than either option: the SELECT policy grants `recorded_by = current_profile_id()`, so a session reads back only the rows it wrote — all `RETURNING id` needs — and the officer’s other question goes to `public.find_existing_checkin`, a SECURITY DEFINER bridge that re-states the INSERT policy and answers about one named learner with an id and no attendance detail. Same shape as `award_checkin_xp`, same reason. Ten integration tests, proven in both directions: four fail without the grant, two fail against the widened policy |
 | ~~P-15~~ | ~~Phase 0 bottom navigation~~ | P | jash-aeio | — | **Done 2026-09-23.** Closes the last P-06 finding and with it Phase 0's **WCAG AA** criterion. A real `nav` landmark (`aria-label`, `aria-current="page"`) over the four screens that exist, plus **Scan** for the two officer roles. **Deliberately not P-14**: two of §7's five learner tabs (Orgs, Me) are Phase 1 screens, and a tab pointing at a 404 is worse than a tab that is not there yet — P-14 widens the item list and changes nothing else. Verified at 360×800: one landmark per screen, absent on `/demo` and `/design`, targets 83×54px, contrast 4.83:1 active and 6.0:1 inactive on `--surface`, focus ring on every tab, no horizontal scroll, 198 KB first load. 18 unit tests |
 | ~~M-01~~ | ~~Apply the schema to Supabase; deploy to Vercel~~ | **M** | jash-aeio | D-05, P-06 | **Done 2026-09-23.** Live at `https://hiraya-eosin.vercel.app`; `/api/v1/health` answers `{"status":"ok","database":true}` and `/api/v1/demo/personas` offers 42. No commit — infrastructure, not code. **Two defects found and fixed in the deploying, both invisible locally**: the runtime had no `DATABASE_URL` (the variable existed but postdated the live build, and Vercel binds env at deploy time — the fix was a redeploy, not a new variable), and `HIRAYA_DEMO_SCHOOLS` did not match `halimbawa-demo`, so D25's allowlist discarded every persona and the public demo offered nobody. The second was hidden behind the first. R21 is answered: the SECURITY DEFINER functions read correctly where the caller is not a superuser |
 | **M-03** | **The phone test** — load the demo on a real phone over mobile data, under 3 seconds | **M** | jash-aeio | M-01 | **Open, blocking Phase 0.** `SETUP_GUIDE.md` §5a. The last unticked acceptance criterion and the only one that cannot be closed from this machine: it needs a real budget Android on real prepaid data, which is what PRD assumptions A1–A3 are about. A throttled desktop browser is not a substitute — it simulates bandwidth, not CPU, not a cell handover, and not the school's tower. Two minutes. More important since D35, because the web PWA is now the only delivery path |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
-**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01~~ → M-02 → **Gate A**. P-08 and D-08 are off the path but both are visible on the public URL, so both want closing before it is shown to anyone. ~~D-07~~ closed 2026-09-25.
+**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01~~ → M-02 → **Gate A**. ~~D-07~~ closed 2026-09-25; ~~D-08~~ and ~~P-08~~ closed 2026-09-25 and 2026-09-26. Both were off the path but visible on the public URL, and both are now gone from it.
 
 ---
 
