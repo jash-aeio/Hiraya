@@ -12,6 +12,57 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-26 — `main` was never actually protected; it is now
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
+
+Found while checking why a `--squash --auto` merge landed instantly instead of waiting for CI.
+
+**Shipped**
+
+- **Branch protection on `main`, for the first time.** `gh api repos/.../branches/main/protection`
+  answered `404 Branch not protected`, and `rulesets` was empty — **D26 had been describing a state
+  that did not exist.** The only thing refusing a direct push was `.githooks/pre-push`, which is local,
+  opt-in via `core.hooksPath`, and bypassable with `--no-verify`. Now enforced server-side: required
+  check `typecheck · lint · test · tenancy`, `strict` (branch must be current), `enforce_admins`, no
+  force-push, no deletion, linear history required, conversation resolution required. **No required
+  reviews** — that is deliberate, since D32 grant 4 has Claude squash-merging its own PRs, and
+  requiring a review would break it
+
+**Decisions**
+
+- none new. This makes **D26** true rather than changing it. The D26 row now records the date
+  enforcement actually landed and what enforces it, so no future session has to rediscover the gap
+
+**Docs updated**
+
+- `docs/TECHNICAL_ARCHITECTURE.md` — D26 row annotated with the enforcement date and settings
+
+**Risks**
+
+- Materialized: **two PRs merged today past a pending CI check** — #27 (P-08) and #28 (the checkpoint).
+  `gh pr merge --auto` waits for *required* checks, and with none configured it merged at once. Both
+  were re-run on `main` afterwards and both are green, so nothing bad shipped; the process failed, not
+  the code. This is the specific failure D32 grant 4 was written to prevent — *"CI is the only
+  automated gate left"* was false, because there was no automated gate at all
+- Retired: **`main` is unprotected while the docs claim otherwise.** A `--auto` merge now genuinely
+  waits for green, and a direct push is refused by GitHub rather than only by a local hook
+
+**Next**
+
+- Unchanged by this entry: **M-03**, then **M-02**, then **Gate A**. Both maintainer-only
+
+**Flagged**
+
+- **The next PR is the one that proves this works.** Protection was verified by reading the settings
+  back, not by watching a merge block on a red check — that evidence arrives the first time CI is slow
+  or fails. If a merge ever lands instantly again, this is the thing to re-check
+- **`enforce_admins` is on, which binds the maintainer too.** If CI ever breaks in a way that must be
+  merged past, protection has to be disabled deliberately and re-enabled after — that friction is the
+  point, but it is friction, and it is worth knowing before meeting it at a bad moment
+
+---
+
 ## 2026-09-26 — Both public defects closed; no code task left in Phase 0
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track · **By:** jash-aeio
