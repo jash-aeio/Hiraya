@@ -338,12 +338,21 @@ the whole project.**
 **Bring:** a phone with the demo loaded (wake Supabase that morning — §4), the one-page PDF, and the
 5-slide deck. Nothing else. Do not bring a laptop; the point is that they hold it.
 
+**The kit is [`docs/pitch/`](pitch/README.md)** — the one-pager, the five slides with what to say on each,
+and the three-minute click path. Rehearse the click path; render the PDF and the deck from the Markdown
+rather than keeping a second copy of the words.
+
 **Do, in order:**
 
 1. Walk the demo with the **ICT coordinator** and the **SSLG adviser**, on a phone, in person. Let them
    tap. Hand the phone over within the first minute — a demo you are driving is a presentation, and
    teachers approve what they can touch.
-2. Show the adviser approval flow specifically. Their adoption decision is made there and nowhere else.
+2. **Ask the adviser for their paper process, and say plainly that the approval screen is not built yet.**
+   Their adoption decision is made there and nowhere else — but event approval is Phase 2, so there is
+   nothing to tap at Gate A and pretending otherwise is the worst available option. What you want back is
+   the paper version: what they sign today, what is on it, and who chases them for it. That answer is the
+   requirement Phase 2's adviser flow gets built from, and it is worth more than the rest of the demo.
+   `docs/pitch/PHONE_DEMO_SCRIPT.md` has the wording.
 3. Get **verbal support from the school head.**
 4. Get an ICT coordinator or teacher **named as prospective custodian** — a name, not a role.
 5. Schedule or complete the **device and connectivity survey** (it validates assumptions A1–A3 in

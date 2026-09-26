@@ -187,12 +187,25 @@ school's identity on a screen full of invented learners.
 
 ### 1.9 Pitch kit
 
-| Asset | Format | Notes |
+**Drafted 2026-09-26** as M-02, in [`pitch/`](pitch/README.md). **Markdown is the source; the PDF and the
+deck are rendered from it and are not committed** — the same reason the app icons are a drawing rather than a
+committed PNG. A second copy of the words is a second copy that goes stale.
+
+| Asset | Format | Status |
 |---|---|---|
-| One-page summary | PDF | Problem, solution, what the school gets, what it costs them (nearly nothing) |
-| Slide deck | 5 slides | Problem → demo → privacy and consent → what we need → timeline |
-| **Phone demo script** | Markdown | Exact 3-minute click path. Rehearse it — a demo that stalls is worse than no demo |
-| Privacy one-pager | PDF | Anticipates the DPO's questions before they are asked. Bring it to the first meeting |
+| One-page summary | Markdown → PDF | [x] `pitch/ONE_PAGE_SUMMARY.md` (2026-09-26) — problem, the loop, what the school gets, what it costs, data handling, and the honest parts |
+| Slide deck | Markdown → 5 slides | [x] `pitch/SLIDE_DECK.md` (2026-09-26) — problem → demo → privacy and consent → what we need → timeline, each with what to *say* |
+| **Phone demo script** | Markdown | [x] `pitch/PHONE_DEMO_SCRIPT.md` (2026-09-26) — the exact 3-minute click path, pinned to the deployed demo and to the two personas the choreography needs. Rehearse it: a demo that stalls is worse than no demo |
+
+> **The privacy one-pager moved to Tier 2** (§2.1), on 2026-09-26. It was listed here, but M-02 and
+> `SETUP_GUIDE.md` §8 both scoped the pitch kit to three pieces, and §8 says to bring the one-pager and the
+> deck and *"nothing else."* The disagreement is resolved in Tier 2's favour because the piece answers a
+> **DPO's** questions, and the DPO review is Gate B. Slide 3 of the deck is what carries privacy at Gate A.
+>
+> **What Phase 0 cannot supply, and the kit says so out loud:** there is no adviser approval screen — event
+> approval is Phase 2. The adviser is the person whose adoption decision Gate A turns on (PRD A7), so
+> `SETUP_GUIDE.md` §8 step 2 was reworded on 2026-09-26 from *show them the flow* to *ask them for their
+> paper process*, which is what is actually possible and yields the Phase 2 requirement.
 
 ---
 
@@ -203,6 +216,12 @@ project can lawfully hold a thousand minors' records.
 
 ### 2.1 Legal and privacy
 
+- [ ] **Privacy one-pager for the DPO** — PDF. Anticipates the focal person's questions before they are
+      asked; bring it to the first meeting with them. **Moved here from Tier 1 on 2026-09-26** (§1.9): it
+      answers a DPO's questions, and the DPO review is this gate. Two things to lead with, because
+      `SETUP_GUIDE.md` §9 says a controller should decide them knowingly rather than inherit them — **D28**,
+      what a leaderboard row publishes about a learner, and **LRN-as-HMAC**, which is the part that most
+      reassures a DPO
 - [ ] **Privacy notice** — English and Filipino, written for learners, not lawyers
 - [ ] **Guardian consent form** — printable, Filipino, one page
 - [ ] **Data processing agreement** — school as controller, developer as processor; names purpose,
@@ -265,9 +284,10 @@ project can lawfully hold a thousand minors' records.
 
 | Tier | Authored SVG | Library | Documents | Print | Blocks |
 |---|---|---|---|---|---|
-| **1** | ~30 files | Lucide, unDraw, 1 font | 4 pitch pieces | — | The demo |
-| **2** | — | — | 12 documents | 4 pieces | The pilot (Gate B) |
+| **1** | ~30 files | Lucide, unDraw, 1 font | **3 pitch pieces** | — | The demo |
+| **2** | — | — | **13 documents** | 4 pieces | The pilot (Gate B) |
 | **3** | — | — | Store copy | — | Store submission |
 
-**Total pre-demo production:** roughly 30 authored SVGs, three library integrations, and four pitch
-documents. All of it belongs to Phase 0, and all of it fits inside 500 KB.
+**Total pre-demo production:** roughly 30 authored SVGs, three library integrations, and **three** pitch
+documents — all three drafted 2026-09-26. All of it belongs to Phase 0, and all of it fits inside 500 KB.
+The fourth piece the pitch kit used to carry, the DPO one-pager, moved to Tier 2 on the same day (§1.9).
