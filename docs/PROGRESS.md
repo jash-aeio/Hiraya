@@ -12,6 +12,78 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-27 — the Pacific round trip is gone, and Phase 0 grew a dashboard
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track — the last Phase 0 code task on the critical path is closed · **By:** claude
+
+**M-04 landed and was measured.** The fix is one file and four lines; the finding it closes was worth the
+phone test that produced it.
+
+**Shipped**
+
+- **`vercel.json` pins the function region to `sin1`** (`9a87663`, PR #32). Functions now execute beside
+  the database in `ap-southeast-1` instead of in Washington DC. Verified on production:
+
+  | | Before | After |
+  |---|---|---|
+  | `X-Vercel-Id` | `sin1::iad1` | `sin1::sin1` |
+  | `/api/v1/demo/personas`, warm | 1.27 s, 1.31 s, 1.30 s | 0.44 s, 0.15 s, 0.42 s |
+  | Status and bytes | 200, 7,280 | 200, 7,280 |
+
+  That is **~0.87 s off every `/api/v1` call in the product**, which is why this was never a demo-screen
+  bug: the same round trip sits in front of the **≥15 check-ins/minute** KPI Phase 3 has to meet.
+
+**Decisions**
+
+- **D36:** the region is pinned in `vercel.json`, in the repo, rather than in Vercel project settings —
+  a region that exists only in a dashboard is invisible to review and cannot be diffed the next time a
+  phone test disagrees. `vercel.json` rather than the now-recommended `vercel.ts` because one static key
+  does not justify a build-time dependency (`CLAUDE.md` §10.6). Two consequences recorded with it:
+  moving the Supabase project now means editing this file and nothing checks the pairing, and Hobby
+  allows exactly one function region so there is no multi-region fallback.
+- **Phase 0 scope grew, by maintainer decision, to include a dashboard for each audience.** Asked for
+  four choices and given four answers: build the **calm demo shell** now rather than Phase 4's admin
+  analytics; build against the **recorded `kuest.` reference** in `DESIGN_SYSTEM.md` §1 rather than
+  re-supplying the image; land **M-04 before** any UI; and build **both the mobile and the ≥1024px
+  layouts** §7 specifies. Booked as **J-12, P-16, P-17, P-18**.
+
+**Docs updated**
+
+- `TECHNICAL_ARCHITECTURE.md` — D36 added
+- `WORKSTREAMS.md` — M-04 struck with its measurements; §0 rewritten; critical path advanced to
+  `… → M-01 → M-04~~ → M-03 re-test → M-02 → Gate A`; J-12, P-16, P-17, P-18 booked in the Phase 0 table
+- `MILESTONE_ROADMAP.md` — the phone-load criterion records the improvement and **stays unticked**; the
+  dashboard slice added to Phase 0's deliverables; the "over-building the demo" risk given explicit bounds
+
+**Risks**
+
+- Retired: *every API call crosses the Pacific twice* — measured before and after, on production.
+- Materialized, mildly: **Phase 0 is now carrying scope it did not have**, against its own stated risk of
+  over-building the demo. Bounded three ways rather than trusted: the new screens read only endpoints
+  that already exist, the 500 KB budget holds, and `hiraya-mobile-audit` gates each merge. If a dashboard
+  needs a new endpoint to look right, it has crossed into Phase 1 or Phase 4 and stops.
+
+**Next**
+
+- **M-03 re-test** — the phone test, on a phone, off wifi. It is the only thing that can tick Phase 0's
+  last criterion, and M-04 has now removed its largest measured cause.
+
+**Flagged**
+
+- **A near-miss in verification method, recorded because it would have been invisible.** M-04 was almost
+  marked verified against the preview deployment, where `/api/v1/demo/personas` answered in 0.40 s with
+  no `iad1` in `X-Vercel-Id` — which looks exactly like the fix working. It was an **HTTP 302**: previews
+  sit behind Vercel deployment protection and redirect at the edge, so the run measured a redirect and
+  never invoked a function. Time a production URL, or use the protection bypass — and **a timing number
+  without an HTTP status and a byte count beside it is not evidence.**
+- **PR #31 (M-02's pitch kit) is open and deliberately unmerged.** CI is green on it. It is content
+  presented to a school and wants the maintainer's read, not an automated squash-merge.
+- The ~209 KB of JS that must download and hydrate before `/demo` issues its client fetch is now the
+  largest remaining contributor to the phone-load criterion. P-16 to P-18 add screens to exactly that
+  budget; that tension is real and is why the mobile audit gates them.
+
+---
+
 ## 2026-09-26 — the phone test was run, and it found that every query crosses the Pacific
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** at risk — a Phase 0 acceptance criterion was measured and missed · **By:** jash-aeio

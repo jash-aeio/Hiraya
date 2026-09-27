@@ -87,12 +87,17 @@ proposal document from an outside developer stalls.
 - CI pipeline green: typecheck, lint, test, migration check
 - Pitch kit: 1-page PDF, 5-slide deck, 3-minute phone demo script
 - `git init`, first push, repo confirmed **private**
+- **Added 2026-09-27:** a dashboard for each audience — learner Home in the playful register, an adviser/admin
+  surface in the calm one (`DESIGN_SYSTEM.md` §5, §7), plus the ≥1024px layout §7 specifies. Gate A is a demo
+  walked through on a phone *with a teacher*, and a staff persona currently has no screen of their own. Scope is
+  held to surfaces over endpoints that already exist: no new table, no new policy, and none of Phase 4's admin
+  analytics — no non-participant list, no health signals, no charts. See the Risks note below on over-building
 
 **Dependencies.** None. This phase is deliberately independent of the school.
 
 **Acceptance criteria**
 
-- [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds — **measured 2026-09-26 at 3–4 s, occasionally near 3 s** (M-03, real phone, mobile data, incognito, Supabase pre-warmed). Open: the number is the number, and it is over. Cause is understood rather than guessed — `/api/v1/demo/personas` answers in a flat **1.28 s** for 1,983 bytes, because Vercel runs the function in **iad1** while Supabase is in **ap-southeast-1**, so every query crosses the Pacific twice (`X-Vercel-Id: sin1::iad1`, no `vercel.json`/`vercel.ts` in the repo). `/demo` then pays it serially: the persona list is a client fetch in `PersonaPicker.tsx` that only starts after ~209 KB of JS hydrates. Booked as **M-04**; re-test after it lands
+- [ ] Demo tenant loads on a real phone over mobile data in under 3 seconds — **measured 2026-09-26 at 3–4 s, occasionally near 3 s** (M-03, real phone, mobile data, incognito, Supabase pre-warmed). Open: the number is the number, and it is over. Cause is understood rather than guessed — `/api/v1/demo/personas` answers in a flat **1.28 s** for 1,983 bytes, because Vercel runs the function in **iad1** while Supabase is in **ap-southeast-1**, so every query crosses the Pacific twice (`X-Vercel-Id: sin1::iad1`, no `vercel.json`/`vercel.ts` in the repo). `/demo` then pays it serially: the persona list is a client fetch in `PersonaPicker.tsx` that only starts after ~209 KB of JS hydrates. Booked as **M-04**, which **landed 2026-09-27** (`9a87663`) and was verified on production: `X-Vercel-Id` `sin1::iad1` → `sin1::sin1`, and `/api/v1/demo/personas` **1.27–1.31 s → 0.15–0.44 s** on the same 200 and the same 7,280 bytes. The box stays unticked because this criterion is a phone on mobile data and only the M-03 re-test can close it; what is known is that the largest measured contributor is gone, and the remainder is the ~209 KB of JS that must hydrate before `/demo` fetches
 - [x] The full loop is walkable in the demo: browse → register → check in → see XP → see leaderboard — walked against the Supabase project, not a fixture (2026-09-23). Registering and cancelling persist; a scan awards 10 XP once and answers "already checked in" the second time; the learner's XP screen names the event the point came from. The D-07 caveat — that the live event ran only five hours from seeding, so the check-in half needed a same-day re-seed — was closed 2026-09-25: the event now re-centres itself on now when a persona is picked
 - [x] Cross-tenant denial test passes against seeded schools A and B — all 21 tenant tables, plus a case proving the test fails when RLS is disabled (2026-09-21)
 - [x] First load ≤ 500 KB, verified in the browser — 200–209 KB across 14 routes on a production build (P-06, 2026-09-22); re-measured at 208 KB after P-07 (2026-09-23)
@@ -103,7 +108,11 @@ proposal document from an outside developer stalls.
 initial schema; CI green.
 
 **Risks.** Building before commitment exists (accepted — it is what makes the pitch land). Over-building
-the demo: it needs to be *walkable*, not complete.
+the demo: it needs to be *walkable*, not complete. **The 2026-09-27 dashboard slice runs straight at that
+second risk and is bounded rather than trusted:** every screen in it reads endpoints that already exist, so
+the moment one needs a new endpoint to look right, it has crossed into Phase 1 or Phase 4 and stops. The
+500 KB first-load budget and the open phone-load criterion are the other two bounds — `hiraya-mobile-audit`
+runs before each of P-16, P-17 and P-18 merges, and a budget regression is treated as a failing test.
 
 ---
 

@@ -13,62 +13,64 @@ New here? Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first.
 
 > **Updated by `/hiraya-checkpoint`. If this block and the tables below disagree, the tables win.**
 
-**Phase 0 — Foundation, design system, demo tenant.** Every buildable task is built and on `main`, the
-loop has been walked end to end against the real database, and **Hiraya is deployed and publicly
-reachable**. Both defects that a visitor to that URL would have met are now closed. **What remains is
-entirely the maintainer's:** the phone test, then the pitch kit.
+**Phase 0 — Foundation, design system, demo tenant.** The last code task on the Phase 0 critical path is
+closed: **M-04 landed and was measured**, so the API no longer crosses the Pacific on every call. What
+remains on the path is the maintainer's — the phone re-test, then the pitch kit, then Gate A. Alongside
+it, a **pitch-facing UI slice was added to Phase 0 on 2026-09-27** by maintainer decision: the demo has
+no dashboard for either audience, and Gate A is a demo walked through on a phone with a teacher.
 
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last work to land** | **P-08** (`1c8fb07`, PR #27) — `avatar-15.svg` and `avatar-16.svg` authored, so the four seeded learners whose keys had no file no longer 404 on the roster, the board or the persona picker. Before it, **D-08** (`4a7bf73`, PR #26) — an SSLG officer can now work the gate, through a read-back of their own rows and a purpose-built lookup rather than a widened policy |
-| **In flight** | Nothing. No open PRs |
-| **Blocked on the maintainer** | **M-02**, the pitch kit. **M-03 is now run** — it did not pass, and what it found is a Lane D task, **M-04** |
-| **Open tasks, whole project** | 3 in Phase 0 — **M-04 is code**, M-02 and the M-03 re-test are yours · 14 queued behind Gate A in Phase 1 |
+| **Last work to land** | **M-04** (`9a87663`, PR #32) — the Vercel function region is pinned to `sin1` in `vercel.json`, so functions execute beside the database instead of in Washington DC. `X-Vercel-Id` went from `sin1::iad1` to `sin1::sin1`; `/api/v1/demo/personas` from **1.27–1.31 s to 0.15–0.44 s** on the same 200 and the same 7,280 bytes. ~0.87 s off every `/api/v1` call. Recorded as **D36** |
+| **In flight** | **PR #31** — M-02's pitch kit, drafted, **awaiting the maintainer's read** rather than CI. It is content presented to a school; Claude does not merge it |
+| **Blocked on the maintainer** | **M-03 re-test** (now unblocked by M-04) and **M-02** |
+| **Open tasks, whole project** | 6 in Phase 0 — **J-12, P-16, P-17 and P-18 are code**, M-02 and the M-03 re-test are yours · 14 queued behind Gate A in Phase 1 |
 
 **▶ Next, in order:**
 
 | | Task | Who | Say |
 |---|---|---|---|
-| 1 | **M-04** — pin the Vercel function region to `sin1`, so queries stop crossing the Pacific | Lane D | `do M-04` |
-| 2 | **M-03 re-test** — the phone test again, once M-04 is deployed | **you**, on a phone off wifi | `walk me through M-03` |
-| 3 | **M-02** — pitch kit, then **Gate A** | **you**, with drafting help | `draft the pitch kit` |
+| 1 | **M-03 re-test** — the phone test again, now that M-04 has landed | **you**, on a phone off wifi | `walk me through M-03` |
+| 2 | **P-16** — responsive app chrome: the ≥1024px sidebar `DESIGN_SYSTEM.md` §7 promises, and the staff tab set | Lane P | `build P-16` |
+| 3 | **P-17** — the learner Home dashboard, the screen the Home tab has never had | Lane P | `build P-17` |
 
-**There is a Lane D task in Phase 0 again.** For a few hours on 2026-09-26 there was none, and then
-M-03 was actually run and produced one. This is what the phone test is *for*: it is the only check
-that touches PRD assumptions A1–A3, and the first time anyone ran it, it found that every API call in
-the product crosses the Pacific twice. Phase 1 is still queued *behind Gate A* — starting it early is
-the mistake `CLAUDE.md` §10.1 names — but **M-04** is Phase 0 work and it is open.
+**Phase 0 grew on 2026-09-27, deliberately and with its tension stated.** The maintainer asked for a
+dashboard for each audience, matching the visual reference `DESIGN_SYSTEM.md` §1 is derived from, and
+chose the **calm demo shell** option over building Phase 4's admin analytics early. Three tasks were
+booked — **P-16** (chrome), **P-17** (learner Home), **P-18** (staff dashboard), behind one small handshake PR, **J-12** — and the roadmap's own
+Phase 0 risk names the danger: *"Over-building the demo: it needs to be walkable, not complete."* The
+line drawn is that these are **surfaces over endpoints that already exist**. P-17 composes
+`/api/v1/me/xp`, `/api/v1/events` and `/api/v1/leaderboard`; P-18 shows pending approvals that the
+`events` SELECT policy already returns to a `school_admin` and an `sslg_adviser` at any status. No new
+table, no new policy, no analytics endpoint, and **nothing from Phase 4's admin analytics** — no
+non-participant list, no health signals, no charts on sensitive data. If a dashboard needs a new
+endpoint to look right, that is the signal it has crossed into Phase 1 or 4 and should stop.
 
-**Five of Phase 0's six acceptance criteria are ticked, and the sixth has now been measured and missed.** **WCAG AA closed on 2026-09-23** with
-P-15, the Phase 0 bottom navigation — the last P-06 finding. The walkable loop and the 500 KB budget
-closed on 2026-09-23; cross-tenant denial on 2026-09-21; no-real-learner-data on 2026-09-23. The
-walkable-loop criterion's D-07 caveat — that the check-in half needed a same-day re-seed — **is now
-gone**, and the criterion stands without it.
+**Why a dashboard is Gate A work and not decoration.** Two facts about the product as deployed today:
+the Home tab points at `/`, which is still the Phase 0 placeholder landing page it has been since
+2026-09-21 (`src/app/page.tsx` says so in its own comment), and **a staff persona has no screen at all**
+— pick Marisol Tagapamahala (`school_admin`) or Rosalinda Tanglaw (`sslg_adviser`) in the persona picker
+and you land on that same placeholder wearing learner tabs. `DESIGN_SYSTEM.md` §5 is explicit that
+advisers decide whether this platform survives and judge it on paperwork saved. Walking a teacher
+through a demo where the teacher's own view does not exist is the adoption argument lost before a
+feature is evaluated.
 
-**One criterion remains open, and it is now open on evidence rather than on nobody having looked.**
-*"Demo tenant loads on a real phone over mobile data in under 3 seconds"* was run on 2026-09-26 and
-came back at **3–4 s, occasionally near 3 s** — over, consistently. The maintainer chose to record the
-real number rather than tick the box, which is what `SETUP_GUIDE.md` §5a says the 3–6 s band means.
+**Five of Phase 0's six acceptance criteria are ticked. The sixth is measured, improved, and not yet
+re-run.** *"Demo tenant loads on a real phone over mobile data in under 3 seconds"* was measured at
+**3–4 s on 2026-09-26**, and the dominant cause — a 1.28 s flat round trip on every API call — is now
+fixed and verified at **0.15–0.44 s**. That does not tick the box: the criterion is about a phone on
+mobile data, and only M-03 can close it. What is known is that the largest measured contributor is gone
+and that the remaining cost is the ~209 KB of JS that must download and hydrate before `/demo`'s client
+fetch begins. **P-16 to P-18 must not spend that headroom** — the 500 KB budget and the re-test are both
+gates they answer to, and `hiraya-mobile-audit` runs before each merges.
 
-The cause is measured, not guessed. `/api/v1/demo/personas` takes a flat **1.28 s** to return 1,983
-bytes, because the Vercel function runs in **iad1** (Washington DC) while Supabase is in
-**ap-southeast-1** (Singapore) — so every query in the product crosses the Pacific twice. The repo has
-no `vercel.json` or `vercel.ts`, so the deploy sits on Vercel's default region. `/demo` then pays that
-cost *serially*: the persona list is a client fetch in `PersonaPicker.tsx` (a deliberate R3 choice) that
-only begins after ~209 KB of JS has downloaded and hydrated on the phone.
-
-**This is bigger than the demo screen.** Every `/api/v1` call from the Philippines is currently making
-the same round trip, which bears directly on the **≥15 check-ins/minute** gate KPI that Phase 3 has to
-meet. Booked as **M-04**; the M-03 re-test follows it. With native deferred (D35) the web PWA is the
-only delivery path, so this is not a nice-to-have.
-
-**The public URL is now clean of both defects it carried.** D-08 gave an SSLG officer — the role that
-staffs a school-wide event, and the one P-15 ships a **Scan** tab to — a 500 at the gate; P-08 404ed
-four of the cast's avatars on the roster, the board and the persona picker. Anyone given the URL today
-meets neither. Both were verified against the deployed project, not only locally: the `checkins`
-SELECT policy carries the `recorded_by` grant, `find_existing_checkin` exists as `SECURITY DEFINER`,
-and all 16 avatars serve 200 from `hiraya-eosin.vercel.app`.
+**A verification note worth keeping.** M-04 was nearly recorded as verified against the preview
+deployment, which would have been wrong: previews sit behind Vercel deployment protection and answer
+**302 at the edge**, so a timing run against one measures a redirect and never invokes a function — it
+returns fast, with no `iad1` segment in `X-Vercel-Id`, and reads exactly like a pass. Anything measured
+on this project is measured against production, or against a preview with the protection bypass, and a
+timing number without an HTTP status beside it is not evidence.
 
 ## 1. Lanes
 
@@ -211,10 +213,14 @@ M-04 is latency, not weight.
 | ~~P-15~~ | ~~Phase 0 bottom navigation~~ | P | jash-aeio | — | **Done 2026-09-23.** Closes the last P-06 finding and with it Phase 0's **WCAG AA** criterion. A real `nav` landmark (`aria-label`, `aria-current="page"`) over the four screens that exist, plus **Scan** for the two officer roles. **Deliberately not P-14**: two of §7's five learner tabs (Orgs, Me) are Phase 1 screens, and a tab pointing at a 404 is worse than a tab that is not there yet — P-14 widens the item list and changes nothing else. Verified at 360×800: one landmark per screen, absent on `/demo` and `/design`, targets 83×54px, contrast 4.83:1 active and 6.0:1 inactive on `--surface`, focus ring on every tab, no horizontal scroll, 198 KB first load. 18 unit tests |
 | ~~M-01~~ | ~~Apply the schema to Supabase; deploy to Vercel~~ | **M** | jash-aeio | D-05, P-06 | **Done 2026-09-23.** Live at `https://hiraya-eosin.vercel.app`; `/api/v1/health` answers `{"status":"ok","database":true}` and `/api/v1/demo/personas` offers 42. No commit — infrastructure, not code. **Two defects found and fixed in the deploying, both invisible locally**: the runtime had no `DATABASE_URL` (the variable existed but postdated the live build, and Vercel binds env at deploy time — the fix was a redeploy, not a new variable), and `HIRAYA_DEMO_SCHOOLS` did not match `halimbawa-demo`, so D25's allowlist discarded every persona and the public demo offered nobody. The second was hidden behind the first. R21 is answered: the SECURITY DEFINER functions read correctly where the caller is not a superuser |
 | **M-03** | **The phone test** — load the demo on a real phone over mobile data, under 3 seconds | **M** | jash-aeio | M-01, **M-04** | **Run 2026-09-26 — did not pass. Still open, still blocking Phase 0.** Measured **3–4 s, occasionally near 3 s** on a real phone, mobile data, incognito, with Supabase pre-warmed. `SETUP_GUIDE.md` §5a puts 3–6 s in the *record the real number* band, and the maintainer chose that over ticking the box. The run was worth far more than the criterion: it is the only check that touches PRD assumptions A1–A3, and the first time anyone ran it, it surfaced **M-04**. Re-test once M-04 is deployed |
-| **M-04** | **Pin the Vercel function region to `sin1`** — functions run in `iad1`, the database is in `ap-southeast-1` | **D** | claude | — | **Open, blocking M-03 and with it Phase 0.** Found by M-03 on 2026-09-26. `/api/v1/demo/personas` answers in a flat **1.28 s** for 1,983 bytes; `X-Vercel-Id: sin1::iad1` shows the request entering at the Singapore edge and the function executing in Washington DC, while `DATABASE_URL` points at `aws-0-ap-southeast-…pooler.supabase.com`. So every query in the product crosses the Pacific twice. The repo has no `vercel.json` or `vercel.ts`, so the deploy is on Vercel's default region — which means nobody chose this, it was inherited. **The blast radius is the whole API, not the demo screen:** the same round trip is in front of the **≥15 check-ins/minute** gate KPI that Phase 3 must hit. Fix is one config file pinning the function region to `sin1`; no schema change, no R3 tension. Re-measure `/api/v1/demo/personas` before and after, then hand M-03 back to the maintainer |
+| ~~M-04~~ | ~~**Pin the Vercel function region to `sin1`**~~ | **D** | claude | — | **Done 2026-09-27** (`9a87663`, PR #32). One file, one key: `"regions": ["sin1"]` in `vercel.json`. Verified on production, not on the preview — the preview sits behind deployment protection and answers 302 at the edge, which times a redirect rather than a function and would have read as a pass. `X-Vercel-Id` went from `sin1::iad1` to `sin1::sin1`; `/api/v1/demo/personas` from **1.27–1.31 s to 0.15–0.44 s**, same 200, same 7,280 bytes. That is ~0.87 s off every `/api/v1` call in the product, not just the demo screen. Recorded as **D36** |
+| **P-16** | **Responsive app chrome** — the ≥1024px sidebar `DESIGN_SYSTEM.md` §7 promises, plus the staff tab set | P | claude | — | **Open.** Booked 2026-09-27. `NavBar` is bottom-tabs-only today, so every screen is a phone screen on a laptop — which is what a pitch is often shown on. Same items, same `navItemsFor` decision, a second layout: vertical sidebar with the teal active pill at ≥1024px. Also extends `navItemsFor` to return a tab set for `school_admin` and the adviser roles, which today get learner tabs. Touches a shipped primitive and so every existing screen — its own PR for exactly that reason |
+| **P-17** | **The learner Home dashboard** — the screen the Home tab has never had | P | claude | P-16 | **Open.** Booked 2026-09-27. `/` is still the Phase 0 placeholder landing page. Builds the reference's dashboard vocabulary per `DESIGN_SYSTEM.md` §7 — snap-scroll stat strip, 2-up category tiles, compact hero, leaderboard first — in the **learner** register. Composes `/api/v1/me/xp`, `/api/v1/events` and `/api/v1/leaderboard` in parallel; **no new endpoint**. `/` keeps rendering the landing page when there is no demo session, because it is also the public front door |
+| **P-18** | **The staff dashboard** — the screen an adviser and a school admin have never had | P | claude | P-16, J-12 | **Open.** Booked 2026-09-27. Calm register (`DESIGN_SYSTEM.md` §5): counts and a dense table, no medals, no mascots, no celebration — `[data-register="staff"]` already zeroes `--duration-celebrate`. Hero is *pending approvals*, which the `events` SELECT policy already returns to `school_admin` and `sslg_adviser` at any status, so no policy changes. **Deliberately not Phase 4:** no non-participant list, no health signals, no charts. Seeded data holds one pending and one rejected event — the number is small and honest |
+| **J-12** | `status` on the events list contract — `ListEventsQuery` filters scope, category and org, but not status | Joint | claude | — | **Open.** Booked 2026-09-27. The smallest PR of the three and it merges first (§2): a staff surface asking for *pending* events should say so in the query rather than over-fetch and filter in the browser, where a `limit` can hide the very rows the screen exists to show |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
-**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01~~ → **M-04 → M-03 re-test** → M-02 → **Gate A**. M-04 and M-03 entered the path on 2026-09-26, when the phone test was first actually run. ~~D-07~~ closed 2026-09-25; ~~D-08~~ and ~~P-08~~ closed 2026-09-25 and 2026-09-26. Both were off the path but visible on the public URL, and both are now gone from it.
+**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01 → M-04~~ → **M-03 re-test** → M-02 → **Gate A**. M-04 and M-03 entered the path on 2026-09-26, when the phone test was first actually run; M-04 left it on 2026-09-27, measured rather than assumed. ~~D-07~~ closed 2026-09-25; ~~D-08~~ and ~~P-08~~ closed 2026-09-25 and 2026-09-26. Both were off the path but visible on the public URL, and both are now gone from it.
 
 ---
 

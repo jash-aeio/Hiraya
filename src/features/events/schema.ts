@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { orgCategory } from "@/db/enums";
+import { eventStatus, orgCategory } from "@/db/enums";
 
 /**
  * The /api/v1/events contracts (CLAUDE.md R7).
@@ -31,6 +31,22 @@ export const listEventsQuerySchema = z.object({
   /** Org category, matching the six Discover Orgs filters (FR-2.5). */
   category: z.enum(orgCategory.enumValues).optional(),
   orgId: z.uuid().optional(),
+  /**
+   * Narrow to one lifecycle status — what a staff surface asks for when it wants
+   * the approval queue rather than the browse list (P-18).
+   *
+   * **This filter narrows; it never widens.** Which statuses a caller may see at
+   * all is settled by the SELECT policy on `events`: published rows to everyone
+   * in the school, any status to a School Admin, an SSLG officer or adviser, a
+   * school head, and to the org's own officers and advisers
+   * (src/db/rls/events.sql). So a learner passing `status=draft` gets an empty
+   * list rather than a draft, and that is a property of the policy rather than of
+   * this line — which is exactly why the value is not validated against the
+   * caller's role here. Duplicating the rule in a Zod schema would create a
+   * second place for it to be wrong, and the second place is the one nobody
+   * audits (CLAUDE.md R3).
+   */
+  status: z.enum(eventStatus.enumValues).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
