@@ -36,4 +36,21 @@ describe("listEventsQuerySchema", () => {
   it("refuses an unknown scope instead of silently browsing upcoming", () => {
     expect(() => listEventsQuerySchema.parse({ scope: "archived" })).toThrow();
   });
+
+  it("accepts each event_status value, so a staff surface can ask for the queue", () => {
+    for (const status of ["draft", "pending", "approved", "rejected", "cancelled", "completed"]) {
+      expect(listEventsQuerySchema.parse({ status }).status).toBe(status);
+    }
+  });
+
+  it("refuses a status outside the enum", () => {
+    expect(() => listEventsQuerySchema.parse({ status: "awaiting" })).toThrow();
+  });
+
+  it("leaves status unset by default, so browse is unfiltered by lifecycle", () => {
+    // Load-bearing: a default of "approved" would look harmless and would hide
+    // an officer's own drafts on the browse screen, which the SELECT policy
+    // deliberately shows them (src/db/rls/events.sql).
+    expect(listEventsQuerySchema.parse({}).status).toBeUndefined();
+  });
 });

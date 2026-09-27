@@ -352,7 +352,7 @@ not extended, when real auth lands.
 
 | Method | Path | Role | Purpose |
 |---|---|---|---|
-| GET | `/events` | any | Approved and upcoming; filters |
+| GET | `/events` | any | Approved and upcoming; filters — `scope`, `category`, `orgId`, `status`, `limit`. `status` narrows within what the SELECT policy already grants, so it returns an approval queue to staff and an empty list to a learner who asks for `draft` |
 | GET | `/events/:id` | any | One event, with its eligibility rule and the caller's own registration |
 | POST | `/events` | org_officer+ | Create draft |
 | PATCH | `/events/:id` | org_officer+ | Edit while draft or pending |

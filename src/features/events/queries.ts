@@ -14,9 +14,17 @@ import type { EventDetail, EventSummary, ListEventsQuery } from "./schema";
  * Every query here runs inside `withTenant`, so the tenancy filter and the
  * rule "an event is invisible to learners until it is approved" are already in
  * force from `src/db/rls/events.sql`. Nothing below re-states either, and that
- * is deliberate: a query that filters on `status` as well would look safe while
- * quietly becoming the thing the policy is trusted to be. If this query is ever
- * wrong about what a learner may see, the policy is where to fix it.
+ * is deliberate: a query that filtered on `status` *in order to hide rows* would
+ * look safe while quietly becoming the thing the policy is trusted to be. If
+ * this query is ever wrong about what a learner may see, the policy is where to
+ * fix it.
+ *
+ * `query.status` (added with J-12) is not that. It narrows a result set the
+ * caller has already been granted -- a staff surface asking for the approval
+ * queue instead of the browse list -- and it can only ever return fewer rows
+ * than the policy allows. The distinction is the whole point: a filter that
+ * subtracts from what a policy permits is a feature, and a filter that is relied
+ * on to subtract is a security bug waiting for the day someone drops it.
  *
  * The join to `event_registrations` is scoped to the caller's own profile. It
  * would be scoped that way by the policy regardless (a learner sees only their
@@ -35,6 +43,10 @@ export async function selectEvents(
     query.scope === "upcoming" ? gte(events.endsAt, now) : lt(events.endsAt, now),
     query.category ? eq(organizations.category, query.category) : undefined,
     query.orgId ? eq(events.orgId, query.orgId) : undefined,
+    // Narrows within what the policy already allows; see the note on `status` in
+    // ./schema.ts. This is the one status condition in the feature, and it exists
+    // because the caller asked for it -- not because a screen needs protecting.
+    query.status ? eq(events.status, query.status) : undefined,
   ].filter((c) => c !== undefined);
 
   const rows = await tx
