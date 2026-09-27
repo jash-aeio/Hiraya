@@ -47,6 +47,69 @@
     "designLink": "Design system",
     "demoLink": "Open the demo"
   },
+  "home": {
+    "title": "Home",
+    "label": "Your week",
+    "loading": "Loading your dashboard",
+    "greeting": {
+      "morning": "Good morning, {name}",
+      "afternoon": "Good afternoon, {name}",
+      "evening": "Good evening, {name}"
+    },
+    "failed": {
+      "title": "We could not load your dashboard",
+      "description": "Check your connection and try again. Your points are safe — nothing here is stored on this device."
+    },
+    "hero": {
+      "label": "Total points",
+      "xp": "{xp} XP",
+      "noLevel": "No level yet",
+      "progress": "Progress to the next level",
+      "remaining": "{xp} XP to go",
+      "top": "Highest level reached",
+      "verified": "Every point here came from a check-in a teacher confirmed."
+    },
+    "stats": {
+      "label": "Your numbers",
+      "points": "{xp} XP",
+      "none": "—",
+      "season": "This season",
+      "rank": "School rank",
+      "rankValue": "#{rank}",
+      "rankHint": "Across the whole school",
+      "unranked": "Join an event to get on the board",
+      "joined": "Joined",
+      "joinedHint": "Upcoming events you registered for"
+    },
+    "lead": {
+      "liveTitle": "Happening now",
+      "nextTitle": "Next up",
+      "all": "All events",
+      "live": "Live",
+      "registered": "You are registered",
+      "when": "When",
+      "where": "Where",
+      "open": "Open this event"
+    },
+    "board": {
+      "title": "Top of the school",
+      "all": "Full board",
+      "you": "You",
+      "empty": "Nobody has earned points yet this season."
+    },
+    "browse": {
+      "title": "Browse by category",
+      "all": "All events",
+      "categories": {
+        "academic": "Academic",
+        "arts": "Arts",
+        "sports": "Sports",
+        "service": "Service",
+        "faith_based": "Faith-based",
+        "special_interest": "Special interest"
+      }
+    }
+  },
   "errors": {
     "UNAUTHENTICATED": "Please sign in again.",
     "FORBIDDEN": "You do not have permission to do this.",

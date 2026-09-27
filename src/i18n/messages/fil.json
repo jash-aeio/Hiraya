@@ -47,6 +47,69 @@
     "designLink": "Design system",
     "demoLink": "Buksan ang demo"
   },
+  "home": {
+    "title": "Home",
+    "label": "Ang linggo mo",
+    "loading": "Ikinakarga ang iyong dashboard",
+    "greeting": {
+      "morning": "Magandang umaga, {name}",
+      "afternoon": "Magandang hapon, {name}",
+      "evening": "Magandang gabi, {name}"
+    },
+    "failed": {
+      "title": "Hindi ma-load ang iyong dashboard",
+      "description": "Tingnan ang koneksyon at subukan ulit. Ligtas ang iyong puntos — walang naka-imbak dito sa device."
+    },
+    "hero": {
+      "label": "Kabuuang puntos",
+      "xp": "{xp} XP",
+      "noLevel": "Wala pang antas",
+      "progress": "Progreso sa susunod na antas",
+      "remaining": "{xp} XP na lang",
+      "top": "Pinakamataas na antas",
+      "verified": "Bawat puntos dito ay galing sa check-in na kinumpirma ng guro."
+    },
+    "stats": {
+      "label": "Ang iyong mga numero",
+      "points": "{xp} XP",
+      "none": "—",
+      "season": "Ngayong season",
+      "rank": "Ranggo sa paaralan",
+      "rankValue": "#{rank}",
+      "rankHint": "Sa buong paaralan",
+      "unranked": "Sumali sa kaganapan para mapasama sa board",
+      "joined": "Sinalihan",
+      "joinedHint": "Mga paparating na kaganapang sinalihan mo"
+    },
+    "lead": {
+      "liveTitle": "Nagaganap ngayon",
+      "nextTitle": "Susunod",
+      "all": "Lahat ng kaganapan",
+      "live": "Live",
+      "registered": "Naka-rehistro ka",
+      "when": "Kailan",
+      "where": "Saan",
+      "open": "Buksan ang kaganapan"
+    },
+    "board": {
+      "title": "Nangunguna sa paaralan",
+      "all": "Buong board",
+      "you": "Ikaw",
+      "empty": "Wala pang nakakakuha ng puntos ngayong season."
+    },
+    "browse": {
+      "title": "Mag-browse ayon sa kategorya",
+      "all": "Lahat ng kaganapan",
+      "categories": {
+        "academic": "Akademiko",
+        "arts": "Sining",
+        "sports": "Palakasan",
+        "service": "Serbisyo",
+        "faith_based": "Pananampalataya",
+        "special_interest": "Espesyal na interes"
+      }
+    }
+  },
   "errors": {
     "UNAUTHENTICATED": "Mangyaring mag-sign in muli.",
     "FORBIDDEN": "Wala kang pahintulot para dito.",
