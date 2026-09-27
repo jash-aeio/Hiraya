@@ -42,12 +42,24 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 forget — and that screen is the one in the deck (D23). It
                 renders nothing at all when there is no demo session. */}
             <DemoBar />
-            {children}
-            {/* The app's only `nav` landmark, mounted once here for the same
-                reason DemoBar is: navigation each screen has to remember is
-                navigation one screen will forget. It renders nothing when
-                there is no session, and hides itself on /demo and /design. */}
-            <AppNav />
+            {/* One row from 1024px: navigation beside the content rather than
+                across the bottom of it (DESIGN_SYSTEM.md §7). Below that the bar
+                is `fixed` and out of flow, so this wrapper does nothing — which
+                is why the breakpoint lives here and not in a second layout.
+
+                The content div comes first in the DOM and the nav sets
+                `order-first` at ≥1024px, so tab order still reaches the page
+                before the navigation. When `AppNav` renders nothing — no session,
+                or /demo and /design — this is a flex row with one child and the
+                content simply fills it, with no padding left behind to explain. */}
+            <div className="lg:flex lg:items-start">
+              <div className="min-w-0 flex-1">{children}</div>
+              {/* The app's only `nav` landmark, mounted once here for the same
+                  reason DemoBar is: navigation each screen has to remember is
+                  navigation one screen will forget. It renders nothing when
+                  there is no session, and hides itself on /demo and /design. */}
+              <AppNav />
+            </div>
           </ToastProvider>
         </NextIntlClientProvider>
       </body>

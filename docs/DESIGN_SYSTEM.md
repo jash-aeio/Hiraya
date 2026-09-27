@@ -200,7 +200,7 @@ exist. See `src/design/README.md` for the working rules.
 
 | Component | Notes |
 |---|---|
-| `NavBar` | The bottom tab bar (§7) and the app's only `nav` landmark. Presentational: it is handed its items and knows nothing about roles or routes. `features/navigation/AppNav` decides the item list; `navView.ts` holds both rules as pure functions. Mounted once in the root layout, hidden on `/demo` and `/design` |
+| `NavBar` | The bottom tab bar on a phone and the sidebar from 1024px (§7), and the app's only `nav` landmark — **one element, two layouts** (P-16, 2026-09-27). A second `<nav>` behind `hidden lg:flex` would offer a screen reader two navigations where the P-06 audit asserts exactly one, and would give the same item list two renderers to keep in step. It stays last in the DOM and takes `order-first` at ≥1024px, so the sidebar sits left while tab order still reaches page content first — which is why no skip link is needed. Presentational: it is handed its items and knows nothing about roles or routes. `features/navigation/AppNav` decides the item list; `navView.ts` holds both rules as pure functions. Mounted once in the root layout, hidden on `/demo` and `/design` |
 | `NavIcon` | The five tab marks, authored on Lucide's grid like `CategoryIcon` (D14). `aria-hidden` — the label beside each one is the accessible name |
 
 **Learner components**
@@ -243,7 +243,7 @@ The reference is a three-column desktop dashboard. Hiraya is mobile-first at 360
 
 | Reference | Hiraya mobile | Hiraya desktop (≥1024px) |
 |---|---|---|
-| Left sidebar nav | **Bottom tab bar**, 5 items max | Sidebar returns, with the teal active pill |
+| Left sidebar nav | **Bottom tab bar**, 5 items max | Sidebar returns, with the teal active pill — **built 2026-09-27 (P-16)**: 240px, wordmark at the top, white on `--primary` for the active pill (4.8:1, passes AA at this size) |
 | Right rail (duels, friends) | **Not ported.** Becomes a Notifications tab | Optional notification panel |
 | Overview stat cards row | Horizontal snap-scroll `StatStrip` | 3-up grid |
 | Mini-game category tiles | 2-up grid of `CategoryTile` | 4-up grid |

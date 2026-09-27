@@ -56,5 +56,14 @@ export async function AppNav() {
     scan: t("scan"),
   });
 
-  return <NavBar items={items} label={t("label")} hiddenOn={HIDDEN_ON} />;
+  return (
+    <NavBar
+      items={items}
+      label={t("label")}
+      hiddenOn={HIDDEN_ON}
+      // Sidebar-only, and still translated: it is the accessible name of the
+      // wordmark link, which is the one thing in the rail that is not a tab.
+      homeLabel={t("brandHome")}
+    />
+  );
 }
