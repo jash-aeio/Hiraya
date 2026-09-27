@@ -326,10 +326,13 @@ function LeadEventCard({ lead }: { lead: LeadEvent }) {
               <h3 className="type-h2 text-ink">{event.title}</h3>
               <p className="type-small text-ink-muted">{event.org.name}</p>
             </div>
-            {/* Icon and word, never colour alone (§8). */}
+            {/* Icon and word, never colour alone (§8) — but `icon` overrides
+                rather than adds: Badge already renders its tone's own mark, so
+                passing one as a child renders two, which is what shipped in the
+                first screenshot of this screen. A broadcast mark reads "live"
+                better than the success tick here. */}
             {live ? (
-              <Badge tone="success">
-                <Radio className="size-3.5" aria-hidden="true" />
+              <Badge tone="success" icon={<Radio className="size-3.5" aria-hidden="true" />}>
                 {t("lead.live")}
               </Badge>
             ) : null}
