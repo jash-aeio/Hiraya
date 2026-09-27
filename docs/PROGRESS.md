@@ -12,6 +12,89 @@ another lane's is the failure this file exists to prevent.
 
 ---
 
+## 2026-09-27 — both audiences got a dashboard, and the audit earned its keep
+
+**Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track — no code task open in Phase 0 · **By:** claude
+
+Four PRs in one afternoon, on a scope addition the maintainer approved this morning: a dashboard for
+each audience, in both registers and at both breakpoints.
+
+**Shipped**
+
+- **J-12** (`a00eaee`, PR #34) — an optional `status` on the events list contract, typed from
+  `eventStatus.enumValues`. It narrows within what the `events` SELECT policy already grants and is
+  deliberately **not** validated against the caller's role: that rule lives in `src/db/rls/events.sql`,
+  and a second copy in a Zod schema would be the copy nobody audits.
+- **P-16** (`3be4d53`, PR #35) — the ≥1024px sidebar `DESIGN_SYSTEM.md` §7 has specified since
+  2026-09-21. **One `<nav>`, two layouts**: a second element behind `hidden lg:flex` would offer a
+  screen reader two navigations where the P-06 audit asserts exactly one. It stays last in the DOM and
+  takes `order-first` at ≥1024px, so the sidebar sits left while tab order still reaches page content
+  first — which is why it needs no skip link.
+- **P-17** (`8948f21`, PR #37) — the learner Home dashboard. `/` is no longer a placeholder for a
+  learner. Hero XP card, snap-scroll stat strip, leaderboard before anything secondary, category tiles.
+  Composes three existing endpoints with `allSettled`, so one dead endpoint costs its own section
+  rather than the screen.
+- **P-18** (`4fc7126`, PR #38) — the adviser and School Admin dashboard. `/` redirects staff to
+  `/approvals`; their tabs are Approvals · Events. Calm register **verified at runtime rather than
+  asserted**: `data-register="staff"`, `--duration-celebrate` computing to `0s`, zero medals. The queue
+  sorts missed events first, because a pending event past its date is not a late approval — nobody
+  approved it, so it never published, so no learner could register and no XP could be awarded.
+
+**Decisions**
+
+- **The scope bound held, and that is worth recording.** Every screen reads endpoints that already
+  existed; the only data change across four PRs was one optional query field. No new table, no new
+  policy, and none of Phase 4's analytics. The rule booked this morning — *if a dashboard needs a new
+  endpoint to look right, it has crossed into a later phase and stops* — survived contact with the work.
+- **Staff tabs replace the learner set rather than extend it.** An adviser has no points and no rank, so
+  Home, XP and Leaderboard would be tabs to screens about nobody. Someone who is *both* adviser and
+  learner is treated as a learner; an officer is a learner who also works the gate.
+- No D-table change. Nothing here altered an architecture decision.
+
+**Docs updated**
+
+- `WORKSTREAMS.md` — J-12, P-16, P-17, P-18 struck with their commits; §0 rewritten; critical path notes
+  that the slice was Gate A input and never on the path
+- `DESIGN_SYSTEM.md` — §6 records `StatStrip`/`StatTile` and `CategoryTile` and why they are shared
+  rather than learner-only; §6 and §7 record the one-element-two-layouts sidebar
+- `ASSET_CHECKLIST.md` — §1.3 now lists the six navigation marks, including the **approvals** mark
+  authored for the staff tab
+- `SYSTEM_DESIGN.md` — §5 records the `status` parameter and its narrowing semantics
+
+**Risks**
+
+- Retired: *a staff persona has no screen*, which was a live Gate A risk — the walkthrough is with a
+  teacher, and the teacher's own view did not exist.
+- Watch: **first load moved 208 KB → 221 KB** against the 500 KB budget. Comfortable, but the dashboards
+  are the heaviest screens so far and Phase 1 adds more.
+
+**Next**
+
+- **M-03 re-test** on a real phone, off wifi. It is the only thing that can tick Phase 0's last
+  criterion, and it now measures the dashboards rather than a placeholder.
+
+**Flagged**
+
+- **A Tailwind rename that fails silently.** `break-words` became `wrap-break-word` in Tailwind v4.1;
+  this project is on **4.3**, where the old name **emits no CSS and raises no error**. It reads correctly
+  in the markup and lint says nothing — the only way to catch it is to measure `overflow-wrap` in the
+  browser, which is how it was caught here, twice. Assume any Tailwind utility remembered from v3 may be
+  a no-op.
+- **Two defects were visible only in Filipino or only at 360px**: a 15-character Filipino word
+  overflowing its tile where the English fits, and a snap-scroll container eating the 16px side gutter.
+  Both would have shipped from a desktop English review.
+- **Deleting a base branch on merge auto-closes the PRs stacked on it**, and a closed PR cannot be
+  retargeted — PR #36 was lost that way and reopened as #37. When merging a stack, merge the base
+  *without* `--delete-branch`, retarget the child first, then clean up.
+- **Two pre-existing accessibility findings were reported rather than fixed**, because both would have
+  widened a feature PR: `Avatar` always renders its name in an `sr-only` span, so every leaderboard row
+  announces the name twice (true on `/leaderboard` since P-04); and a long name truncates in the podium
+  row at 360px when the "You" badge and XP are both present. Neither is booked yet.
+- **PR #31 (M-02's pitch kit) is still open and deliberately unmerged.** CI is green. It is content
+  presented to a school and wants the maintainer's read, not an automated squash-merge.
+
+---
+
 ## 2026-09-27 — the Pacific round trip is gone, and Phase 0 grew a dashboard
 
 **Phase:** 0 — Foundation, design system, demo tenant · **Status:** on track — the last Phase 0 code task on the critical path is closed · **By:** claude
