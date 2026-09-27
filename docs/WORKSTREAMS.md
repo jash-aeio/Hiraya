@@ -13,64 +13,63 @@ New here? Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first.
 
 > **Updated by `/hiraya-checkpoint`. If this block and the tables below disagree, the tables win.**
 
-**Phase 0 — Foundation, design system, demo tenant.** The last code task on the Phase 0 critical path is
-closed: **M-04 landed and was measured**, so the API no longer crosses the Pacific on every call. What
-remains on the path is the maintainer's — the phone re-test, then the pitch kit, then Gate A. Alongside
-it, a **pitch-facing UI slice was added to Phase 0 on 2026-09-27** by maintainer decision: the demo has
-no dashboard for either audience, and Gate A is a demo walked through on a phone with a teacher.
+**Phase 0 — Foundation, design system, demo tenant.** The dashboard slice booked this morning is built
+and merged: both audiences now have a screen of their own, at both breakpoints. **Every buildable task
+in Phase 0 is closed again.** What remains on the critical path is the maintainer's — the phone re-test,
+then the pitch kit, then Gate A.
 
 | | |
 |---|---|
 | **Current phase** | 0 of 7 · Gate A not yet reached |
-| **Last work to land** | **M-04** (`9a87663`, PR #32) — the Vercel function region is pinned to `sin1` in `vercel.json`, so functions execute beside the database instead of in Washington DC. `X-Vercel-Id` went from `sin1::iad1` to `sin1::sin1`; `/api/v1/demo/personas` from **1.27–1.31 s to 0.15–0.44 s** on the same 200 and the same 7,280 bytes. ~0.87 s off every `/api/v1` call. Recorded as **D36** |
+| **Last work to land** | **P-18** (`4fc7126`, PR #38) — the adviser and School Admin dashboard. Before it, in one afternoon: **J-12** (`a00eaee`), **P-16** (`3be4d53`), **P-17** (`8948f21`), and **M-04** (`9a87663`) |
 | **In flight** | **PR #31** — M-02's pitch kit, drafted, **awaiting the maintainer's read** rather than CI. It is content presented to a school; Claude does not merge it |
-| **Blocked on the maintainer** | **M-03 re-test** (now unblocked by M-04) and **M-02** |
-| **Open tasks, whole project** | 6 in Phase 0 — **J-12, P-16, P-17 and P-18 are code**, M-02 and the M-03 re-test are yours · 14 queued behind Gate A in Phase 1 |
+| **Blocked on the maintainer** | **M-03 re-test** and **M-02** |
+| **Open tasks, whole project** | 2 in Phase 0, **both yours** · 14 queued behind Gate A in Phase 1 |
 
 **▶ Next, in order:**
 
 | | Task | Who | Say |
 |---|---|---|---|
-| 1 | **M-03 re-test** — the phone test again, now that M-04 has landed | **you**, on a phone off wifi | `walk me through M-03` |
-| 2 | **P-16** — responsive app chrome: the ≥1024px sidebar `DESIGN_SYSTEM.md` §7 promises, and the staff tab set | Lane P | `build P-16` |
-| 3 | **P-17** — the learner Home dashboard, the screen the Home tab has never had | Lane P | `build P-17` |
+| 1 | **M-03 re-test** — the phone test, now that M-04 has landed and the dashboards are the screens it will measure | **you**, on a phone off wifi | `walk me through M-03` |
+| 2 | **M-02** — pitch kit (PR #31 is drafted and waiting on you), then **Gate A** | **you**, with drafting help | `review the pitch kit` |
 
-**Phase 0 grew on 2026-09-27, deliberately and with its tension stated.** The maintainer asked for a
-dashboard for each audience, matching the visual reference `DESIGN_SYSTEM.md` §1 is derived from, and
-chose the **calm demo shell** option over building Phase 4's admin analytics early. Three tasks were
-booked — **P-16** (chrome), **P-17** (learner Home), **P-18** (staff dashboard), behind one small handshake PR, **J-12** — and the roadmap's own
-Phase 0 risk names the danger: *"Over-building the demo: it needs to be walkable, not complete."* The
-line drawn is that these are **surfaces over endpoints that already exist**. P-17 composes
-`/api/v1/me/xp`, `/api/v1/events` and `/api/v1/leaderboard`; P-18 shows pending approvals that the
-`events` SELECT policy already returns to a `school_admin` and an `sslg_adviser` at any status. No new
-table, no new policy, no analytics endpoint, and **nothing from Phase 4's admin analytics** — no
-non-participant list, no health signals, no charts on sensitive data. If a dashboard needs a new
-endpoint to look right, that is the signal it has crossed into Phase 1 or 4 and should stop.
+**There is no code task open in Phase 0.** The dashboard slice closed the gap that made the demo hard to
+pitch: `/` was a placeholder for everyone, and a staff persona had no screen at all — on the very
+walkthrough Gate A depends on, where the teacher is the person deciding. A learner now lands on a Home
+dashboard in the playful register; an adviser and a School Admin land on `/approvals` in the calm one,
+and never see a level medal. The ≥1024px sidebar `DESIGN_SYSTEM.md` §7 has specified since 2026-09-21
+exists, so the demo no longer looks like a phone screen stretched across a laptop.
 
-**Why a dashboard is Gate A work and not decoration.** Two facts about the product as deployed today:
-the Home tab points at `/`, which is still the Phase 0 placeholder landing page it has been since
-2026-09-21 (`src/app/page.tsx` says so in its own comment), and **a staff persona has no screen at all**
-— pick Marisol Tagapamahala (`school_admin`) or Rosalinda Tanglaw (`sslg_adviser`) in the persona picker
-and you land on that same placeholder wearing learner tabs. `DESIGN_SYSTEM.md` §5 is explicit that
-advisers decide whether this platform survives and judge it on paperwork saved. Walking a teacher
-through a demo where the teacher's own view does not exist is the adoption argument lost before a
-feature is evaluated.
+**The scope bound held.** Every screen in the slice reads endpoints that already existed; the only data
+change in four PRs was one optional `status` field on a query contract. No new table, no new policy, no
+Phase 4 analytics — no non-participant list, no health signals, no charts. That was the line drawn when
+the slice was booked this morning, and it is worth recording that it survived contact with the work.
 
-**Five of Phase 0's six acceptance criteria are ticked. The sixth is measured, improved, and not yet
-re-run.** *"Demo tenant loads on a real phone over mobile data in under 3 seconds"* was measured at
-**3–4 s on 2026-09-26**, and the dominant cause — a 1.28 s flat round trip on every API call — is now
-fixed and verified at **0.15–0.44 s**. That does not tick the box: the criterion is about a phone on
-mobile data, and only M-03 can close it. What is known is that the largest measured contributor is gone
-and that the remaining cost is the ~209 KB of JS that must download and hydrate before `/demo`'s client
-fetch begins. **P-16 to P-18 must not spend that headroom** — the 500 KB budget and the re-test are both
-gates they answer to, and `hiraya-mobile-audit` runs before each merges.
+**First load went from 208 KB to 221 KB, against a 500 KB budget.** Measured on a production build of
+the Home dashboard, the heaviest new screen. The ~279 KB of headroom is what Phase 1's screens spend.
 
-**A verification note worth keeping.** M-04 was nearly recorded as verified against the preview
-deployment, which would have been wrong: previews sit behind Vercel deployment protection and answer
-**302 at the edge**, so a timing run against one measures a redirect and never invokes a function — it
-returns fast, with no `iad1` segment in `X-Vercel-Id`, and reads exactly like a pass. Anything measured
-on this project is measured against production, or against a preview with the protection bypass, and a
-timing number without an HTTP status beside it is not evidence.
+**What the mobile audit caught is the argument for running it.** Four defects on P-17 and three on P-18,
+none of which a screenshot shows: two `h1`s on one screen; links at 58×18px against a 44px floor; a
+snap-scroll container silently eating the 16px side gutter; a Filipino word overflowing its tile where
+the English fits; every status badge rendering two icons; a queue showing six rows where the data had
+one; and an adviser's primary action sitting off-screen behind a sideways table scroll. **Two of those
+were only visible in Filipino or at 360px**, which is exactly the pair of conditions the skill exists to
+force.
+
+**One Tailwind trap worth carrying forward.** `break-words` was renamed `wrap-break-word` in Tailwind
+v4.1, and this project is on 4.3. The old name **emits no CSS and raises no error** — it reads correctly
+in the markup, lint says nothing, and the only way to know is to measure `overflow-wrap` in the browser.
+Assume any Tailwind utility remembered from v3 may have become a no-op.
+
+**Phase 0's one open acceptance criterion is unchanged and is now cheaper to close.** *"Demo tenant loads
+on a real phone over mobile data in under 3 seconds"* was measured at 3–4 s on 2026-09-26. M-04 removed
+its largest measured cause — `/api/v1/demo/personas` went from 1.27–1.31 s to 0.15–0.44 s on production
+once the function region was pinned beside the database. Only the M-03 re-test can tick the box.
+
+**A verification note worth keeping.** M-04 was nearly recorded as verified against a preview
+deployment, which answers **302 at the edge** behind Vercel's deployment protection — so the timing run
+measured a redirect, never invoked a function, and looked exactly like a pass. Measure production, or use
+the protection bypass, and never record a timing number without an HTTP status and a byte count beside it.
 
 ## 1. Lanes
 
@@ -214,13 +213,13 @@ M-04 is latency, not weight.
 | ~~M-01~~ | ~~Apply the schema to Supabase; deploy to Vercel~~ | **M** | jash-aeio | D-05, P-06 | **Done 2026-09-23.** Live at `https://hiraya-eosin.vercel.app`; `/api/v1/health` answers `{"status":"ok","database":true}` and `/api/v1/demo/personas` offers 42. No commit — infrastructure, not code. **Two defects found and fixed in the deploying, both invisible locally**: the runtime had no `DATABASE_URL` (the variable existed but postdated the live build, and Vercel binds env at deploy time — the fix was a redeploy, not a new variable), and `HIRAYA_DEMO_SCHOOLS` did not match `halimbawa-demo`, so D25's allowlist discarded every persona and the public demo offered nobody. The second was hidden behind the first. R21 is answered: the SECURITY DEFINER functions read correctly where the caller is not a superuser |
 | **M-03** | **The phone test** — load the demo on a real phone over mobile data, under 3 seconds | **M** | jash-aeio | M-01, **M-04** | **Run 2026-09-26 — did not pass. Still open, still blocking Phase 0.** Measured **3–4 s, occasionally near 3 s** on a real phone, mobile data, incognito, with Supabase pre-warmed. `SETUP_GUIDE.md` §5a puts 3–6 s in the *record the real number* band, and the maintainer chose that over ticking the box. The run was worth far more than the criterion: it is the only check that touches PRD assumptions A1–A3, and the first time anyone ran it, it surfaced **M-04**. Re-test once M-04 is deployed |
 | ~~M-04~~ | ~~**Pin the Vercel function region to `sin1`**~~ | **D** | claude | — | **Done 2026-09-27** (`9a87663`, PR #32). One file, one key: `"regions": ["sin1"]` in `vercel.json`. Verified on production, not on the preview — the preview sits behind deployment protection and answers 302 at the edge, which times a redirect rather than a function and would have read as a pass. `X-Vercel-Id` went from `sin1::iad1` to `sin1::sin1`; `/api/v1/demo/personas` from **1.27–1.31 s to 0.15–0.44 s**, same 200, same 7,280 bytes. That is ~0.87 s off every `/api/v1` call in the product, not just the demo screen. Recorded as **D36** |
-| **P-16** | **Responsive app chrome** — the ≥1024px sidebar `DESIGN_SYSTEM.md` §7 promises, plus the staff tab set | P | claude | — | **Open.** Booked 2026-09-27. `NavBar` is bottom-tabs-only today, so every screen is a phone screen on a laptop — which is what a pitch is often shown on. Same items, same `navItemsFor` decision, a second layout: vertical sidebar with the teal active pill at ≥1024px. Also extends `navItemsFor` to return a tab set for `school_admin` and the adviser roles, which today get learner tabs. Touches a shipped primitive and so every existing screen — its own PR for exactly that reason |
-| **P-17** | **The learner Home dashboard** — the screen the Home tab has never had | P | claude | P-16 | **Open.** Booked 2026-09-27. `/` is still the Phase 0 placeholder landing page. Builds the reference's dashboard vocabulary per `DESIGN_SYSTEM.md` §7 — snap-scroll stat strip, 2-up category tiles, compact hero, leaderboard first — in the **learner** register. Composes `/api/v1/me/xp`, `/api/v1/events` and `/api/v1/leaderboard` in parallel; **no new endpoint**. `/` keeps rendering the landing page when there is no demo session, because it is also the public front door |
-| **P-18** | **The staff dashboard** — the screen an adviser and a school admin have never had | P | claude | P-16, J-12 | **Open.** Booked 2026-09-27. Calm register (`DESIGN_SYSTEM.md` §5): counts and a dense table, no medals, no mascots, no celebration — `[data-register="staff"]` already zeroes `--duration-celebrate`. Hero is *pending approvals*, which the `events` SELECT policy already returns to `school_admin` and `sslg_adviser` at any status, so no policy changes. **Deliberately not Phase 4:** no non-participant list, no health signals, no charts. Seeded data holds one pending and one rejected event — the number is small and honest |
-| **J-12** | `status` on the events list contract — `ListEventsQuery` filters scope, category and org, but not status | Joint | claude | — | **Open.** Booked 2026-09-27. The smallest PR of the three and it merges first (§2): a staff surface asking for *pending* events should say so in the query rather than over-fetch and filter in the browser, where a `limit` can hide the very rows the screen exists to show |
+| ~~P-16~~ | ~~**Responsive app chrome** — the ≥1024px sidebar `DESIGN_SYSTEM.md` §7 promises~~ | P | claude | — | **Done 2026-09-27** (`3be4d53`, PR #35). One `<nav>`, two layouts: a second element behind `hidden lg:flex` would offer a screen reader two navigations where the P-06 audit asserts exactly one. It stays last in the DOM and takes `order-first` at ≥1024px, so the sidebar sits left while tab order still reaches content first — which is why it needs no skip link. **The staff tab set moved to P-18**, which built the route it points at |
+| ~~P-17~~ | ~~**The learner Home dashboard**~~ | P | claude | P-16 | **Done 2026-09-27** (`8948f21`, PR #37, after #36 was auto-closed when its base branch was deleted on merge). `/` is no longer a placeholder for a learner. Composes `/api/v1/me/xp`, `/api/v1/events` and `/api/v1/leaderboard` with `allSettled`, so one dead endpoint costs its own section. **221 KB first load of 500 KB.** The audit caught four things a screenshot would not: two `h1`s, 58×18px links, a snap-scroll container eating the 16px gutter, and a Filipino word overflowing its tile — the last one twice, because Tailwind renamed `break-words` to `wrap-break-word` in v4.1 and the old name emits no CSS on 4.3 while still reading correctly in markup |
+| ~~P-18~~ | ~~**The staff dashboard**~~ | P | claude | P-16, J-12 | **Done 2026-09-27** (`4fc7126`, PR #38). An adviser and a School Admin have a screen of their own; `/` redirects staff to `/approvals` and their tabs are Approvals · Events. Calm register verified at runtime, not asserted: `data-register="staff"`, `--duration-celebrate: 0s`, zero medals. Read-only — approving is a Phase 2 write. The queue sorts missed events first, because a pending event past its date is not a late approval but an event that did not happen |
+| ~~J-12~~ | ~~`status` on the events list contract~~ | Joint | claude | — | **Done 2026-09-27** (`a00eaee`, PR #34). One optional field typed from `eventStatus.enumValues`. It narrows within what the `events` SELECT policy already grants and is deliberately not validated against the caller's role — that rule lives in `src/db/rls/events.sql`, and a second copy would be the copy nobody audits. Default stays undefined: `"approved"` would have hidden an officer's own drafts on the browse screen |
 | **M-02** | Pitch kit — 1-page PDF, 5-slide deck, 3-minute phone script | **M** | jash-aeio | M-01 | **Open.** Gate A input. Claude can draft all three |
 
-**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01 → M-04~~ → **M-03 re-test** → M-02 → **Gate A**. M-04 and M-03 entered the path on 2026-09-26, when the phone test was first actually run; M-04 left it on 2026-09-27, measured rather than assumed. ~~D-07~~ closed 2026-09-25; ~~D-08~~ and ~~P-08~~ closed 2026-09-25 and 2026-09-26. Both were off the path but visible on the public URL, and both are now gone from it.
+**Critical path:** ~~J-01 → D-01 → D-02 → D-03 → D-04 → D-05 → P-06 → P-07 → M-01 → M-04~~ → **M-03 re-test** → M-02 → **Gate A**. The dashboard slice (~~J-12 → P-16 → P-17 → P-18~~, all 2026-09-27) was never on this path — it is Gate A *input*, not a blocker, and it closed in one afternoon without moving the path. M-04 and M-03 entered the path on 2026-09-26, when the phone test was first actually run; M-04 left it on 2026-09-27, measured rather than assumed. ~~D-07~~ closed 2026-09-25; ~~D-08~~ and ~~P-08~~ closed 2026-09-25 and 2026-09-26. Both were off the path but visible on the public URL, and both are now gone from it.
 
 ---
 
