@@ -110,6 +110,48 @@
       }
     }
   },
+  "approvals": {
+    "label": "Adviser",
+    "title": "Approvals",
+    "loading": "Loading the approval queue",
+    "failed": {
+      "title": "We could not load the approval queue",
+      "description": "Check your connection and try again. Nothing has been approved or rejected."
+    },
+    "hero": {
+      "label": "Waiting on you",
+      "waiting": "Events proposed by organizations, waiting for a decision.",
+      "withMissed": "{count} of these are already past their date.",
+      "clear": "Nothing is waiting. The queue is clear.",
+      "action": "Review the first"
+    },
+    "stats": {
+      "label": "Queue at a glance",
+      "none": "—",
+      "pending": "Pending",
+      "pendingHint": "Awaiting a decision",
+      "missed": "Past their date",
+      "missedHint": "Never approved, so never published",
+      "approved": "Approved",
+      "approvedHint": "Upcoming and visible to learners"
+    },
+    "queue": {
+      "title": "The queue",
+      "caption": "Events awaiting approval, most urgent first",
+      "event": "Event",
+      "org": "Organization",
+      "when": "When",
+      "action": "Action",
+      "review": "Review",
+      "reviewNamed": "Review {event}",
+      "missed": "Past its date",
+      "soon": "Within two days",
+      "empty": {
+        "title": "Nothing to approve",
+        "description": "When an organization proposes an event, it appears here."
+      }
+    }
+  },
   "errors": {
     "UNAUTHENTICATED": "Please sign in again.",
     "FORBIDDEN": "You do not have permission to do this.",
@@ -456,6 +498,7 @@
     "leaderboard": "Leaderboard",
     "xp": "XP",
     "scan": "Scan",
-    "brandHome": "Hiraya home"
+    "brandHome": "Hiraya home",
+    "approvals": "Approvals"
   }
 }

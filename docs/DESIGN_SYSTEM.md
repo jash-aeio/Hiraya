@@ -187,6 +187,14 @@ keeps it one product; the register keeps it credible to both.
 danger), IconButton, Input, Select, Textarea, Checkbox, Radio, Switch, Chip, Badge, Card, Sheet, Dialog,
 Tabs, Toast, Skeleton, EmptyState, Avatar, ProgressBar, Spinner.
 
+**Added with the dashboards (2026-09-27):** `StatStrip`/`StatTile` (P-17) and `CategoryTile` (P-17).
+Both live here rather than in a feature folder because **both registers use them** — a learner's Home
+leads with points and a rank, an adviser's with "pending approvals: 3", and the shape of a headline
+number under a label is the same object in both. Giving each side its own near-duplicate is how a
+design system dies (§5). `StatTile` carries a label, a value and an optional hint, and deliberately no
+delta and no sparkline: neither has a truthful source yet, and a sparkline over invented points is
+decoration that looks like evidence.
+
 Two of these are shared internals rather than new inventory: `Modal` is what `Dialog` and `Sheet` both
 are (a native `<dialog>`, which brings its own focus trap, Escape handling and inert background), and
 `Field` is the label/hint/error wiring `Input`, `Select` and `Textarea` share so they cannot drift apart

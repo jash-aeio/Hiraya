@@ -21,6 +21,7 @@ const LABELS: NavLabels = {
   leaderboard: "Leaderboard",
   xp: "XP",
   scan: "Scan",
+  approvals: "Approvals",
 };
 
 const hrefs = (roles: readonly string[]) => navItemsFor(roles, LABELS).map((i) => i.href);
@@ -113,5 +114,49 @@ describe("isNavHidden", () => {
     expect(isNavHidden("/", hidden)).toBe(false);
     expect(isNavHidden("/events", hidden)).toBe(false);
     expect(isNavHidden("/designation", hidden)).toBe(false);
+  });
+});
+
+describe("the staff tab set (P-18)", () => {
+  it("gives an adviser Approvals and Events, and nothing that is about points", () => {
+    // An adviser has no XP and no rank, so Home, XP and Leaderboard would be
+    // tabs to screens about nobody.
+    expect(hrefs(["org_adviser"])).toEqual(["/approvals", "/events"]);
+    expect(hrefs(["sslg_adviser"])).toEqual(["/approvals", "/events"]);
+  });
+
+  it("gives a School Admin and a school head the same set", () => {
+    expect(hrefs(["school_admin"])).toEqual(["/approvals", "/events"]);
+    expect(hrefs(["school_head"])).toEqual(["/approvals", "/events"]);
+  });
+
+  it("treats someone who is both an adviser and a learner as a learner", () => {
+    // The schema permits it. The learner surface holds their own points; the
+    // staff surface holds nobody's, so the learner one is the one to keep.
+    expect(hrefs(["learner", "org_adviser"])).toContain("/");
+    expect(hrefs(["learner", "org_adviser"])).not.toContain("/approvals");
+  });
+
+  it("leaves an SSLG officer on the learner set with a Scan tab", () => {
+    // An officer is a learner who also works the gate, not staff.
+    expect(hrefs(["learner", "sslg_officer"])).toEqual([
+      "/",
+      "/events",
+      "/leaderboard",
+      "/xp",
+      "/checkin",
+    ]);
+  });
+
+  it("does not give guidance an approvals tab", () => {
+    // Guidance reads Phase 4 analytics and approves nothing; the tab would
+    // lead to an empty queue.
+    expect(hrefs(["guidance"])).not.toContain("/approvals");
+  });
+
+  it("does not hand an adviser the Scan tab by accident", () => {
+    // Advisers do scan, but that tab set is a later phase and is not invented
+    // here — the rule this file already applies to Orgs and Me.
+    expect(hrefs(["sslg_adviser"])).not.toContain("/checkin");
   });
 });
