@@ -94,6 +94,14 @@ Without these there is nothing to show the school, and the pitch is where this p
 | Faith-based | Sunrise (deliberately non-denominational) | `--cat-faith` |
 | Special interest | Sparkle / puzzle piece | `--cat-interest` |
 
+- [x] **6 navigation marks — authored** in `src/design/art/NavIcon.tsx`, same 24px Lucide grid and 1.75
+      stroke so they sit beside the category icons without looking borrowed. Five landed with P-15
+      (2026-09-23): home, events, leaderboard, xp, scan. The sixth, **approvals**, landed with P-18
+      (2026-09-27) — a sheet with a tick, drawn for the staff register. A stamp or a gavel would carry
+      approval as *authority*; a checked page carries it as **paperwork cleared**, which is the promise
+      the product actually makes to a teacher (`DESIGN_SYSTEM.md` §5). All six are `aria-hidden`: the
+      label beside each one is the accessible name.
+
 ### 1.4 Gamification art
 
 | Asset | Count | Spec | Status |

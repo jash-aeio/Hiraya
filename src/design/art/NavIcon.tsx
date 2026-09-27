@@ -2,7 +2,7 @@
  * The bottom-navigation marks (DESIGN_SYSTEM.md §7).
  *
  * Authored rather than pulled from Lucide for the reason CategoryIcon is: this
- * is five icons, and a library dependency for five icons costs more of the
+ * is six icons, and a library dependency for six icons costs more of the
  * 500 KB budget than drawing them does (D14). Drawn on Lucide's 24px grid at
  * the same 1.75 stroke so they sit beside CategoryIcon without looking borrowed.
  *
@@ -12,7 +12,7 @@
  * that meaning is never carried by colour or shape alone.
  */
 
-export type NavIconName = "home" | "events" | "leaderboard" | "xp" | "scan";
+export type NavIconName = "home" | "events" | "leaderboard" | "xp" | "scan" | "approvals";
 
 const PATHS: Record<NavIconName, React.ReactNode> = {
   // A roof over a door: the one shape nobody has to learn.
@@ -60,6 +60,18 @@ const PATHS: Record<NavIconName, React.ReactNode> = {
       <path d="M20.2 15.4v2.2a2.6 2.6 0 0 1-2.6 2.6h-2.2" />
       <path d="M8.6 20.2H6.4a2.6 2.6 0 0 1-2.6-2.6v-2.2" />
       <path d="M3.8 12h16.4" />
+    </>
+  ),
+  // A sheet with a tick: the adviser's tab, and the only mark in this set drawn
+  // for the staff register. A stamp or a gavel would carry approval as
+  // authority; a checked page carries it as *paperwork cleared*, which is the
+  // promise the product actually makes to a teacher (DESIGN_SYSTEM.md §5).
+  approvals: (
+    <>
+      <path d="M19 10.4V6.2a2.2 2.2 0 0 0-2.2-2.2H7.2A2.2 2.2 0 0 0 5 6.2v11.6a2.2 2.2 0 0 0 2.2 2.2h4" />
+      <path d="M8.6 8.4h6.8" />
+      <path d="M8.6 12h3.6" />
+      <path d="m13.8 17.2 2.2 2.2 4-4.4" />
     </>
   ),
 };

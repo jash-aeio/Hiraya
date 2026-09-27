@@ -54,6 +54,7 @@ export async function AppNav() {
     leaderboard: t("leaderboard"),
     xp: t("xp"),
     scan: t("scan"),
+    approvals: t("approvals"),
   });
 
   return (

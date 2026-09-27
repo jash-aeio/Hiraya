@@ -1,7 +1,9 @@
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { Card, CardHeader, buttonClass, registerAttrs } from "@/design";
 import { HomeScreen } from "@/features/home/components/HomeScreen";
+import { isStaff } from "@/features/navigation/navView";
 import { readDemoPersonaIdFromStore, resolveDemoSession } from "@/lib/auth/demo-session";
 
 /**
@@ -12,13 +14,12 @@ import { readDemoPersonaIdFromStore, resolveDemoSession } from "@/lib/auth/demo-
  * Splitting them would mean either a redirect on every visit or a second URL to
  * hand out, and both are worse than a branch.
  *
- * **Staff keep the front door for now, deliberately.** An adviser or a School
- * Admin landing on an XP hero with a level medal is the exact failure
+ * **Staff are sent to their own surface (P-18).** An adviser or a School Admin
+ * landing on an XP hero with a level medal is the exact failure
  * `DESIGN_SYSTEM.md` §5 describes — a dashboard that greets a teacher with
- * medals reads as a student toy and loses the adoption argument. Their own
- * calm surface is P-18; until it exists, showing them nothing pretending to be
- * theirs is the honest option, and inventing a placeholder dashboard would be
- * the dishonest one.
+ * medals reads as a student toy and loses the adoption argument. Now that
+ * `/approvals` exists they are redirected to it, and their tab set has no Home
+ * at all (§7): for staff, the approval queue *is* home.
  *
  * The session is resolved here rather than in the client component so the
  * greeting is in the first paint: the name is already known server-side, and
@@ -27,6 +28,10 @@ import { readDemoPersonaIdFromStore, resolveDemoSession } from "@/lib/auth/demo-
  */
 export default async function HomePage() {
   const session = await readDemoSession();
+
+  // Before the learner branch: someone who is both is a learner (see `isStaff`),
+  // so this only catches people with no learner surface to show.
+  if (session && isStaff(session.roles)) redirect("/approvals");
 
   if (session && session.roles.includes("learner")) {
     return (

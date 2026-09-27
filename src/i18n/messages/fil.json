@@ -110,6 +110,48 @@
       }
     }
   },
+  "approvals": {
+    "label": "Tagapayo",
+    "title": "Mga Aprubahan",
+    "loading": "Ikinakarga ang pila ng aprubahan",
+    "failed": {
+      "title": "Hindi ma-load ang pila ng aprubahan",
+      "description": "Tingnan ang koneksyon at subukan ulit. Walang naaprubahan o natanggihan."
+    },
+    "hero": {
+      "label": "Naghihintay sa iyo",
+      "waiting": "Mga kaganapang iminungkahi ng mga organisasyon, naghihintay ng desisyon.",
+      "withMissed": "{count} rito ay lampas na sa petsa.",
+      "clear": "Walang naghihintay. Malinis ang pila.",
+      "action": "Suriin ang una"
+    },
+    "stats": {
+      "label": "Sulyap sa pila",
+      "none": "—",
+      "pending": "Nakabinbin",
+      "pendingHint": "Naghihintay ng desisyon",
+      "missed": "Lampas sa petsa",
+      "missedHint": "Hindi naaprubahan, kaya hindi nailathala",
+      "approved": "Naaprubahan",
+      "approvedHint": "Paparating at nakikita ng mga mag-aaral"
+    },
+    "queue": {
+      "title": "Ang pila",
+      "caption": "Mga kaganapang naghihintay ng pag-apruba, pinakaapurahan muna",
+      "event": "Kaganapan",
+      "org": "Organisasyon",
+      "when": "Kailan",
+      "action": "Aksyon",
+      "review": "Suriin",
+      "reviewNamed": "Suriin ang {event}",
+      "missed": "Lampas sa petsa",
+      "soon": "Sa loob ng dalawang araw",
+      "empty": {
+        "title": "Walang aaprubahan",
+        "description": "Kapag may iminungkahing kaganapan ang isang organisasyon, lilitaw ito rito."
+      }
+    }
+  },
   "errors": {
     "UNAUTHENTICATED": "Mangyaring mag-sign in muli.",
     "FORBIDDEN": "Wala kang pahintulot para dito.",
@@ -456,6 +498,7 @@
     "leaderboard": "Leaderboard",
     "xp": "XP",
     "scan": "I-scan",
-    "brandHome": "Home"
+    "brandHome": "Home",
+    "approvals": "Aprubahan"
   }
 }
